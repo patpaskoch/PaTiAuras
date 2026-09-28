@@ -13,9 +13,12 @@ Part of the PaTiSuite, but completely standalone: no other PaTi addon is needed,
 - **Healing:** your healing auras (HoTs, shields) per party member, with timer or charges
 - Profiles: Restoration Shaman — Water Shield, Tidal Waves, Earth Shield, Riptide (IDs not yet confirmed in game);
   Priest — Inner Fire (personal) and the group buffs Fortitude, Divine Spirit, Shadow Protection, where the
-  Prayer version counts as the same buff (IDs confirmed in game). Group buffs are shown when you are in a group.
+  Prayer version counts as the same buff (IDs confirmed in game). Group buffs are also shown when you play alone.
 - Settings modal (language, scale, lock, sections, display options, per-aura switches), test mode, diagnostics
-- Planned: click-to-buff, optional PaTiHeal integration
+- **Click-to-buff:** click a group buff line to cast the single-target buff on the next member who is missing it
+  (shown in the tooltip). Each cast needs your click; your target does not change. In combat the click target stays
+  as it was when combat began — WoW allows changing it only out of combat.
+- Planned: optional PaTiHeal integration
 
 ## Commands
 `/pa` or `/patiauras` — `show`, `hide`, `test`, `lock`, `unlock`, `reset` (position), `settings`, `auras` (spell ID check),

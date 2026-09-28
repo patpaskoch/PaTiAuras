@@ -28,6 +28,13 @@ local function rebuild()
     update()
 end
 
+-- The window holds secure click-to-buff buttons, so showing, hiding, moving, scaling and anything that changes
+-- their targets (test mode) is only possible out of combat.
+local function combatBlocked()
+    if InCombatLockdown() then say("COMBAT_LOCKED"); return true end
+    return false
+end
+
 -- Settings ---------------------------------------------------------------------------------------
 
 local modal
@@ -59,7 +66,10 @@ local function buildSettings()
     modal:AddRow("SCALE", UI.CreateDropdown(modal, 170, {
         items = scaleItems,
         get = function() return DB.scale end,
-        set = function(scale) DB.scale = scale; window:SetScale(scale) end,
+        set = function(scale)
+            DB.scale = scale
+            if not combatBlocked() then window:SetScale(scale) end -- else applied after combat
+        end,
     }))
     modal:AddSection("DISPLAY")
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
@@ -103,17 +113,20 @@ end
 -- Commands -------------------------------------------------------------------------------------
 
 local function toggleTestMode()
+    if combatBlocked() then return end
     Watch.testMode = not Watch.testMode
     window:SetTestMode(Watch.testMode)
     rebuild()
 end
 
 local function setShown(shown)
+    if combatBlocked() then return end
     window:SetShown(shown)
     if shown then update() else say("HIDDEN_HINT") end
 end
 
 local function resetPosition()
+    if combatBlocked() then return end
     DB.point, DB.relativePoint, DB.x, DB.y = nil, nil, nil, nil
     window:Attach(DB, -330, 120)
 end
@@ -144,15 +157,19 @@ local function printDebug()
     local version, build, _, interface = GetBuildInfo()
     local _, classFile = UnitClass("player")
     local counts = Watch.Count()
-    local clickable = 0 -- click-to-buff is not part of v0.1
+    local clickable = 0
+    for _, entry in ipairs(Watch.entries.group) do
+        if Spells.IsKnown(entry.spellID) then clickable = clickable + 1 end
+    end
     printLines("Debug", {
         ("Addon %s %s · PaTiShared UI %s"):format(addonName, addonVersion(), tostring(UI.VERSION)),
         ("WoW %s (build %s, interface %s) · locale %s · UI language %s"):format(tostring(version), tostring(build),
             tostring(interface), GetLocale(), UI.GetLanguage()),
         ("Class %s · spec %s · %s · combat %s · test mode %s"):format(tostring(classFile), specText(), groupType(),
             InCombatLockdown() and "yes" or "no", Watch.testMode and "on" or "off"),
-        ("Profile %s · tracked: personal %d, procs %d, group %d, healing %d · clickable %d · pending secure changes: no"):format(
-            Watch.profile and Watch.profile.name or "none", counts.personal, counts.procs, counts.group, counts.healing, clickable),
+        ("Profile %s · tracked: personal %d, procs %d, group %d, healing %d · clickable %d · pending secure changes: %s"):format(
+            Watch.profile and Watch.profile.name or "none", counts.personal, counts.procs, counts.group, counts.healing, clickable,
+            AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
     })
@@ -207,11 +224,13 @@ end
 
 window:SetMenu(function()
     if not DB then return {} end
+    local combat = InCombatLockdown()
+    local combatTip = combat and "COMBAT_LOCKED" or nil
     return {
         { text = "SETTINGS", onClick = openSettings },
         { text = window:IsLocked() and "UNLOCK" or "LOCK", onClick = function() window:SetLocked(not window:IsLocked()) end },
-        { text = "TEST_MODE", checked = Watch.testMode, onClick = toggleTestMode },
-        { text = "HIDE", onClick = function() setShown(false) end },
+        { text = "TEST_MODE", checked = Watch.testMode, disabled = combat, tooltip = combatTip, onClick = toggleTestMode },
+        { text = "HIDE", disabled = combat, tooltip = combatTip, onClick = function() setShown(false) end },
     }
 end)
 
@@ -219,7 +238,7 @@ end)
 
 local events = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "GROUP_ROSTER_UPDATE", "UNIT_AURA",
-    "UNIT_CONNECTION", "UNIT_FLAGS", "SPELLS_CHANGED" }) do
+    "UNIT_CONNECTION", "UNIT_FLAGS", "SPELLS_CHANGED", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED" }) do
     events:RegisterEvent(event)
 end
 for _, event in ipairs({ "PLAYER_SPECIALIZATION_CHANGED", "ACTIVE_TALENT_GROUP_CHANGED", "CHARACTER_POINTS_CHANGED" }) do
@@ -232,7 +251,7 @@ events:SetScript("OnEvent", function(_, event, unit)
         DB = PaTiAurasDB
         UI.SetLanguage(DB.language)
         window:Attach(DB, -330, 120)
-        window:SetScale(DB.scale)
+        if not InCombatLockdown() then window:SetScale(DB.scale) end -- /reload in combat: after combat
         rebuild()
         local version = addonVersion()
         if DB.lastChangelog ~= version then
@@ -246,6 +265,12 @@ events:SetScript("OnEvent", function(_, event, unit)
             Watch.RefreshUnit(unit)
             update()
         end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        -- Combat over: buff buttons point at the next missing member again, window gets its real size/scale.
+        window:SetScale(DB.scale)
+        update()
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        update() -- tooltips switch to "target fixed until combat ends"
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
         Watch.RefreshAll()
         update()

@@ -1,7 +1,7 @@
--- PaTiAuras: main window. Three calm sections (SELF, GROUP, HEALING) of text lines with small icons.
--- Plain frames only (no secure buttons in v0.1), so the window may resize and redraw in combat.
+-- PaTiAuras: main window. Three calm sections (GROUP, SELF, HEALING) of text lines with small icons.
+-- The group lines carry secure click-to-buff buttons (see below); everything else is plain frames.
 local _, ns = ...
-local UI, L, Auras, Watch = ns.UI, ns.UI.L, ns.Auras, ns.Watch
+local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spells
 
 local AuraWindow = {}
 ns.AuraWindow = AuraWindow
@@ -72,6 +72,62 @@ local function lineHeight(line)
     return math.max(LINE, math.ceil(textHeight) + UI.Spacing.SM)
 end
 
+-- Click-to-buff ----------------------------------------------------------------------------------
+-- One SecureActionButtonTemplate over each group buff line. A click casts the single-target buff on the unit in
+-- the button's attributes, without changing your target. Attributes (unit, spell) can only be set out of combat:
+-- in combat the button keeps the target it had when combat started (shown in the tooltip); the next missing
+-- member is set after PLAYER_REGEN_ENABLED. Secure children make the window protected, so its size, position and
+-- visibility also change only out of combat. The group section is drawn first, so its rows never move in combat.
+local MAX_GROUP_BUFFS = 4
+local securePending = false
+local buffButtons = {}
+for index = 1, MAX_GROUP_BUFFS do
+    local button = CreateFrame("Button", "PaTiAurasBuff" .. index, window, "SecureActionButtonTemplate")
+    button:RegisterForClicks("AnyUp", "AnyDown") -- as PaTiGroup's secure buttons
+    button:SetSize(WIDTH - 2 * PAD, LINE)
+    button:SetFrameLevel((window:GetFrameLevel() or 0) + 5) -- above the (lazily created) line frames
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT") -- hover only while enabled
+    highlight:SetAllPoints()
+    local r, g, b = UI.Color("Accent")
+    highlight:SetColorTexture(r, g, b, 0.12)
+    UI.SetTooltip(button, function() return button.tooltipLines end)
+    button:Hide()
+    buffButtons[index] = button
+end
+
+local function groupRowTop(index) -- y of group line `index` (the section header is row 0)
+    return UI.Sizes.HeaderHeight + UI.Spacing.SM + index * LINE
+end
+
+-- Single-target spell name for the click, or nil if you do not know it (then the row only displays).
+local function clickSpell(entry)
+    if Watch.testMode or not Spells.IsKnown(entry.spellID) then return nil end
+    return Spells.CastName(entry.spellID)
+end
+
+-- Out of combat only: position, attributes and enabled state of the buff buttons.
+local function applySecure(groupList)
+    if InCombatLockdown() then securePending = true; return end
+    for index, button in ipairs(buffButtons) do
+        local item = groupList[index]
+        if item then
+            local spell = item.target and clickSpell(item.entry)
+            button:ClearAllPoints()
+            button:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -groupRowTop(index))
+            button:SetAttribute("unit", spell and item.target.unit or nil)
+            button:SetAttribute("type1", spell and "spell" or nil)
+            button:SetAttribute("spell1", spell)
+            button:SetEnabled(spell ~= nil) -- everyone buffed / spell unknown / test mode: a click does nothing
+            button.boundSpell, button.boundName = spell, spell and item.target.name
+            button:Show()
+        else
+            button:SetAttribute("type1", nil)
+            button:Hide()
+        end
+    end
+    securePending = false
+end
+
 local STATE_COLOR = { ACTIVE = "Text", EXPIRING = "Warning", MISSING = "TextMuted", UNKNOWN = "TextMuted" }
 
 local function detail(entry, result, target)
@@ -87,8 +143,28 @@ local function valueText(entry, result, db)
 end
 
 -- Builds all lines from Watch data. Returns true if any shown value has a running timer.
+-- Tooltip of a group buff line: buffed count, who misses it, who is offline/dead, and whom a click buffs.
+local function groupTooltip(item, button)
+    local summary = item.summary
+    local tip = { item.entry.name, L.TIP_BUFFED:format(summary.have, summary.total) }
+    if #summary.missing > 0 then tip[#tip + 1] = L.TIP_MISSING_ON:format(table.concat(summary.missing, ", ")) end
+    if #summary.away > 0 then tip[#tip + 1] = L.TIP_AWAY:format(table.concat(summary.away, ", ")) end
+    if #summary.missing == 0 then tip[#tip + 1] = L.TIP_ALL_BUFFED end
+    if InCombatLockdown() then
+        -- The button keeps the target it had before combat; say so instead of guessing.
+        if button and button.boundSpell then
+            tip[#tip + 1] = L.TIP_CLICK_NEXT:format(button.boundSpell, button.boundName)
+            tip[#tip + 1] = L.TIP_COMBAT_FIXED
+        end
+    elseif item.target and clickSpell(item.entry) then
+        tip[#tip + 1] = L.TIP_CLICK_NEXT:format(clickSpell(item.entry), item.target.name)
+    end
+    return tip
+end
+
 function AuraWindow.Render(db)
     local count, timers = 0, false
+    local groupList = {}
     local function add(kind)
         count = count + 1
         return prepare(count, kind)
@@ -102,6 +178,20 @@ function AuraWindow.Render(db)
     elseif not Watch.profile then
         add("message").name:SetText(L.NO_PROFILE)
     else
+        -- GROUP first: its rows sit at fixed positions, so the secure buttons over them never need to move in combat.
+        groupList = Watch.Group(db)
+        if #groupList > 0 then header("SECTION_GROUP") end
+        for index, item in ipairs(groupList) do
+            local line, summary = add("entry"), item.summary
+            local incomplete = #summary.missing > 0
+            line.icon:SetAura(item.entry.icon, incomplete and db.showMissing and "MISSING" or "ACTIVE")
+            line.name:SetText(item.entry.name)
+            line.value:SetText(("%d / %d"):format(summary.have, summary.total))
+            line.value:SetTextColor(UI.Color(incomplete and db.showMissing and "Warning" or "Text"))
+            line.tooltipLines = groupTooltip(item, buffButtons[index])
+            if buffButtons[index] then buffButtons[index].tooltipLines = line.tooltipLines end
+        end
+
         local selfList = Watch.Self(db)
         local visible = {}
         for _, item in ipairs(selfList) do
@@ -116,22 +206,6 @@ function AuraWindow.Render(db)
             line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
             line.tooltipLines = detail(item.entry, result)
             timers = timers or result.remaining ~= nil
-        end
-
-        local groupList = Watch.Group(db)
-        if #groupList > 0 then header("SECTION_GROUP") end
-        for _, item in ipairs(groupList) do
-            local line, summary = add("entry"), item.summary
-            local incomplete = #summary.missing > 0
-            line.icon:SetAura(item.entry.icon, incomplete and db.showMissing and "MISSING" or "ACTIVE")
-            line.name:SetText(item.entry.name)
-            line.value:SetText(("%d / %d"):format(summary.have, summary.total))
-            line.value:SetTextColor(UI.Color(incomplete and db.showMissing and "Warning" or "Text"))
-            local tip = { item.entry.name }
-            if incomplete then tip[#tip + 1] = L.TIP_MISSING_ON:format(table.concat(summary.missing, ", ")) end
-            if #summary.away > 0 then tip[#tip + 1] = L.TIP_AWAY:format(table.concat(summary.away, ", ")) end
-            if not incomplete then tip[#tip + 1] = L.TIP_ALL_BUFFED end
-            line.tooltipLines = tip
         end
 
         local healingList = Watch.Healing(db)
@@ -168,7 +242,12 @@ function AuraWindow.Render(db)
             y = y + height
         end
     end
-    window:SetHeight(y + PAD)
+    applySecure(groupList)
+    if InCombatLockdown() then
+        securePending = true -- the protected window keeps its size until combat ends
+    else
+        window:SetHeight(y + PAD)
+    end
     return timers
 end
 
@@ -187,3 +266,6 @@ ticker:SetScript("OnUpdate", function(self, delta)
     elapsed = 0
     AuraWindow.Update(self.db)
 end)
+
+-- True while buff buttons or the window size wait for the end of combat.
+function AuraWindow.HasPendingSecure() return securePending end

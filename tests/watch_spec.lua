@@ -30,6 +30,7 @@ local function setup(class, known)
     _G.UnitName = function(unit) return world.units[unit].name end
     _G.UnitIsConnected = function(unit) return not world.units[unit].offline end
     _G.UnitIsDeadOrGhost = function(unit) return world.units[unit].dead == true end
+    _G.UnitIsVisible = function(unit) return not world.units[unit].far end
     _G.C_UnitAuras = { GetAuraDataByIndex = function(unit, index)
         local u = world.units[unit]
         return u and u.auras and u.auras[index]
@@ -129,14 +130,77 @@ describe("Priest profile", function()
         assert.equal("FORTITUDE", ns.Watch.entries.group[1].key)
     end)
 
-    it("hides the group summary when solo", function()
+    it("shows group buffs solo, with yourself as the only member and click target", function()
         local ns, db = setup("PRIEST", ALL_PRIEST)
         world.inGroup = false
         world.units = { player = { name = "Du", auras = {} } }
         ns.Watch.Rebuild(db)
         ns.Watch.RefreshAll()
-        assert.same({}, ns.Watch.Group(db))
-        assert.equal(1, #ns.Watch.Self(db))
+        local fortitude = ns.Watch.Group(db)[1]
+        assert.equal(0, fortitude.summary.have)
+        assert.equal(1, fortitude.summary.total)
+        assert.equal("player", fortitude.target.unit)
+        world.units.player.auras = { aura("Machtwort: Seelenstärke", 1243) }
+        ns.Watch.RefreshUnit("player")
+        fortitude = ns.Watch.Group(db)[1]
+        assert.equal(1, fortitude.summary.have)
+        assert.is_nil(fortitude.target)
+    end)
+end)
+
+describe("Click-to-buff target", function()
+    local function target(ns, db, key)
+        for _, item in ipairs(ns.Watch.Group(db)) do
+            if item.entry.key == key then return item.target end
+        end
+    end
+
+    it("points at the next missing member, one after another as buffs land", function()
+        local ns, db = setup("PRIEST", ALL_PRIEST)
+        world.units = {
+            player = { name = "Du", auras = { aura("Machtwort: Seelenstärke", 1243) } },
+            party1 = { name = "A", auras = { aura("Gebet der Seelenstärke", 21562) } },
+            party2 = { name = "C", auras = {} },
+            party3 = { name = "D", auras = {} },
+        }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.equal("party2", target(ns, db, "FORTITUDE").unit)
+        world.units.party2.auras = { aura("Machtwort: Seelenstärke", 1243) } -- first click landed
+        ns.Watch.RefreshUnit("party2")
+        assert.equal("party3", target(ns, db, "FORTITUDE").unit)
+        world.units.party3.auras = { aura("Machtwort: Seelenstärke", 1243) }
+        ns.Watch.RefreshUnit("party3")
+        assert.is_nil(target(ns, db, "FORTITUDE"))                         -- 4/4: nothing to cast
+    end)
+
+    it("never targets offline, dead or out-of-sight members", function()
+        local ns, db = setup("PRIEST", ALL_PRIEST)
+        world.units = {
+            player = { name = "Du", auras = { aura("Machtwort: Seelenstärke", 1243) } },
+            party1 = { name = "Weg", offline = true },
+            party2 = { name = "Tot", dead = true },
+            party3 = { name = "Fern", far = true, auras = {} },
+            party4 = { name = "Da", auras = {} },
+        }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.equal("party4", target(ns, db, "FORTITUDE").unit)
+        world.units.party4 = nil -- leaves the group
+        ns.Watch.RefreshAll()
+        assert.is_nil(target(ns, db, "FORTITUDE"))
+    end)
+
+    it("never picks a target when aura data is unreadable (UNKNOWN, not MISSING)", function()
+        local ns, db = setup("PRIEST", ALL_PRIEST)
+        world.units = {
+            player = { name = "Du", auras = { aura("Machtwort: Seelenstärke", 1243, { expirationTime = 1010 }) } },
+        }
+        _G.C_UnitAuras = { GetAuraDataByIndex = function() error("restricted") end }
+        world.units.party1 = { name = "X" }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.is_nil(target(ns, db, "FORTITUDE"))
     end)
 end)
 

@@ -13,6 +13,8 @@ local Watch = {
 ns.Watch = Watch
 
 local CATEGORY_SETTING = { personal = "showPersonal", procs = "showProcs", group = "showGroup", healing = "showHealing" }
+local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
+
 local WATCHED_UNIT = {}
 for _, unit in ipairs(Watch.UNITS) do WATCHED_UNIT[unit] = true end
 
@@ -77,6 +79,12 @@ local function unitBasics(unit)
     local basics = { name = UnitName(unit) or unit }
     if not UnitIsConnected(unit) then basics.state = "OFFLINE"
     elseif UnitIsDeadOrGhost(unit) then basics.state = "DEAD" end
+    -- Reachable = within the client's visibility range (far-away members are no click target).
+    -- Unreadable or missing API → nil, treated as reachable; the cast itself reports "out of range".
+    if UnitIsVisible then
+        local visible = UnitIsVisible(unit)
+        if not isSecret(visible) then basics.reachable = visible == true or visible == 1 end
+    end
     return basics
 end
 
@@ -97,10 +105,6 @@ function Watch.RefreshAll()
     for _, unit in ipairs(Watch.UNITS) do Watch.RefreshUnit(unit) end
 end
 
-function Watch.InGroup()
-    return Watch.testMode or (IsInGroup ~= nil and IsInGroup())
-end
-
 -- View data for the window ---------------------------------------------------------------------
 
 -- { { entry, result } } for personal buffs (always listed) and procs (only while active).
@@ -118,19 +122,20 @@ function Watch.Self(db)
 end
 
 -- { { entry, summary } } — only when in a group.
+-- { { entry, summary, target } } — also solo (then you are the only member). `target` is the member a click
+-- would buff next (Auras.NextTarget), or nil when everyone reachable has it.
 function Watch.Group(db)
     local list, now = {}, GetTime()
-    if not Watch.InGroup() then return list end
     for _, entry in ipairs(Watch.entries.group) do
         local members = {}
         for _, unit in ipairs(Watch.UNITS) do
             local info = Watch.info[unit]
             if info then
-                members[#members + 1] = { name = info.name, unitState = info.state,
-                    result = Auras.Evaluate(entry, info.helpful, now, db) }
+                members[#members + 1] = { unit = unit, name = info.name, unitState = info.state,
+                    reachable = info.reachable, result = Auras.Evaluate(entry, info.helpful, now, db) }
             end
         end
-        list[#list + 1] = { entry = entry, summary = Auras.Summarize(members) }
+        list[#list + 1] = { entry = entry, summary = Auras.Summarize(members), target = Auras.NextTarget(members) }
     end
     return list
 end

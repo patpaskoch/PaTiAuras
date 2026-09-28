@@ -12,8 +12,10 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
 - SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura.
 - Profiles: only classes whose spell IDs are confirmed in this client. A new profile = one data file + TOC line, no code.
   Several spells giving the same buff (e.g. Prayer versions) = one entry with `variants = { id, … }`, never two entries.
-- Secure: none in 0.1. Click-to-buff (planned) must use SecureActionButtonTemplate with unit+spell fixed out of combat,
-  always-visible buttons (state shown visually), no auto target, no sequences.
+- Secure: `PaTiAurasBuff1..4` (SecureActionButtonTemplate) over the group buff lines; `unit`/`type1`/`spell1` set only out of
+  combat in `AuraWindow.applySecure` (target = `Auras.NextTarget`, tested). The window is therefore protected: no
+  resize/show/hide/scale/move in combat (pending until PLAYER_REGEN_ENABLED); the group section stays first.
+  Owner decision 2026-09-28: pre-selecting the next missing member is allowed; never cast, target or loop by itself.
 - Independence: no dependency on PaTiHeal/PaTiTank. A later integration = a small versioned global API, checked with `if PaTiAurasAPI then`.
 - Slash: `/pa`, `/patiauras`.
 

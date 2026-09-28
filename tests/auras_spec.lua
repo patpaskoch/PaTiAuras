@@ -105,3 +105,20 @@ describe("Auras.IsWatched", function()
         assert.is_false(Auras.IsWatched(settings, { key = "EARTH_SHIELD" }))
     end)
 end)
+
+describe("Auras.NextTarget", function()
+    it("returns the first reachable, living member with the buff MISSING", function()
+        local next = load().NextTarget({
+            { unit = "player", result = { state = "ACTIVE" } },
+            { unit = "party1", unitState = "OFFLINE", result = { state = "MISSING" } },
+            { unit = "party2", reachable = false, result = { state = "MISSING" } },
+            { unit = "party3", result = { state = "UNKNOWN" } },
+            { unit = "party4", result = { state = "MISSING" } },
+        })
+        assert.equal("party4", next.unit)
+    end)
+
+    it("returns nil when nobody needs the buff", function()
+        assert.is_nil(load().NextTarget({ { unit = "player", result = { state = "EXPIRING" } } }))
+    end)
+end)

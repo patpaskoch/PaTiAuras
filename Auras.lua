@@ -50,6 +50,18 @@ function Auras.IconText(entry, result, settings, formatRemaining)
     return nil
 end
 
+-- Click-to-buff target: the first member (in unit order: you, party1..4) whose buff is MISSING and who is alive,
+-- online and reachable. EXPIRING counts as buffed, UNKNOWN is never guessed. Returns the member or nil.
+-- The player still clicks for every single cast; this only decides which unit the button points at.
+function Auras.NextTarget(members)
+    for _, member in ipairs(members) do
+        if not member.unitState and member.reachable ~= false and member.result.state == "MISSING" then
+            return member
+        end
+    end
+    return nil
+end
+
 -- Group buff summary. members: { { name, unitState = nil | "OFFLINE" | "DEAD", result } }.
 -- Offline/dead members are left out: they need no buff reminder (spec: offline/dead before missing).
 function Auras.Summarize(members)
