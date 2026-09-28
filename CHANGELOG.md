@@ -28,6 +28,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Secret values: a secret member name is replaced by "You" / "Party member N" (names are joined into tooltips);
+  secret offline/dead flags no longer count as offline or dead.
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues

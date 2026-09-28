@@ -237,3 +237,21 @@ describe("Watch.IsOffered (what the new-auras dialog may show)", function()
         assert.is_true(ns.Watch.IsOffered({ key = "X", spellID = 1 }, "procs"))
     end)
 end)
+
+describe("Unit basics with secret values", function()
+    it("replaces a secret name (tooltips concatenate names) and never reads a secret flag as offline", function()
+        local ns, db = setup("PRIEST", ALL_PRIEST)
+        local SECRET = setmetatable({}, { __eq = function() error("secret compared") end })
+        _G.issecretvalue = function(value) return rawequal(value, SECRET) end
+        _G.UnitIsConnected = function(unit) if unit == "party2" then return SECRET end return true end
+        world.units = {
+            player = { name = "Du", auras = { aura("Machtwort: Seelenstärke", 1243) } },
+            party2 = { name = SECRET, auras = {} },
+        }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local fortitude = groupLine(ns, db, "FORTITUDE")
+        assert.same({ "Party member 2" }, fortitude.missing)
+        assert.same({}, fortitude.away)
+    end)
+end)

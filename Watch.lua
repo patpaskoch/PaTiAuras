@@ -82,9 +82,16 @@ local function unitBasics(unit)
         return fake and { name = L[fake.nameKey], state = fake.state }
     end
     if not UnitExists(unit) then return nil end
-    local basics = { name = UnitName(unit) or unit }
-    if not UnitIsConnected(unit) then basics.state = "OFFLINE"
-    elseif UnitIsDeadOrGhost(unit) then basics.state = "DEAD" end
+    -- Names end up in table.concat/format (tooltips), so a secret name is replaced, never passed on.
+    local name = UnitName(unit)
+    if isSecret(name) or name == nil then
+        name = unit == "player" and L.YOU or L.PARTY_MEMBER:format(tonumber(unit:match("%d")) or 0)
+    end
+    local basics = { name = name }
+    -- Flags: secrecy first; an unreadable flag gives no state (the aura data decides, UNKNOWN if unreadable).
+    local connected, dead = UnitIsConnected(unit), UnitIsDeadOrGhost(unit)
+    if not isSecret(connected) and not connected then basics.state = "OFFLINE"
+    elseif not isSecret(dead) and dead then basics.state = "DEAD" end
     -- Reachable = within the client's visibility range (far-away members are no click target).
     -- Unreadable or missing API → nil, treated as reachable; the cast itself reports "out of range".
     if UnitIsVisible then
