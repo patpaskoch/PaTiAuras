@@ -60,6 +60,55 @@ function Modal:AddLabel(text)
     return label
 end
 
+-- A help note: slightly raised panel with an accent line on the left, a title, an optional highlighted line
+-- (e.g. a menu path) and wrapped text. Help, not a warning: no warning colours, nothing blinks.
+-- title/highlight/text: see UI.Text (highlight may be nil). minLines: body lines to reserve at least, so a
+-- longer translation after a language switch still fits.
+local NOTE_LINE = 13
+function Modal:AddNote(title, highlight, text, minLines)
+    local width = self:GetWidth() - 2 * UI.Spacing.LG
+    local inner = width - 2 * UI.Spacing.MD - 2
+    local note = CreateFrame("Frame", nil, self)
+    note:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
+    note:SetWidth(width)
+    local background = note:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetColorTexture(UI.Color("PanelHover"))
+    local accent = note:CreateTexture(nil, "ARTWORK")
+    accent:SetPoint("TOPLEFT")
+    accent:SetPoint("BOTTOMLEFT")
+    accent:SetWidth(2)
+    accent:SetColorTexture(UI.Color("Accent"))
+
+    local left = 2 + UI.Spacing.MD
+    local heading = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
+    heading:SetPoint("TOPLEFT", left, -UI.Spacing.MD)
+    heading:SetTextColor(UI.Color("Text"))
+    UI.BindText(heading, title)
+    local anchor, height = heading, UI.Spacing.MD + 14
+    if highlight then
+        local path = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
+        path:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
+        path:SetWidth(inner)
+        path:SetJustifyH("LEFT")
+        path:SetTextColor(UI.Color("Accent"))
+        UI.BindText(path, highlight)
+        anchor, height = path, height + UI.Spacing.SM + 14
+    end
+    local body = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
+    body:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
+    body:SetWidth(inner)
+    body:SetJustifyH("LEFT")
+    body:SetWordWrap(true)
+    body:SetTextColor(UI.Color("TextMuted"))
+    UI.BindText(body, text)
+    local bodyHeight = math.max(body:GetStringHeight() or 0, (minLines or 1) * NOTE_LINE)
+    height = height + UI.Spacing.SM + bodyHeight + UI.Spacing.MD
+    note:SetHeight(height)
+    self.cursor = self.cursor - height - UI.Spacing.SM
+    return note
+end
+
 -- onDefaults nil = no "Restore Defaults" button.
 function Modal:Finish(onDefaults)
     self.cursor = self.cursor - UI.Spacing.MD
