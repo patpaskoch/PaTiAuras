@@ -174,7 +174,7 @@ function AuraWindow.Render(db)
     end
 
     if db.collapsed then
-        -- Collapsed: header only; no lines, and the buff buttons are hidden (out of combat — see applySecure).
+        groupList = {} -- collapsed: header only; applySecure({}) hides the buff buttons (out of combat)
     elseif not db.enabled then
         add("message").name:SetText(L.DISABLED)
     elseif not Watch.profile then
