@@ -173,7 +173,9 @@ function AuraWindow.Render(db)
         add("header").name:SetText(string.upper(L[key]))
     end
 
-    if not db.enabled then
+    if db.collapsed then
+        -- Collapsed: header only; no lines, and the buff buttons are hidden (out of combat — see applySecure).
+    elseif not db.enabled then
         add("message").name:SetText(L.DISABLED)
     elseif not Watch.profile then
         add("message").name:SetText(L.NO_PROFILE)

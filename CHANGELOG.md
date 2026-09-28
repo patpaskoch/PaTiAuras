@@ -19,6 +19,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - "New auras" dialog: on the first start and whenever a watchable aura becomes available that was never offered
   (newly learned spell, profile update), a small window lists just those, pre-checked; closing it marks them as seen.
   Later changes in /pa settings. Waits until combat ends. Saved in PaTiAurasDB.seen.
+- Collapse/Expand in the ••• menu: only the header stays; saved in PaTiAurasDB.collapsed (old saves: expanded).
+  Disabled in combat (the window holds secure buff buttons). Restore Defaults expands the window.
 - Group buffs are also shown solo (you are the only member, e.g. "0 / 1").
 - Group buff tooltip: "Buffed: x / y", who is missing it, who is offline/dead, and whom a click buffs.
 - `/pa test` shows your class profile with test data (generic test profile only for classes without one).

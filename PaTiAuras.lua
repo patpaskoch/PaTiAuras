@@ -163,6 +163,12 @@ local function setShown(shown)
     if shown then update() else say("HIDDEN_HINT") end
 end
 
+local function toggleCollapsed()
+    if combatBlocked() then return end -- secure buff buttons: no hide/resize in combat
+    DB.collapsed = not DB.collapsed
+    update()
+end
+
 local function resetPosition()
     if combatBlocked() then return end
     DB.point, DB.relativePoint, DB.x, DB.y = nil, nil, nil, nil
@@ -267,6 +273,7 @@ window:SetMenu(function()
     return {
         { text = "SETTINGS", onClick = openSettings },
         { text = window:IsLocked() and "UNLOCK" or "LOCK", onClick = function() window:SetLocked(not window:IsLocked()) end },
+        { text = DB.collapsed and "EXPAND" or "COLLAPSE", disabled = combat, tooltip = combatTip, onClick = toggleCollapsed },
         { text = "TEST_MODE", checked = Watch.testMode, disabled = combat, tooltip = combatTip, onClick = toggleTestMode },
         { text = "HIDE", disabled = combat, tooltip = combatTip, onClick = function() setShown(false) end },
     }

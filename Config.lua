@@ -9,6 +9,7 @@ Config.SCALES = { 0.8, 0.9, 1, 1.1, 1.25, 1.5 }
 -- Position (point, relativePoint, x, y) is written by the PaTiShared window, not listed here.
 Config.DEFAULTS = {
     enabled = true,
+    collapsed = false,
     locked = false,
     scale = 1,
     language = "auto",
