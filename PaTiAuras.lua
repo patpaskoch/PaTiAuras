@@ -160,7 +160,9 @@ end
 
 -- /pa auras: what this client reports for every profile spell ID (to confirm the IDs in game).
 local function printAuraCheck()
-    local profile, list = Watch.ClassProfile(), {}
+    local profile = Watch.ClassProfile()
+    local list = { ("Aura API %s · issecretvalue %s · last read error: %s"):format(ns.AuraScan.ApiName(),
+        issecretvalue and "yes" or "no", ns.AuraScan.lastError or "none") }
     for _, category in ipairs(Watch.CATEGORIES) do
         for _, def in ipairs(profile and profile[category] or {}) do
             local name = Spells.Name(def.spellID)
@@ -168,7 +170,7 @@ local function printAuraCheck()
                 name or "ID NOT FOUND", tostring(name ~= nil and Spells.IsKnown(def.spellID)), #Spells.Ranks(def.spellID))
         end
     end
-    if #list == 0 then list[1] = L.NO_PROFILE end
+    if not profile then list[#list + 1] = L.NO_PROFILE end
     printLines("Auras", list)
 end
 

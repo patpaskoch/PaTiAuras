@@ -17,12 +17,12 @@ local function layoutLabel(button, dx, dy)
     button.label:SetPoint("RIGHT", -UI.Spacing.MD + dx, dy)
 end
 
--- text: see UI.Text. width nil = fit the text (follows language changes).
-function UI.CreateButton(parent, text, width, onClick)
-    local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
+-- Gives a button the suite look. Works on a button the addon created itself — also a secure one, e.g.
+-- CreateFrame("Button", name, parent, "SecureActionButtonTemplate,BackdropTemplate"). Never touches OnClick,
+-- clicks registration or attributes. text: see UI.Text. width nil = fit the text (follows language changes).
+function UI.StyleButton(button, text, width)
     button:SetSize(width or 80, UI.Sizes.ButtonHeight)
     UI.ApplyBackdrop(button, "Panel", "Border")
-    button:RegisterForClicks("LeftButtonUp")
 
     local label = button:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
     label:SetWordWrap(false)
@@ -42,7 +42,14 @@ function UI.CreateButton(parent, text, width, onClick)
     button:SetScript("OnDisable", function(self) paint(self, false); self:LayoutLabel(0, 0) end)
     button:SetScript("OnMouseDown", function(self) if self:IsEnabled() then self:LayoutLabel(1, -1) end end)
     button:SetScript("OnMouseUp", function(self) self:LayoutLabel(0, 0) end)
-    if onClick then button:SetScript("OnClick", onClick) end
     paint(button, false)
+    return button
+end
+
+-- A plain (non-secure) suite button.
+function UI.CreateButton(parent, text, width, onClick)
+    local button = UI.StyleButton(CreateFrame("Button", nil, parent, "BackdropTemplate"), text, width)
+    button:RegisterForClicks("LeftButtonUp")
+    if onClick then button:SetScript("OnClick", onClick) end
     return button
 end

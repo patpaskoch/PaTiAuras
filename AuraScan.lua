@@ -31,7 +31,7 @@ local function readAuras(unit, filter)
     local auras = {}
     for index = 1, 40 do
         local name, icon, count, dispelType, expiration, source, spellId = auraAt(unit, index, filter)
-        if name == nil then break end
+        if not isSecret(name) and name == nil then break end -- check secrecy before any comparison
         local fromPlayer
         if not isSecret(source) then fromPlayer = source == "player" end
         auras[#auras + 1] = {
@@ -43,10 +43,16 @@ local function readAuras(unit, filter)
     return auras
 end
 
--- filter: e.g. "HELPFUL". Never errors.
+-- One placeholder for "these auras could not be read": Auras.Evaluate turns it into UNKNOWN, never MISSING.
+AuraScan.UNREADABLE = { secret = true }
+
+-- filter: e.g. "HELPFUL". Never errors. If reading fails part-way (e.g. a restricted value raised an error),
+-- the result is { UNREADABLE } — an empty list would wrongly claim that every watched aura is missing.
 function AuraScan.Read(unit, filter)
     local ok, auras = pcall(readAuras, unit, filter)
-    return ok and auras or {}
+    if ok then return auras end
+    AuraScan.lastError = tostring(auras)
+    return { AuraScan.UNREADABLE }
 end
 
 function AuraScan.ApiName()

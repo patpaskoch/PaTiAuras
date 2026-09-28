@@ -5,6 +5,8 @@ Part of the PaTiSuite, but completely standalone: no other PaTi addon is needed,
 
 **No automatic gameplay decisions.** PaTiAuras shows what is active, missing or expiring — you decide what to do.
 
+**Status:** 0.1.0 is not yet verified in the game client — the spell IDs are unconfirmed (check with `/pa auras`).
+
 ## Features (0.1.0)
 - **Self:** personal buffs (Active / Missing / Expiring, remaining time, charges) and procs while they are active
 - **Group:** group buff summary like `Fortitude 4 / 5`; tooltip lists who is missing it and who is offline/dead
