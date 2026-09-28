@@ -38,20 +38,38 @@ local function newLine(index)
     return line
 end
 
--- Resets a line to one of three looks: "header", "entry" (icon + name + value) or "unit" (name + icons).
+local MESSAGE_LINES = 3 -- status/hint texts wrap instead of being cut off with "..."
+
+-- Resets a line to one of four looks: "header", "entry" (icon + name + value), "unit" (name + icons) or
+-- "message" (full-width muted text that wraps onto up to MESSAGE_LINES lines).
 local function prepare(index, kind)
     local line = lines[index] or newLine(index)
+    local message = kind == "message"
     line.kind, line.tooltipLines = kind, nil
     line.icon:SetShown(kind == "entry")
     for _, icon in ipairs(line.unitIcons) do icon:Hide() end
     line.name:ClearAllPoints()
-    line.name:SetPoint("LEFT", kind == "entry" and ICON + UI.Spacing.SM or 0, 0)
-    line.name:SetPoint("RIGHT", line, "RIGHT", -60, 0)
+    if message then
+        line.name:SetPoint("TOPLEFT")
+        line.name:SetPoint("TOPRIGHT")
+    else
+        line.name:SetPoint("LEFT", kind == "entry" and ICON + UI.Spacing.SM or 0, 0)
+        line.name:SetPoint("RIGHT", line, "RIGHT", -60, 0)
+    end
+    line.name:SetWordWrap(message)
+    if line.name.SetMaxLines then line.name:SetMaxLines(message and MESSAGE_LINES or 1) end
     line.name:SetFontObject(kind == "header" and UI.Fonts.Label or UI.Fonts.Text)
-    line.name:SetTextColor(UI.Color(kind == "header" and "TextMuted" or "Text"))
+    line.name:SetTextColor(UI.Color((kind == "header" or message) and "TextMuted" or "Text"))
     line.value:SetText("")
     line:Show()
     return line
+end
+
+-- Height of a laid-out line: one row, or as many rows as a wrapped message needs (up to MESSAGE_LINES).
+local function lineHeight(line)
+    if line.kind ~= "message" then return LINE end
+    local textHeight = line.name:GetStringHeight() or 0
+    return math.max(LINE, math.ceil(textHeight) + UI.Spacing.SM)
 end
 
 local STATE_COLOR = { ACTIVE = "Text", EXPIRING = "Warning", MISSING = "TextMuted", UNKNOWN = "TextMuted" }
@@ -80,9 +98,9 @@ function AuraWindow.Render(db)
     end
 
     if not db.enabled then
-        add("header").name:SetText(L.DISABLED)
+        add("message").name:SetText(L.DISABLED)
     elseif not Watch.profile then
-        add("header").name:SetText(L.NO_PROFILE)
+        add("message").name:SetText(L.NO_PROFILE)
     else
         local selfList = Watch.Self(db)
         local visible = {}
@@ -134,18 +152,23 @@ function AuraWindow.Render(db)
             end
         end
 
-        if count == 0 then add("header").name:SetText(L.NOTHING_WATCHED) end
+        if count == 0 then add("message").name:SetText(L.NOTHING_WATCHED) end
     end
 
+    -- Stack the lines by their real height (a wrapped message may take up to three rows).
+    local y = UI.Sizes.HeaderHeight + UI.Spacing.SM
     for index, line in ipairs(lines) do
         if index > count then
             line:Hide()
         else
+            local height = lineHeight(line)
+            line:SetHeight(height)
             line:ClearAllPoints()
-            line:SetPoint("TOPLEFT", PAD, -UI.Sizes.HeaderHeight - UI.Spacing.SM - (index - 1) * LINE)
+            line:SetPoint("TOPLEFT", PAD, -y)
+            y = y + height
         end
     end
-    window:SetHeight(UI.Sizes.HeaderHeight + UI.Spacing.SM + count * LINE + PAD)
+    window:SetHeight(y + PAD)
     return timers
 end
 

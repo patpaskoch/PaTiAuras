@@ -11,6 +11,7 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   `Watch.lua` (state per unit) · `AuraWindow.lua` (UI) · `PaTiAuras.lua` (init, settings, slash, events).
 - SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura.
 - Profiles: only classes whose spell IDs are confirmed in this client. A new profile = one data file + TOC line, no code.
+  Several spells giving the same buff (e.g. Prayer versions) = one entry with `variants = { id, … }`, never two entries.
 - Secure: none in 0.1. Click-to-buff (planned) must use SecureActionButtonTemplate with unit+spell fixed out of combat,
   always-visible buttons (state shown visually), no auto target, no sequences.
 - Independence: no dependency on PaTiHeal/PaTiTank. A later integration = a small versioned global API, checked with `if PaTiAurasAPI then`.

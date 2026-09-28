@@ -23,23 +23,42 @@ function Watch.ClassProfile()
     return ns.AuraProfiles and ns.AuraProfiles[classFile]
 end
 
+-- One watched buff. `variants` (e.g. the Prayer version of a group buff) join the same entry: their names and
+-- rank IDs are added to ids/names, so either spell counts as "has the buff".
 local function makeEntry(def, category, test)
     local name = Spells.Name(def.spellID) or (test and def.nameKey and L[def.nameKey]) or (test and def.key)
     if not name then return nil end -- ID unknown to this client: the entry stays hidden
-    return setmetatable({ category = category, name = name, icon = Spells.Icon(def.spellID),
-        ids = Spells.FamilyIDs(def.spellID), names = { [name] = true } }, { __index = def })
+    local ids, names = Spells.FamilyIDs(def.spellID), { [name] = true }
+    for _, variant in ipairs(def.variants or {}) do
+        local variantName = Spells.Name(variant)
+        if variantName then names[variantName] = true end
+        for id in pairs(Spells.FamilyIDs(variant)) do ids[id] = true end
+    end
+    return setmetatable({ category = category, name = name, icon = Spells.Icon(def.spellID), ids = ids, names = names },
+        { __index = def })
+end
+
+-- A buff is offered if you know the spell or one of its variants (e.g. only the Prayer rank is learned).
+local function isKnown(def)
+    if Spells.IsKnown(def.spellID) then return true end
+    for _, variant in ipairs(def.variants or {}) do
+        if Spells.IsKnown(variant) then return true end
+    end
+    return false
 end
 
 -- Recomputes the watched entries (login, spells learned, settings or test mode changed).
 function Watch.Rebuild(db)
     local test = Watch.testMode
-    local profile = test and AuraScan.TEST_PROFILE or Watch.ClassProfile()
+    -- Test mode shows your class profile with fake auras; classes without a profile get the generic test profile.
+    local profile = Watch.ClassProfile()
+    if test and not profile then profile = AuraScan.TEST_PROFILE end
     Watch.profile = profile
     for _, category in ipairs(Watch.CATEGORIES) do
         local list = {}
         local shown = test or (db.enabled and db[CATEGORY_SETTING[category]])
         for _, def in ipairs(shown and profile and profile[category] or {}) do
-            local known = test or category == "procs" or Spells.IsKnown(def.spellID)
+            local known = test or category == "procs" or isKnown(def)
             if known and (test or Auras.IsWatched(db, def)) then
                 list[#list + 1] = makeEntry(def, category, test)
             end

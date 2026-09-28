@@ -72,10 +72,15 @@ AuraScan.TEST_PROFILE = {
 
 -- Per unit: entry key -> { count?, remaining? }. Water Shield on the player and Fortitude on party2 are missing
 -- on purpose; party4 is offline in the test party data.
+-- Covers the Shaman, Priest and generic test profiles (keys of the other profiles are simply unused).
+-- Priest: Inner Fire expiring, Fortitude missing on party2, Divine Spirit missing on party3, Shadow Protection
+-- only on you; party4 is offline and never counts as missing.
 local TEST_AURAS = {
-    player = { TIDAL_WAVES = { count = 2 }, FORTITUDE = { remaining = 1500 } },
-    party1 = { EARTH_SHIELD = { count = 5 }, RIPTIDE = { remaining = 7 }, FORTITUDE = { remaining = 1500 } },
-    party2 = {},
+    player = { TIDAL_WAVES = { count = 2 }, FORTITUDE = { remaining = 1500 }, INNER_FIRE = { count = 18, remaining = 25 },
+        DIVINE_SPIRIT = { remaining = 1500 }, SHADOW_PROTECTION = { remaining = 500 } },
+    party1 = { EARTH_SHIELD = { count = 5 }, RIPTIDE = { remaining = 7 }, FORTITUDE = { remaining = 1500 },
+        DIVINE_SPIRIT = { remaining = 1500 } },
+    party2 = { DIVINE_SPIRIT = { remaining = 900 } },
     party3 = { FORTITUDE = { remaining = 20 } },
 }
 -- Fake party: names are L keys; party4 is offline so the "offline before missing" rule is visible.

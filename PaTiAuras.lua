@@ -163,11 +163,18 @@ local function printAuraCheck()
     local profile = Watch.ClassProfile()
     local list = { ("Aura API %s · issecretvalue %s · last read error: %s"):format(ns.AuraScan.ApiName(),
         issecretvalue and "yes" or "no", ns.AuraScan.lastError or "none") }
+    local function describe(label, id)
+        local name = Spells.Name(id)
+        return ("%s id=%d: %s · known=%s · ranks=%d"):format(label, id, name or "ID NOT FOUND",
+            tostring(name ~= nil and Spells.IsKnown(id)), #Spells.Ranks(id))
+    end
+    if profile then list[#list + 1] = "Profile " .. profile.name end
     for _, category in ipairs(Watch.CATEGORIES) do
         for _, def in ipairs(profile and profile[category] or {}) do
-            local name = Spells.Name(def.spellID)
-            list[#list + 1] = ("%s %s id=%d: %s · known=%s · ranks=%d"):format(category, def.key, def.spellID,
-                name or "ID NOT FOUND", tostring(name ~= nil and Spells.IsKnown(def.spellID)), #Spells.Ranks(def.spellID))
+            list[#list + 1] = describe(category .. " " .. def.key, def.spellID)
+            for _, variant in ipairs(def.variants or {}) do
+                list[#list + 1] = describe("    + same buff", variant)
+            end
         end
     end
     if not profile then list[#list + 1] = L.NO_PROFILE end

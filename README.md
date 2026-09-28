@@ -11,9 +11,11 @@ Part of the PaTiSuite, but completely standalone: no other PaTi addon is needed,
 - **Self:** personal buffs (Active / Missing / Expiring, remaining time, charges) and procs while they are active
 - **Group:** group buff summary like `Fortitude 4 / 5`; tooltip lists who is missing it and who is offline/dead
 - **Healing:** your healing auras (HoTs, shields) per party member, with timer or charges
-- Profile: Restoration Shaman — Water Shield, Tidal Waves, Earth Shield, Riptide
+- Profiles: Restoration Shaman — Water Shield, Tidal Waves, Earth Shield, Riptide (IDs not yet confirmed in game);
+  Priest — Inner Fire (personal) and the group buffs Fortitude, Divine Spirit, Shadow Protection, where the
+  Prayer version counts as the same buff (IDs confirmed in game). Group buffs are shown when you are in a group.
 - Settings modal (language, scale, lock, sections, display options, per-aura switches), test mode, diagnostics
-- Planned: Priest group buffs (after the spell IDs are confirmed in this client), click-to-buff, optional PaTiHeal integration
+- Planned: click-to-buff, optional PaTiHeal integration
 
 ## Commands
 `/pa` or `/patiauras` — `show`, `hide`, `test`, `lock`, `unlock`, `reset` (position), `settings`, `auras` (spell ID check),

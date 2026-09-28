@@ -14,6 +14,7 @@ SpellBook.lua
 Auras.lua
 AuraScan.lua
 Profiles\Shaman.lua
+Profiles\Priest.lua
 Watch.lua
 AuraWindow.lua
 PaTiAuras.lua
