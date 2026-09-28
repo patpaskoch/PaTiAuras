@@ -49,6 +49,12 @@ local function isKnown(def)
     return false
 end
 
+-- Is this profile entry available to you? Procs always (they only show while active), everything else when you
+-- know the spell or one of its variants. Used for the watch list and the "new auras" dialog.
+function Watch.IsOffered(def, category)
+    return category == "procs" or isKnown(def)
+end
+
 -- Recomputes the watched entries (login, spells learned, settings or test mode changed).
 function Watch.Rebuild(db)
     local test = Watch.testMode
@@ -60,7 +66,7 @@ function Watch.Rebuild(db)
         local list = {}
         local shown = test or (db.enabled and db[CATEGORY_SETTING[category]])
         for _, def in ipairs(shown and profile and profile[category] or {}) do
-            local known = test or category == "procs" or isKnown(def)
+            local known = test or Watch.IsOffered(def, category)
             if known and (test or Auras.IsWatched(db, def)) then
                 list[#list + 1] = makeEntry(def, category, test)
             end

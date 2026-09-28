@@ -46,3 +46,6 @@ L.CHANGELOG_0_1_0 = "First version: personal buffs, procs, group buff summary an
 L.TIP_BUFFED = "Buffed: %d / %d"
 L.TIP_CLICK_NEXT = "Click: cast %s on %s"
 L.TIP_COMBAT_FIXED = "In combat the click target stays the same until combat ends."
+L.NEW_AURAS_TITLE = "PaTiAuras – New auras"
+L.NEW_AURAS_QUESTION = "Which auras should PaTiAuras watch?"
+L.NEW_AURAS_LATER = "You can change this later in /pa settings."

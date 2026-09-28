@@ -9,7 +9,8 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
 - Files: `Config.lua` (SavedVariables defaults/migration, pure) · `SpellBook.lua` (spell adapter, deliberate copy of
   PaTiHeal's) · `Auras.lua` (state logic, pure) · `AuraScan.lua` (aura adapter + test data) · `Profiles/<Class>.lua` (data) ·
   `Watch.lua` (state per unit) · `AuraWindow.lua` (UI) · `PaTiAuras.lua` (init, settings, slash, events).
-- SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura.
+- SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura;
+  `seen[key] = true` = already offered in the "new auras" dialog (`promptNewAuras`, `Config.NewDefs`).
 - Profiles: only classes whose spell IDs are confirmed in this client. A new profile = one data file + TOC line, no code.
   Several spells giving the same buff (e.g. Prayer versions) = one entry with `variants = { id, … }`, never two entries.
 - Secure: `PaTiAurasBuff1..4` (SecureActionButtonTemplate) over the group buff lines; `unit`/`type1`/`spell1` set only out of

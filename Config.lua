@@ -29,13 +29,23 @@ function Config.Migrate(db)
         if db[key] == nil then db[key] = value end
     end
     if db.watch == nil then db.watch = {} end
+    if db.seen == nil then db.seen = {} end -- aura keys already offered in the "new auras" dialog
     db.schema = Config.SCHEMA
     return db
 end
 
--- "Restore Defaults": all settings back, position and changelog marker kept.
+-- "Restore Defaults": all settings back, position, changelog marker and seen auras kept.
 function Config.RestoreDefaults(db)
     for key, value in pairs(Config.DEFAULTS) do db[key] = value end
     db.watch = {}
     return db
+end
+
+-- Profile entries not yet offered in the "new auras" dialog (first start, newly learned spell, profile update).
+function Config.NewDefs(defs, seen)
+    local new = {}
+    for _, def in ipairs(defs) do
+        if not seen[def.key] then new[#new + 1] = def end
+    end
+    return new
 end

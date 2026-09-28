@@ -110,6 +110,44 @@ local function openSettings()
     modal:Show()
 end
 
+-- New auras ------------------------------------------------------------------------------------
+-- On the first start and whenever an aura becomes available that was never offered (newly learned spell,
+-- profile update), a small dialog lists just those — pre-checked, changes apply at once. Closing it (also ESC)
+-- marks them as seen; later changes happen in the settings. Never shown in combat (waits for the end of combat).
+
+local newAurasDialog, newAurasWaiting, dialogCount = nil, false, 0
+
+local function promptNewAuras()
+    if not DB or Watch.testMode or (newAurasDialog and newAurasDialog:IsShown()) then return end
+    if InCombatLockdown() then newAurasWaiting = true; return end
+    newAurasWaiting = false
+    local profile, offered = Watch.ClassProfile(), {}
+    for _, category in ipairs(Watch.CATEGORIES) do
+        for _, def in ipairs(profile and profile[category] or {}) do
+            if Watch.IsOffered(def, category) then offered[#offered + 1] = def end
+        end
+    end
+    local new = Config.NewDefs(offered, DB.seen)
+    if #new == 0 then return end
+    -- The list differs each time, so every prompt gets its own small modal (rare: first start, new spells).
+    dialogCount = dialogCount + 1
+    local dialog = UI.CreateModal("PaTiAurasNewAuras" .. dialogCount, "NEW_AURAS_TITLE", 320)
+    dialog:AddLabel("NEW_AURAS_QUESTION")
+    for _, def in ipairs(new) do
+        dialog:AddControls(UI.CreateCheckbox(dialog, function() return Spells.Name(def.spellID) or def.key end, {
+            get = function() return DB.watch[def.key] ~= false end,
+            set = function(value) DB.watch[def.key] = value; rebuild() end,
+        }))
+    end
+    dialog:AddLabel("NEW_AURAS_LATER")
+    dialog:Finish()
+    dialog:HookScript("OnHide", function()
+        for _, def in ipairs(new) do DB.seen[def.key] = true end
+    end)
+    newAurasDialog = dialog
+    dialog:Show()
+end
+
 -- Commands -------------------------------------------------------------------------------------
 
 local function toggleTestMode()
@@ -253,6 +291,7 @@ events:SetScript("OnEvent", function(_, event, unit)
         window:Attach(DB, -330, 120)
         if not InCombatLockdown() then window:SetScale(DB.scale) end -- /reload in combat: after combat
         rebuild()
+        promptNewAuras()
         local version = addonVersion()
         if DB.lastChangelog ~= version then
             if DB.lastChangelog then say("UPDATED", version) end
@@ -269,6 +308,7 @@ events:SetScript("OnEvent", function(_, event, unit)
         -- Combat over: buff buttons point at the next missing member again, window gets its real size/scale.
         window:SetScale(DB.scale)
         update()
+        if newAurasWaiting then promptNewAuras() end
     elseif event == "PLAYER_REGEN_DISABLED" then
         update() -- tooltips switch to "target fixed until combat ends"
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
@@ -276,6 +316,7 @@ events:SetScript("OnEvent", function(_, event, unit)
         update()
     else -- spells, talents or spec changed
         rebuild()
+        promptNewAuras() -- a newly learned buff may be new to the watch list
     end
 end)
 UI.OnLanguageChanged(update)

@@ -226,3 +226,14 @@ describe("Shaman profile (regression)", function()
         assert.same({ personal = 1, procs = 1, group = 0, healing = 2 }, ns.Watch.Count())
     end)
 end)
+
+describe("Watch.IsOffered (what the new-auras dialog may show)", function()
+    it("offers known spells or known variants, never unknown ones; procs always", function()
+        local ns = setup("PRIEST", { [21562] = true })
+        local profile = ns.Watch.ClassProfile()
+        assert.is_true(ns.Watch.IsOffered(profile.group[1], "group"))      -- only Prayer of Fortitude known
+        assert.is_false(ns.Watch.IsOffered(profile.group[2], "group"))     -- Divine Spirit unknown
+        assert.is_false(ns.Watch.IsOffered(profile.personal[1], "personal")) -- Inner Fire unknown
+        assert.is_true(ns.Watch.IsOffered({ key = "X", spellID = 1 }, "procs"))
+    end)
+end)

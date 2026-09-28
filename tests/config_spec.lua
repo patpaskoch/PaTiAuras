@@ -39,3 +39,23 @@ describe("Config.RestoreDefaults", function()
         assert.equal("0.1.0", db.lastChangelog)
     end)
 end)
+
+describe("Config.NewDefs / seen", function()
+    it("starts with nothing seen and keeps seen auras across Restore Defaults", function()
+        local Config = load()
+        local db = Config.Migrate({ watch = { RIPTIDE = false } })
+        assert.same({}, db.seen)
+        db.seen.INNER_FIRE = true
+        Config.RestoreDefaults(db)
+        assert.is_true(db.seen.INNER_FIRE)
+    end)
+
+    it("returns only the entries not offered before, in profile order", function()
+        local defs = { { key = "INNER_FIRE" }, { key = "FORTITUDE" }, { key = "DIVINE_SPIRIT" } }
+        local new = load().NewDefs(defs, { FORTITUDE = true })
+        assert.equal(2, #new)
+        assert.equal("INNER_FIRE", new[1].key)
+        assert.equal("DIVINE_SPIRIT", new[2].key)
+        assert.same({}, load().NewDefs(defs, { INNER_FIRE = true, FORTITUDE = true, DIVINE_SPIRIT = true }))
+    end)
+end)

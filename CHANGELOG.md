@@ -16,6 +16,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   your target. One click = one cast; when everyone has the buff, the line does nothing. Out of combat the target
   follows every aura/group change; in combat it stays as it was when combat started (WoW does not allow changing
   secure attributes in combat) and the tooltip shows whom the click buffs.
+- "New auras" dialog: on the first start and whenever a watchable aura becomes available that was never offered
+  (newly learned spell, profile update), a small window lists just those, pre-checked; closing it marks them as seen.
+  Later changes in /pa settings. Waits until combat ends. Saved in PaTiAurasDB.seen.
 - Group buffs are also shown solo (you are the only member, e.g. "0 / 1").
 - Group buff tooltip: "Buffed: x / y", who is missing it, who is offline/dead, and whom a click buffs.
 - `/pa test` shows your class profile with test data (generic test profile only for classes without one).

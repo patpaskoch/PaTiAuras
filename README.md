@@ -15,6 +15,7 @@ Part of the PaTiSuite, but completely standalone: no other PaTi addon is needed,
   Priest — Inner Fire (personal) and the group buffs Fortitude, Divine Spirit, Shadow Protection, where the
   Prayer version counts as the same buff (IDs confirmed in game). Group buffs are also shown when you play alone.
 - Settings modal (language, scale, lock, sections, display options, per-aura switches), test mode, diagnostics
+- On the first start, and when you learn a new watchable buff, a small window asks which auras to watch
 - **Click-to-buff:** click a group buff line to cast the single-target buff on the next member who is missing it
   (shown in the tooltip). Each cast needs your click; your target does not change. In combat the click target stays
   as it was when combat began — WoW allows changing it only out of combat.
