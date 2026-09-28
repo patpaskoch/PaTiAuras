@@ -1,0 +1,25 @@
+-- PaTiShared strings, English (source and fallback). One key per line: L.KEY = "Text". Every key must exist here.
+local _, ns = ...
+ns.Locales = ns.Locales or {}
+local L = ns.Locales.enUS or {}
+ns.Locales.enUS = L
+
+L.SETTINGS = "Settings"
+L.LOCK = "Lock"
+L.UNLOCK = "Unlock"
+L.COLLAPSE = "Collapse"
+L.EXPAND = "Expand"
+L.TEST_MODE = "Test Mode"
+L.TEST = "TEST"
+L.HIDE = "Hide"
+L.CLOSE = "Close"
+L.MORE = "More options"
+L.RESTORE_DEFAULTS = "Restore Defaults"
+L.LANGUAGE = "Language"
+L.LANGUAGE_AUTO = "Automatic (client)"
+L.COMBAT_LOCKED = "Not available in combat."
+L.SELECT = "Select…"
+L.STATUS_ACTIVE = "Active"
+L.STATUS_MISSING = "Missing"
+L.STATUS_EXPIRING = "Expiring"
+L.STATUS_UNKNOWN = "Unknown"

@@ -1,0 +1,21 @@
+-- PaTiShared strings, 简体中文. One key per line: L.KEY = "Text". Unreviewed; missing keys fall back to English.
+local _, ns = ...
+ns.Locales = ns.Locales or {}
+local L = ns.Locales.zhCN or {}
+ns.Locales.zhCN = L
+
+L.SETTINGS = "设置"
+L.LOCK = "锁定"
+L.UNLOCK = "解锁"
+L.COLLAPSE = "折叠"
+L.EXPAND = "展开"
+L.TEST_MODE = "测试模式"
+L.TEST = "测试"
+L.HIDE = "隐藏"
+L.CLOSE = "关闭"
+L.MORE = "更多选项"
+L.RESTORE_DEFAULTS = "恢复默认"
+L.LANGUAGE = "语言"
+L.LANGUAGE_AUTO = "自动（客户端）"
+L.COMBAT_LOCKED = "战斗中无法使用。"
+L.SELECT = "请选择…"

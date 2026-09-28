@@ -1,0 +1,25 @@
+-- PaTiShared strings, Deutsch. One key per line: L.KEY = "Text". Missing keys fall back to English.
+local _, ns = ...
+ns.Locales = ns.Locales or {}
+local L = ns.Locales.deDE or {}
+ns.Locales.deDE = L
+
+L.SETTINGS = "Einstellungen"
+L.LOCK = "Sperren"
+L.UNLOCK = "Entsperren"
+L.COLLAPSE = "Einklappen"
+L.EXPAND = "Ausklappen"
+L.TEST_MODE = "Testmodus"
+L.TEST = "TEST"
+L.HIDE = "Ausblenden"
+L.CLOSE = "Schließen"
+L.MORE = "Weitere Optionen"
+L.RESTORE_DEFAULTS = "Standard wiederherstellen"
+L.LANGUAGE = "Sprache"
+L.LANGUAGE_AUTO = "Automatisch (Client)"
+L.COMBAT_LOCKED = "Im Kampf nicht möglich."
+L.SELECT = "Auswählen …"
+L.STATUS_ACTIVE = "Aktiv"
+L.STATUS_MISSING = "Fehlt"
+L.STATUS_EXPIRING = "Läuft aus"
+L.STATUS_UNKNOWN = "Unbekannt"

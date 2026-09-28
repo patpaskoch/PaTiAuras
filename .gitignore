@@ -1,0 +1,8 @@
+*.zip
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*SavedVariables*.lua

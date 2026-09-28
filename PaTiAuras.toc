@@ -1,0 +1,19 @@
+## Interface: 16001
+## Title: PaTiAuras
+## Notes: Kompakte Anzeige wichtiger Auren, Buffs und HoTs
+## Author: PaTi
+## Version: 0.1.0
+## IconTexture: Interface\AddOns\PaTiAuras\Media\icon
+## SavedVariablesPerCharacter: PaTiAurasDB
+
+Shared\Shared.xml
+Locales\enUS.lua
+Locales\deDE.lua
+Config.lua
+SpellBook.lua
+Auras.lua
+AuraScan.lua
+Profiles\Shaman.lua
+Watch.lua
+AuraWindow.lua
+PaTiAuras.lua

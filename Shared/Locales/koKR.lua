@@ -1,0 +1,21 @@
+-- PaTiShared strings, 한국어. One key per line: L.KEY = "Text". Unreviewed; missing keys fall back to English.
+local _, ns = ...
+ns.Locales = ns.Locales or {}
+local L = ns.Locales.koKR or {}
+ns.Locales.koKR = L
+
+L.SETTINGS = "설정"
+L.LOCK = "잠금"
+L.UNLOCK = "잠금 해제"
+L.COLLAPSE = "접기"
+L.EXPAND = "펼치기"
+L.TEST_MODE = "테스트 모드"
+L.TEST = "테스트"
+L.HIDE = "숨기기"
+L.CLOSE = "닫기"
+L.MORE = "추가 옵션"
+L.RESTORE_DEFAULTS = "기본값 복원"
+L.LANGUAGE = "언어"
+L.LANGUAGE_AUTO = "자동 (클라이언트)"
+L.COMBAT_LOCKED = "전투 중에는 사용할 수 없습니다."
+L.SELECT = "선택…"

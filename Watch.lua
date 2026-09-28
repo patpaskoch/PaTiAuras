@@ -1,0 +1,142 @@
+-- PaTiAuras: which auras are watched and their current state per unit (no UI code here).
+-- v1 covers the 5-player party: player + party1..4.
+local _, ns = ...
+local L, Auras, Spells, AuraScan = ns.UI.L, ns.Auras, ns.Spells, ns.AuraScan
+
+local Watch = {
+    UNITS = { "player", "party1", "party2", "party3", "party4" },
+    CATEGORIES = { "personal", "procs", "group", "healing" },
+    entries = { personal = {}, procs = {}, group = {}, healing = {} },
+    info = {},
+    testMode = false,
+}
+ns.Watch = Watch
+
+local CATEGORY_SETTING = { personal = "showPersonal", procs = "showProcs", group = "showGroup", healing = "showHealing" }
+local WATCHED_UNIT = {}
+for _, unit in ipairs(Watch.UNITS) do WATCHED_UNIT[unit] = true end
+
+function Watch.IsWatchedUnit(unit) return WATCHED_UNIT[unit] == true end
+
+function Watch.ClassProfile()
+    local _, classFile = UnitClass("player")
+    return ns.AuraProfiles and ns.AuraProfiles[classFile]
+end
+
+local function makeEntry(def, category, test)
+    local name = Spells.Name(def.spellID) or (test and def.nameKey and L[def.nameKey]) or (test and def.key)
+    if not name then return nil end -- ID unknown to this client: the entry stays hidden
+    return setmetatable({ category = category, name = name, icon = Spells.Icon(def.spellID),
+        ids = Spells.FamilyIDs(def.spellID), names = { [name] = true } }, { __index = def })
+end
+
+-- Recomputes the watched entries (login, spells learned, settings or test mode changed).
+function Watch.Rebuild(db)
+    local test = Watch.testMode
+    local profile = test and AuraScan.TEST_PROFILE or Watch.ClassProfile()
+    Watch.profile = profile
+    for _, category in ipairs(Watch.CATEGORIES) do
+        local list = {}
+        local shown = test or (db.enabled and db[CATEGORY_SETTING[category]])
+        for _, def in ipairs(shown and profile and profile[category] or {}) do
+            local known = test or category == "procs" or Spells.IsKnown(def.spellID)
+            if known and (test or Auras.IsWatched(db, def)) then
+                list[#list + 1] = makeEntry(def, category, test)
+            end
+        end
+        Watch.entries[category] = list
+    end
+end
+
+-- Name and offline/dead state of a unit, or nil if the unit does not exist.
+local function unitBasics(unit)
+    if Watch.testMode then
+        local fake = AuraScan.TEST_UNITS[unit]
+        return fake and { name = L[fake.nameKey], state = fake.state }
+    end
+    if not UnitExists(unit) then return nil end
+    local basics = { name = UnitName(unit) or unit }
+    if not UnitIsConnected(unit) then basics.state = "OFFLINE"
+    elseif UnitIsDeadOrGhost(unit) then basics.state = "DEAD" end
+    return basics
+end
+
+-- Re-reads one unit (UNIT_AURA etc.). Offline/dead units keep no aura list: their state wins.
+function Watch.RefreshUnit(unit)
+    local info = unitBasics(unit)
+    if info then
+        if Watch.testMode then
+            info.helpful = AuraScan.TestAuras(unit, Watch.entries, GetTime())
+        else
+            info.helpful = info.state and {} or AuraScan.Read(unit, "HELPFUL")
+        end
+    end
+    Watch.info[unit] = info
+end
+
+function Watch.RefreshAll()
+    for _, unit in ipairs(Watch.UNITS) do Watch.RefreshUnit(unit) end
+end
+
+function Watch.InGroup()
+    return Watch.testMode or (IsInGroup ~= nil and IsInGroup())
+end
+
+-- View data for the window ---------------------------------------------------------------------
+
+-- { { entry, result } } for personal buffs (always listed) and procs (only while active).
+function Watch.Self(db)
+    local list, player, now = {}, Watch.info.player, GetTime()
+    local helpful = player and player.helpful or {}
+    for _, entry in ipairs(Watch.entries.personal) do
+        list[#list + 1] = { entry = entry, result = Auras.Evaluate(entry, helpful, now, db) }
+    end
+    for _, entry in ipairs(Watch.entries.procs) do
+        local result = Auras.Evaluate(entry, helpful, now, db)
+        if result.state == "ACTIVE" or result.state == "EXPIRING" then list[#list + 1] = { entry = entry, result = result } end
+    end
+    return list
+end
+
+-- { { entry, summary } } — only when in a group.
+function Watch.Group(db)
+    local list, now = {}, GetTime()
+    if not Watch.InGroup() then return list end
+    for _, entry in ipairs(Watch.entries.group) do
+        local members = {}
+        for _, unit in ipairs(Watch.UNITS) do
+            local info = Watch.info[unit]
+            if info then
+                members[#members + 1] = { name = info.name, unitState = info.state,
+                    result = Auras.Evaluate(entry, info.helpful, now, db) }
+            end
+        end
+        list[#list + 1] = { entry = entry, summary = Auras.Summarize(members) }
+    end
+    return list
+end
+
+-- { { name, auras = { { entry, result } } } } — units with at least one of your healing auras active.
+-- Offline/dead units have no aura list (see RefreshUnit), so they never show up here.
+function Watch.Healing(db)
+    local list, now = {}, GetTime()
+    if #Watch.entries.healing == 0 then return list end
+    for _, unit in ipairs(Watch.UNITS) do
+        local info = Watch.info[unit]
+        if info then
+            local auras = {}
+            for _, entry in ipairs(Watch.entries.healing) do
+                local result = Auras.Evaluate(entry, info.helpful, now, db)
+                if result.state == "ACTIVE" or result.state == "EXPIRING" then auras[#auras + 1] = { entry = entry, result = result } end
+            end
+            if #auras > 0 then list[#list + 1] = { name = info.name, auras = auras } end
+        end
+    end
+    return list
+end
+
+function Watch.Count()
+    local counts = {}
+    for _, category in ipairs(Watch.CATEGORIES) do counts[category] = #Watch.entries[category] end
+    return counts
+end

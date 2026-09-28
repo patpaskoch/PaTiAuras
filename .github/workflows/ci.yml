@@ -1,0 +1,37 @@
+# CI for one PaTi repo (addon or PaTiShared). Source: PaTiAdmin/templates/ci.yml — copy unchanged
+# to <repo>/.github/workflows/ci.yml. The tools come from the public PaTiAdmin repo (no token needed).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Folder layout like on the dev machine
+        id: layout
+        run: |
+          repo="${{ github.event.repository.name }}"
+          if [ "$repo" = PaTiShared ]; then echo "path=$repo" >> "$GITHUB_OUTPUT"
+          else echo "path=PaTiAddons/$repo" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ steps.layout.outputs.path }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: patpaskoch/PaTiAdmin
+          path: PaTiAdmin
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+      - run: luarocks install luacheck
+
+      - name: Checks
+        run: bash PaTiAdmin/tools/check.sh "${{ steps.layout.outputs.path }}"
