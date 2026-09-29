@@ -23,4 +23,10 @@ ns.AuraProfiles.SHAMAN = {
     },
     -- Long group buffs (summary below the frames). Shamans have none in this client version.
     group = {},
+    -- Weapon imbues per slot (WeaponImbues.lua): V1 checks "an imbue is on this weapon", not which one — the client's
+    -- way to name an imbue is not confirmed yet. Slots without a weapon (e.g. a shield) are not shown.
+    weapon = {
+        { key = "MAIN_HAND_IMBUE", slot = "MAINHAND", nameKey = "MAIN_HAND", expiring = true },
+        { key = "OFF_HAND_IMBUE", slot = "OFFHAND", nameKey = "OFF_HAND", expiring = true },
+    },
 }

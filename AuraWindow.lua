@@ -1,4 +1,4 @@
--- PaTiAuras: main window. Three calm sections (GROUP, SELF, HEALING) of text lines with small icons.
+-- PaTiAuras: main window. Calm sections (GROUP, SELF, WEAPON, HEALING) of text lines with small icons.
 -- The group lines carry secure click-to-buff buttons (see below); everything else is plain frames.
 local _, ns = ...
 local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spells
@@ -203,6 +203,22 @@ function AuraWindow.Render(db)
         for _, item in ipairs(visible) do
             local line, result = add("entry"), item.result
             line.icon:SetAura(result.icon or item.entry.icon, result.state)
+            line.name:SetText(item.entry.name)
+            line.value:SetText(valueText(item.entry, result, db))
+            line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
+            line.tooltipLines = detail(item.entry, result)
+            timers = timers or result.remaining ~= nil
+        end
+
+        -- WEAPON: imbue per weapon slot (own data source, same states and look as the self buffs).
+        local weaponList = {}
+        for _, item in ipairs(Watch.Weapon(db)) do
+            if item.result.state ~= "MISSING" or db.showMissing then weaponList[#weaponList + 1] = item end
+        end
+        if #weaponList > 0 then header("SECTION_WEAPON") end
+        for _, item in ipairs(weaponList) do
+            local line, result = add("entry"), item.result
+            line.icon:SetAura(result.icon, result.state)
             line.name:SetText(item.entry.name)
             line.value:SetText(valueText(item.entry, result, db))
             line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))

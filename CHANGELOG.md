@@ -6,6 +6,12 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 ### Added
 - New icon from the PaTiSuite icon set (`Media/icon.tga`, AddOns list); platform images in `assets/`.
 - MIT license (`LICENSE`, not part of the release zip).
+- Shaman weapon imbues: new WEAPON section with Main Hand and Off Hand (own data source `WeaponImbues.lua`, not
+  UNIT_AURA): Active with remaining time, Missing, Expiring, Unclear. MISSING only when the enchant API answered
+  readably; API missing, error, empty answer or a secret flag → Unclear. Slots without a weapon (shield) are hidden.
+  Updates on UNIT_INVENTORY_CHANGED / PLAYER_EQUIPMENT_CHANGED plus a 2 s check that repaints only on changes.
+  Setting "Weapon imbues" (on) and one switch per slot; test mode shows an imbued main hand and a missing off hand.
+  `/pa debug` names the enchant APIs, `/pa auras` the readable raw values per slot. V1 does not tell which imbue.
 - Window with Self, Group and Healing sections; Restoration Shaman profile (Water Shield, Tidal Waves, Earth Shield, Riptide).
 - Active / Missing / Expiring / Unknown states, remaining time, charges; offline/dead members before missing buffs.
 - Settings, test mode (fake party incl. an offline member and a group buff), `/pa debug`, `/pa auras` (incl. aura API

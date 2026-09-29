@@ -7,7 +7,8 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
 - Purpose: show which auras/buffs/HoTs are active, missing or expiring. Never recommend or cast by itself. Not a WeakAuras clone:
   no trigger editor, no scripting, no import strings, no boss auras, no raid matrix.
 - Files: `Config.lua` (SavedVariables defaults/migration, pure) · `SpellBook.lua` (spell adapter, deliberate copy of
-  PaTiHeal's) · `Auras.lua` (state logic, pure) · `AuraScan.lua` (aura adapter + test data) · `Profiles/<Class>.lua` (data) ·
+  PaTiHeal's) · `Auras.lua` (state logic, pure) · `AuraScan.lua` (aura adapter + test data) ·
+  `WeaponImbues.lua` (temporary weapon enchants: own adapter, not UNIT_AURA; pure Evaluate) · `Profiles/<Class>.lua` (data) ·
   `Watch.lua` (state per unit) · `AuraWindow.lua` (UI) · `PaTiAuras.lua` (init, settings, slash, events).
 - SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura;
   `seen[key] = true` = already offered in the "new auras" dialog (`promptNewAuras`, `Config.NewDefs`).

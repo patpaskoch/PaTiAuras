@@ -37,7 +37,7 @@ local function setup(class, known)
     end }
     local ns = {}
     for _, file in ipairs({ "Shared/Locales/enUS.lua", "Shared/Locale.lua", "Locales/enUS.lua", "Config.lua", "SpellBook.lua",
-        "Auras.lua", "AuraScan.lua", "Profiles/Shaman.lua", "Profiles/Priest.lua", "Watch.lua" }) do
+        "Auras.lua", "AuraScan.lua", "WeaponImbues.lua", "Profiles/Shaman.lua", "Profiles/Priest.lua", "Watch.lua" }) do
         wow.loadAddonFile(file, ns)
     end
     ns.Watch.testMode = false
@@ -57,7 +57,7 @@ describe("Priest profile", function()
         local ns, db = setup("PRIEST", ALL_PRIEST)
         assert.equal("Priest", ns.Watch.ClassProfile().name)
         ns.Watch.Rebuild(db)
-        assert.same({ personal = 1, procs = 0, group = 3, healing = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
+        assert.same({ personal = 1, procs = 0, group = 3, healing = 0, weapon = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
     end)
 
     it("counts the Prayer version as the same buff as the single-target spell", function()
@@ -219,11 +219,58 @@ describe("Test mode profile", function()
 end)
 
 describe("Shaman profile (regression)", function()
-    it("still tracks Water Shield, Tidal Waves, Earth Shield and Riptide", function()
+    it("still tracks Water Shield, Tidal Waves, Earth Shield and Riptide, plus both weapon slots", function()
         local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
         ns.Watch.Rebuild(db)
         assert.equal("Restoration Shaman", ns.Watch.profile.name)
-        assert.same({ personal = 1, procs = 1, group = 0, healing = 2 }, ns.Watch.Count())
+        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 2 }, ns.Watch.Count())
+    end)
+end)
+
+describe("Shaman weapon imbues in the watch", function()
+    local function weaponStates(ns, db)
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local result = {}
+        for _, item in ipairs(ns.Watch.Weapon(db)) do result[item.entry.slot] = item.result.state end
+        return result
+    end
+
+    local function equip()
+        _G.GetInventoryItemID = function(_, slot) return slot == 16 and 1 or slot == 17 and 2 or nil end
+        _G.GetInventoryItemTexture = function() return 1 end
+        _G.GetItemInfoInstant = function(id) return id, "Weapon", "Axe", "INVTYPE_WEAPON", 1, 2, 0 end
+    end
+
+    it("shows main hand and off hand on their own, offered without a spell ID", function()
+        local ns, db = setup("SHAMAN", {})
+        equip()
+        _G.GetWeaponEnchantInfo = function() return true, 900000, 0, 5, false, 0, 0, 0 end
+        assert.same({ MAINHAND = "ACTIVE", OFFHAND = "MISSING" }, weaponStates(ns, db))
+        local profile = ns.Watch.ClassProfile()
+        assert.is_true(ns.Watch.IsOffered(profile.weapon[1], "weapon"))
+        assert.equal("Main Hand", ns.Watch.DefName(profile.weapon[1]))
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("follows the per-slot switch and the section switch", function()
+        local ns, db = setup("SHAMAN", {})
+        equip()
+        _G.GetWeaponEnchantInfo = function() return false, 0, 0, 0, false, 0, 0, 0 end
+        db.watch.OFF_HAND_IMBUE = false
+        assert.same({ MAINHAND = "MISSING" }, weaponStates(ns, db))
+        db.showWeapon = false
+        assert.same({}, weaponStates(ns, db))
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("shows an imbued main hand and a missing off hand in test mode, without calling the API", function()
+        local ns, db = setup("SHAMAN", {})
+        _G.GetWeaponEnchantInfo = function() error("test mode must not read the client") end
+        ns.Watch.testMode = true
+        assert.same({ MAINHAND = "ACTIVE", OFFHAND = "MISSING" }, weaponStates(ns, db))
+        ns.Watch.testMode = false
+        _G.GetWeaponEnchantInfo = nil
     end)
 end)
 

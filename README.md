@@ -10,6 +10,9 @@ healing auras — active, missing or expiring. It shows; you decide.
 ## Features
 - **Self:** your buffs (e.g. Water Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active
 - **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo
+- **Weapon (Shaman):** Main Hand and Off Hand each show whether a weapon imbue is on (with its remaining time),
+  missing, expiring or unclear. Slots without a weapon (e.g. a shield) are not shown. Which imbue it is (Flametongue,
+  Windfury …) is not shown yet
 - **Healing:** your HoTs and shields per party member (Shaman: Earth Shield, Riptide;
   Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
@@ -31,9 +34,9 @@ healing auras — active, missing or expiring. It shows; you decide.
 
 ## Settings
 `/pa settings` or ••• → Settings:
-- **General:** on/off, sections (self, group, healing, procs), language, scale, window lock
+- **General:** on/off, sections (self, group, healing, procs, weapon imbues), language, scale, window lock
 - **Display:** timers, charges, missing, expiring
-- **Auras:** every aura of your class on/off
+- **Auras:** every aura of your class on/off (Shaman: also Main Hand / Off Hand imbue)
 
 ## Commands
 `/pa` or `/patiauras` — alone: show/hide · `settings` · `test` · `show` · `hide` · `lock` · `unlock` · `reset` (position) ·
@@ -45,6 +48,8 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs and the Priest healing auras are not
   yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
+- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. Whether the Forever client offers the
+  weapon enchant API is not confirmed yet — `/pa debug` shows it; without it both slots stay "unclear".
 - Party only (no raid).
 
 ## License

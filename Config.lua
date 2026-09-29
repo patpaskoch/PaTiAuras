@@ -17,6 +17,7 @@ Config.DEFAULTS = {
     showGroup = true,
     showHealing = true,
     showProcs = true,
+    showWeapon = true, -- weapon imbues (Shaman); older saves get it on, nothing else changes
     showTimers = true,
     showCharges = true, -- charges and stacks (both are the aura's application count)
     showMissing = true,

@@ -51,3 +51,7 @@ L.TIP_COMBAT_FIXED = "In combat the click target stays the same until combat end
 L.NEW_AURAS_TITLE = "PaTiAuras – New auras"
 L.NEW_AURAS_QUESTION = "Which auras should PaTiAuras watch?"
 L.NEW_AURAS_LATER = "You can change this later in /pa settings."
+L.SECTION_WEAPON = "Weapon"
+L.SHOW_WEAPON = "Weapon imbues"
+L.MAIN_HAND = "Main Hand"
+L.OFF_HAND = "Off Hand"

@@ -68,6 +68,8 @@ AuraScan.TEST_PROFILE = {
     procs = { { key = "TIDAL_WAVES", spellID = 53390, showCount = true } },
     healing = { { key = "EARTH_SHIELD", spellID = 974, showCount = true }, { key = "RIPTIDE", spellID = 61295 } },
     group = { { key = "FORTITUDE", spellID = 1243, nameKey = "TEST_GROUP_BUFF", expiring = true } },
+    weapon = { { key = "MAIN_HAND_IMBUE", slot = "MAINHAND", nameKey = "MAIN_HAND", expiring = true },
+        { key = "OFF_HAND_IMBUE", slot = "OFFHAND", nameKey = "OFF_HAND", expiring = true } },
 }
 
 -- Per unit: entry key -> { count?, remaining? }. Water Shield on the player and Fortitude on party2 are missing

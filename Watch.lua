@@ -1,18 +1,19 @@
 -- PaTiAuras: which auras are watched and their current state per unit (no UI code here).
 -- v1 covers the 5-player party: player + party1..4.
 local _, ns = ...
-local L, Auras, Spells, AuraScan = ns.UI.L, ns.Auras, ns.Spells, ns.AuraScan
+local L, Auras, Spells, AuraScan, WeaponImbues = ns.UI.L, ns.Auras, ns.Spells, ns.AuraScan, ns.WeaponImbues
 
 local Watch = {
     UNITS = { "player", "party1", "party2", "party3", "party4" },
-    CATEGORIES = { "personal", "procs", "group", "healing" },
-    entries = { personal = {}, procs = {}, group = {}, healing = {} },
+    CATEGORIES = { "personal", "procs", "group", "healing", "weapon" },
+    entries = { personal = {}, procs = {}, group = {}, healing = {}, weapon = {} },
     info = {},
     testMode = false,
 }
 ns.Watch = Watch
 
-local CATEGORY_SETTING = { personal = "showPersonal", procs = "showProcs", group = "showGroup", healing = "showHealing" }
+local CATEGORY_SETTING = { personal = "showPersonal", procs = "showProcs", group = "showGroup", healing = "showHealing",
+    weapon = "showWeapon" }
 local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
 
 local WATCHED_UNIT = {}
@@ -28,6 +29,9 @@ end
 -- One watched buff. `variants` (e.g. the Prayer version of a group buff) join the same entry: their names and
 -- rank IDs are added to ids/names, so either spell counts as "has the buff".
 local function makeEntry(def, category, test)
+    if def.slot then -- weapon imbue slot: no spell behind it (see WeaponImbues.lua)
+        return setmetatable({ category = category, name = L[def.nameKey], ids = {}, names = {} }, { __index = def })
+    end
     local name = Spells.Name(def.spellID) or (test and def.nameKey and L[def.nameKey]) or (test and def.key)
     if not name then return nil end -- ID unknown to this client: the entry stays hidden
     local ids, names = Spells.FamilyIDs(def.spellID), { [name] = true }
@@ -52,7 +56,13 @@ end
 -- Is this profile entry available to you? Procs always (they only show while active), everything else when you
 -- know the spell or one of its variants. Used for the watch list and the "new auras" dialog.
 function Watch.IsOffered(def, category)
-    return category == "procs" or isKnown(def)
+    return category == "procs" or category == "weapon" or isKnown(def)
+end
+
+-- Label of a profile entry in settings and dialogs: the client's spell name, or the slot name for weapon imbues.
+function Watch.DefName(def)
+    if def.slot then return L[def.nameKey] end
+    return Spells.Name(def.spellID) or def.key
 end
 
 -- Recomputes the watched entries (login, spells learned, settings or test mode changed).
@@ -114,8 +124,20 @@ function Watch.RefreshUnit(unit)
     Watch.info[unit] = info
 end
 
+-- Weapon imbues (not UNIT_AURA): re-read on inventory/equipment events and by the slow fallback check.
+-- Returns true if anything changed since the last read.
+function Watch.RefreshWeapons()
+    local now = GetTime()
+    Watch.weapons = Watch.testMode and WeaponImbues.TestRead(now) or WeaponImbues.Read(now)
+    local signature = WeaponImbues.Signature(Watch.weapons)
+    local changed = signature ~= Watch.weaponSignature
+    Watch.weaponSignature = signature
+    return changed
+end
+
 function Watch.RefreshAll()
     for _, unit in ipairs(Watch.UNITS) do Watch.RefreshUnit(unit) end
+    Watch.RefreshWeapons()
 end
 
 -- View data for the window ---------------------------------------------------------------------
@@ -168,6 +190,16 @@ function Watch.Healing(db)
             end
             if #auras > 0 then list[#list + 1] = { name = info.name, auras = auras } end
         end
+    end
+    return list
+end
+
+-- { { entry, result } } for the watched weapon slots that hold a weapon (MISSING only when surely readable).
+function Watch.Weapon(db)
+    local list, now = {}, GetTime()
+    for _, entry in ipairs(Watch.entries.weapon) do
+        local result = WeaponImbues.Evaluate(Watch.weapons and Watch.weapons[entry.slot], now, db)
+        if result then list[#list + 1] = { entry = entry, result = result } end
     end
     return list
 end
