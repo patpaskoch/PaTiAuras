@@ -17,7 +17,8 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   combat in `AuraWindow.applySecure` (target = `Auras.NextTarget`, tested). The window is therefore protected: no
   resize/show/hide/scale/move in combat (pending until PLAYER_REGEN_ENABLED); the group section stays first.
   Owner decision 2026-09-28: pre-selecting the next missing member is allowed; never cast, target or loop by itself.
-- Independence: no dependency on PaTiHeal/PaTiTank. A later integration = a small versioned global API, checked with `if PaTiAurasAPI then`.
+- Independence: no dependency on PaTiHeal/PaTiTank and no runtime API between them (owner decision 2026-09-28).
+  PaTiHeal shows healer auras on its own frames with its own small profile data; duplicated spell data is accepted.
 - Slash: `/pa`, `/patiauras`.
 
 ## Checks

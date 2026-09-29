@@ -27,6 +27,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Group buff tooltip: "Buffed: x / y", who is missing it, who is offline/dead, and whom a click buffs.
 - `/pa test` shows your class profile with test data (generic test profile only for classes without one).
 ### Changed
+- AddOns list description in English with a German translation (`## Notes-deDE`); README rewritten for players
+  (features, installation, first steps, commands, known limitations).
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed

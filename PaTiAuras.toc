@@ -1,6 +1,7 @@
 ## Interface: 16001
 ## Title: PaTiAuras
-## Notes: Kompakte Anzeige wichtiger Auren, Buffs und HoTs
+## Notes: Watches your buffs, procs, group buffs and healing auras
+## Notes-deDE: Überwacht deine Buffs, Procs, Gruppenbuffs und Heil-Auren
 ## Author: PaTi
 ## Version: 0.1.0
 ## IconTexture: Interface\AddOns\PaTiAuras\Media\icon
