@@ -1,5 +1,7 @@
 # PaTiAuras
 
+<img src="assets/icon-128.png" width="96" alt="PaTiAuras icon">
+
 A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, group buffs and
 healing auras — active, missing or expiring. It shows; you decide.
 
@@ -27,6 +29,12 @@ healing auras — active, missing or expiring. It shows; you decide.
 - `/pa test` shows example data
 - `/pa` shows or hides the window
 
+## Settings
+`/pa settings` or ••• → Settings:
+- **General:** on/off, sections (self, group, healing, procs), language, scale, window lock
+- **Display:** timers, charges, missing, expiring
+- **Auras:** every aura of your class on/off
+
 ## Commands
 `/pa` or `/patiauras` — alone: show/hide · `settings` · `test` · `show` · `hide` · `lock` · `unlock` · `reset` (position) ·
 `auras` (which profile spells your client knows) · `debug` · `version` · `about` · `changelog`
@@ -38,3 +46,6 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
   yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
 - Party only (no raid).
+
+## License
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Patrick Koch.

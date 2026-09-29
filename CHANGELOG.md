@@ -4,6 +4,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- New icon from the PaTiSuite icon set (`Media/icon.tga`, AddOns list); platform images in `assets/`.
+- MIT license (`LICENSE`, not part of the release zip).
 - Window with Self, Group and Healing sections; Restoration Shaman profile (Water Shield, Tidal Waves, Earth Shield, Riptide).
 - Active / Missing / Expiring / Unknown states, remaining time, charges; offline/dead members before missing buffs.
 - Settings, test mode (fake party incl. an offline member and a group buff), `/pa debug`, `/pa auras` (incl. aura API
