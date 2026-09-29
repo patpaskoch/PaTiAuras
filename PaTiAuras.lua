@@ -15,6 +15,28 @@ local function addonVersion()
     return getMetadata and getMetadata(addonName, "Version") or "?"
 end
 
+local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
+
+-- PaTiAlerts is optional (AGENTS.md §3): report only if it is installed with API version 1, never depend on it.
+-- Sent: your watched personal buffs and weapon imbues that are missing or expiring (Auras.Alerts); pcall so a problem
+-- in PaTiAlerts never breaks PaTiAuras. Test mode and "disabled" send an empty list (their alerts disappear).
+local function reportAlerts()
+    local api = _G.PaTiAlertsAPI
+    if type(api) ~= "table" or api.version ~= 1 or type(api.Sync) ~= "function" then return end
+    local list = {}
+    if DB.enabled and not Watch.testMode then
+        local items = {}
+        for _, item in ipairs(Watch.Self(DB)) do items[#items + 1] = item end
+        for _, item in ipairs(Watch.Weapon(DB)) do items[#items + 1] = item end
+        list = ns.Auras.Alerts(items, { missing = L.STATUS_MISSING, expiring = L.STATUS_EXPIRING,
+            imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret)
+    end
+    pcall(api.Sync, "PaTiAuras", list)
+end
+
+-- After every redraw (events and the 0.5 s timer redraw), so "expiring" reaches PaTiAlerts in time.
+AuraWindow.afterUpdate = function() if DB then reportAlerts() end end
+
 local function update()
     if DB then AuraWindow.Update(DB) end
 end

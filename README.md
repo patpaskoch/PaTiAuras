@@ -17,6 +17,7 @@ healing auras — active, missing or expiring. It shows; you decide.
   Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
   tooltip). One click, one cast; your target does not change. In combat the member stays fixed until combat ends
+- With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there
 - Every aura can be switched on or off; a small window asks on first start which ones to watch
 - Profiles: Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)

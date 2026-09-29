@@ -275,6 +275,7 @@ ticker:Hide()
 local elapsed = 0
 function AuraWindow.Update(db)
     local timers = AuraWindow.Render(db)
+    if AuraWindow.afterUpdate then AuraWindow.afterUpdate() end -- e.g. PaTiAlerts report (set by PaTiAuras.lua)
     ticker.db = db
     ticker:SetShown(timers and db.showTimers and window:IsShown())
 end

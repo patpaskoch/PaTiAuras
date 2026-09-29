@@ -122,3 +122,36 @@ describe("Auras.NextTarget", function()
         assert.is_nil(load().NextTarget({ { unit = "player", result = { state = "EXPIRING" } } }))
     end)
 end)
+
+describe("Auras.Alerts (for the optional PaTiAlerts)", function()
+    local SECRET = setmetatable({}, { __eq = function() error("secret compared") end })
+    local function isSecret(value) return rawequal(value, SECRET) end
+    local TEXTS = { missing = "missing", expiring = "expiring", imbueMissing = "imbue missing", imbueExpiring = "imbue expiring" }
+    local function item(key, category, state, name)
+        return { entry = { key = key, category = category, name = name or key }, result = { state = state } }
+    end
+
+    it("sends MISSING and EXPIRING buffs and weapon imbues as WARNING", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local alerts = Auras.Alerts({ item("WATER_SHIELD", "personal", "MISSING", "Wasserschild"),
+            item("MAIN_HAND_IMBUE", "weapon", "MISSING", "Waffenhand"), item("INNER_FIRE", "personal", "EXPIRING") },
+            TEXTS, true, isSecret)
+        assert.same({ id = "aura:WATER_SHIELD", priority = "WARNING", kind = "AURA_MISSING", text = "Wasserschild",
+            detail = "missing" }, alerts[1])
+        assert.same({ id = "weapon:MAIN_HAND_IMBUE", priority = "WARNING", kind = "WEAPON_IMBUE_MISSING",
+            text = "Waffenhand", detail = "imbue missing" }, alerts[2])
+        assert.equal("AURA_EXPIRING", alerts[3].kind)
+    end)
+
+    it("sends nothing for ACTIVE (the alert disappears), UNKNOWN (never 'missing') and procs", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        assert.same({}, Auras.Alerts({ item("A", "personal", "ACTIVE"), item("B", "personal", "UNKNOWN"),
+            item("C", "weapon", "UNKNOWN"), item("D", "weapon", "ACTIVE"), item("E", "procs", "EXPIRING") }, TEXTS, true, isSecret))
+    end)
+
+    it("follows showMissing and never sends a name that is not a plain string", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        assert.same({}, Auras.Alerts({ item("A", "personal", "MISSING") }, TEXTS, false, isSecret))
+        assert.same({}, Auras.Alerts({ item("A", "personal", "MISSING", SECRET) }, TEXTS, true, isSecret))
+    end)
+end)

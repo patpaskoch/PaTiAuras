@@ -62,6 +62,33 @@ function Auras.NextTarget(members)
     return nil
 end
 
+-- Alerts for PaTiAlerts (optional). items: { { entry, result } } of your watched personal buffs and weapon slots.
+-- MISSING (only if showMissing) and EXPIRING are sent as WARNING; ACTIVE sends nothing (so the alert disappears) and
+-- UNKNOWN never becomes a "missing" alert. Procs are left out (they only exist while active). texts = { missing,
+-- expiring, imbueMissing, imbueExpiring }: plain strings. A name that is not a plain string is not sent.
+function Auras.Alerts(items, texts, showMissing, isSecret)
+    local list = {}
+    for _, item in ipairs(items) do
+        local entry, state = item.entry, item.result.state
+        local weapon = entry.category == "weapon"
+        local name = entry.name
+        local plainName = not isSecret(name) and type(name) == "string" and name ~= ""
+        if plainName and entry.category ~= "procs" and ((state == "MISSING" and showMissing) or state == "EXPIRING") then
+            local missing = state == "MISSING"
+            list[#list + 1] = {
+                id = (weapon and "weapon:" or "aura:") .. entry.key,
+                priority = "WARNING",
+                kind = weapon and (missing and "WEAPON_IMBUE_MISSING" or "WEAPON_IMBUE_EXPIRING")
+                    or (missing and "AURA_MISSING" or "AURA_EXPIRING"),
+                text = name,
+                detail = weapon and (missing and texts.imbueMissing or texts.imbueExpiring)
+                    or (missing and texts.missing or texts.expiring),
+            }
+        end
+    end
+    return list
+end
+
 -- Group buff summary. members: { { name, unitState = nil | "OFFLINE" | "DEAD", result } }.
 -- Offline/dead members are left out: they need no buff reminder (spec: offline/dead before missing).
 function Auras.Summarize(members)

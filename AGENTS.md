@@ -24,3 +24,8 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
 
 ## Checks
 `bash ../../PaTiAdmin/tools/check.sh .` before every commit. Manual WoW tests: `../../PaTiAdmin/docs/TESTING.md`.
+
+## PaTiAlerts (optional)
+Reports its current alerts with `PaTiAlertsAPI.Sync("PaTiAuras", list)` after every normal refresh — only if the API
+exists with version 1, always inside `pcall` (PaTiAdmin/AGENTS.md §3). The list is built by a pure, tested function.
+Without PaTiAlerts nothing may change. Never make PaTiAlerts a dependency.

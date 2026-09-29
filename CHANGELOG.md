@@ -4,6 +4,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Optional PaTiAlerts report: your watched personal buffs and weapon imbues that are missing or expiring (warning);
+  active ones disappear, unclear data is never reported as missing, procs are not reported. Nothing changes without
+  PaTiAlerts.
 - New icon from the PaTiSuite icon set (`Media/icon.tga`, AddOns list); platform images in `assets/`.
 - MIT license (`LICENSE`, not part of the release zip).
 - Shaman weapon imbues: new WEAPON section with Main Hand and Off Hand (own data source `WeaponImbues.lua`, not
