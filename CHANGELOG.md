@@ -11,6 +11,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - English texts, German translation; spell names from the client.
 - Priest profile: Inner Fire; Fortitude, Divine Spirit and Shadow Protection as group buffs — the Prayer version
   counts as the same buff (profile entries may list `variants`). `/pa auras` also lists the variants.
+- Priest healing auras: your Renew, Power Word: Shield and Prayer of Mending per party member (IDs not yet
+  confirmed in this client; unknown IDs stay hidden). Each can be switched off like every other aura.
 - Click-to-buff: each group buff line is a secure button. A click casts the single-target buff (e.g. Power Word:
   Fortitude, highest known rank) on the next member who is missing it — alive, online and in sight — without changing
   your target. One click = one cast; when everyone has the buff, the line does nothing. Out of combat the target

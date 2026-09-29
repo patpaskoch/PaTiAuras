@@ -57,7 +57,7 @@ describe("Priest profile", function()
         local ns, db = setup("PRIEST", ALL_PRIEST)
         assert.equal("Priest", ns.Watch.ClassProfile().name)
         ns.Watch.Rebuild(db)
-        assert.same({ personal = 1, procs = 0, group = 3, healing = 0 }, ns.Watch.Count())
+        assert.same({ personal = 1, procs = 0, group = 3, healing = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
     end)
 
     it("counts the Prayer version as the same buff as the single-target spell", function()
@@ -253,5 +253,37 @@ describe("Unit basics with secret values", function()
         local fortitude = groupLine(ns, db, "FORTITUDE")
         assert.same({ "Party member 2" }, fortitude.missing)
         assert.same({}, fortitude.away)
+    end)
+end)
+
+describe("Priest healing auras", function()
+    it("offers Renew, Power Word: Shield and Prayer of Mending; each can be switched off", function()
+        NAMES[139], NAMES[17], NAMES[33076] = "Erneuerung", "Machtwort: Schild", "Gebet der Besserung"
+        local known = { [139] = true, [17] = true, [33076] = true }
+        for id in pairs(ALL_PRIEST) do known[id] = true end
+        local ns, db = setup("PRIEST", known)
+        ns.Watch.Rebuild(db)
+        assert.equal(3, ns.Watch.Count().healing)
+        db.watch.RENEW = false
+        ns.Watch.Rebuild(db)
+        assert.equal(2, ns.Watch.Count().healing)
+        NAMES[139], NAMES[17], NAMES[33076] = nil, nil, nil
+    end)
+
+    it("shows only your own Renew on a member (mine), not another priest's", function()
+        NAMES[139] = "Erneuerung"
+        local known = { [139] = true }
+        local ns, db = setup("PRIEST", known)
+        world.units = {
+            player = { name = "Du", auras = {} },
+            party1 = { name = "Tank", auras = { aura("Erneuerung", 139, { sourceUnit = "party2" }) } },
+            party2 = { name = "Other", auras = { aura("Erneuerung", 139, { sourceUnit = "player" }) } },
+        }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local names = {}
+        for _, line in ipairs(ns.Watch.Healing(db)) do names[#names + 1] = line.name end
+        assert.same({ "Other" }, names)
+        NAMES[139] = nil
     end)
 end)

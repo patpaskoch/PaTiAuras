@@ -79,7 +79,8 @@ local TEST_AURAS = {
     player = { TIDAL_WAVES = { count = 2 }, FORTITUDE = { remaining = 1500 }, INNER_FIRE = { count = 18, remaining = 25 },
         DIVINE_SPIRIT = { remaining = 1500 }, SHADOW_PROTECTION = { remaining = 500 } },
     party1 = { EARTH_SHIELD = { count = 5 }, RIPTIDE = { remaining = 7 }, FORTITUDE = { remaining = 1500 },
-        DIVINE_SPIRIT = { remaining = 1500 } },
+        DIVINE_SPIRIT = { remaining = 1500 }, RENEW = { remaining = 11 }, POWER_WORD_SHIELD = { remaining = 22 },
+        PRAYER_OF_MENDING = { count = 4 } },
     party2 = { DIVINE_SPIRIT = { remaining = 900 } },
     party3 = { FORTITUDE = { remaining = 20 } },
 }
