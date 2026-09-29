@@ -1,0 +1,59 @@
+# Release draft for one PaTi addon. Source: PaTiAdmin/templates/release.yml — copy unchanged to
+# <repo>/.github/workflows/release.yml (tools/check.sh compares the copies).
+# Runs only when a tag vX.Y.Z is pushed (docs/RELEASE.md). It runs all checks, requires tag = TOC version, builds
+# the zip and creates a DRAFT GitHub release with the CHANGELOG section as notes. Nothing is published until the
+# owner presses "Publish release". Uses the built-in GITHUB_TOKEN only; no extra secrets.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ADDON: ${{ github.event.repository.name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: PaTiAddons/${{ github.event.repository.name }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: patpaskoch/PaTiAdmin
+          path: PaTiAdmin
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+      - run: luarocks install luacheck
+
+      - name: Checks
+        run: bash PaTiAdmin/tools/check.sh "PaTiAddons/$ADDON"
+
+      - name: Tag must match the TOC version
+        id: version
+        run: |
+          version="$(grep -i '^## Version:' "PaTiAddons/$ADDON/$ADDON.toc" | head -1 | sed 's/^## Version:[[:space:]]*//' | tr -d '\r')"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match ## Version: $version in $ADDON.toc"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Package
+        run: PATI_DIST="$PWD/dist" bash PaTiAdmin/tools/package.sh "PaTiAddons/$ADDON"
+
+      - name: Release notes from CHANGELOG.md
+        run: (cd "PaTiAddons/$ADDON" && lua ../../PaTiAdmin/tools/lua/run.lua notes "${{ steps.version.outputs.version }}") > notes.md
+
+      - name: Draft release (not published)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip --draft --verify-tag \
+            --title "$ADDON ${{ steps.version.outputs.version }}" --notes-file notes.md -R "$GITHUB_REPOSITORY"
