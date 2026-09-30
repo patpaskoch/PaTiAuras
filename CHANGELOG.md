@@ -4,9 +4,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
-- Window settings (PaTiShared): panel opacity 30–100 % (default 75 %, the header stays opaque) and snapping to other
-  PaTi windows while dragging (on by default; never in combat). The window registers itself for the optional
-  PaTiSuite control panel, which shows/hides it with this addon's own rules.
+- Window settings (PaTiShared): panel opacity 30–100 % (default 75 %, the header stays opaque). The window registers
+  itself for the optional PaTiSuite control panel, which shows/hides it with this addon's own rules. (Snapping to
+  other PaTi windows was tried and removed again: it did not work in the client.)
 - Optional PaTiAlerts report: your watched personal buffs and weapon imbues that are missing or expiring (warning);
   active ones disappear, unclear data is never reported as missing, procs are not reported. Nothing changes without
   PaTiAlerts.
@@ -41,11 +41,20 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Group buff tooltip: "Buffed: x / y", who is missing it, who is offline/dead, and whom a click buffs.
 - `/pa test` shows your class profile with test data (generic test profile only for classes without one).
 ### Changed
+- Settings: one "Watch" list instead of category switches plus a second aura list — a button opens a multi-select
+  list of your character's entries (self, procs, healing, weapon, group). SavedVariables schema 2: a switched-off
+  category of schema 1 becomes watch = false for each of its entries (once); the category switches are gone.
 - AddOns list description in English with a German translation (`## Notes-deDE`); README rewritten for players
   (features, installation, first steps, commands, known limitations).
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Weapon imbues showed "Unknown" with and without Rockbiter (owner test 2026-09-30): the adapter called
+  `C_Item.GetWeaponEnchantInfo()` without a slot and read it like the classic tuple. Now one priority chain with
+  separate parsers: `GetWeaponEnchantInfo()` (classic tuple, both hands) first, `C_Item.GetWeaponEnchantInfo(slot)`
+  only as fallback and only with `Enum.WeaponSlot` (no guessed slot numbers; a permanent enchant never counts as an
+  imbue). Any item in the main hand counts as a weapon. Also reacts to WEAPON_ENCHANT_CHANGED / WEAPON_SLOT_CHANGED if
+  the client has them; the fallback check runs every 1 s. `/pa debug` and `/pa auras` print both APIs' raw answers.
 - Secret values: a secret member name is replaced by "You" / "Party member N" (names are joined into tooltips);
   secret offline/dead flags no longer count as offline or dead.
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.

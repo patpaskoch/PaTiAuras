@@ -81,10 +81,7 @@ local function buildSettings()
         })
     end
     modal:AddSection("GENERAL")
-    modal:AddControls(box("ENABLE", "enabled"), box("SHOW_PERSONAL", "showPersonal"))
-    modal:AddControls(box("SHOW_GROUP", "showGroup"), box("SHOW_HEALING", "showHealing"))
-    modal:AddControls(box("SHOW_PROCS", "showProcs"), box("SHOW_WEAPON", "showWeapon"))
-    modal:AddControls(UI.CreateCheckbox(modal, "LOCK_WINDOW", {
+    modal:AddControls(box("ENABLE", "enabled"), UI.CreateCheckbox(modal, "LOCK_WINDOW", {
         get = function() return window:IsLocked() end,
         set = function(locked) window:SetLocked(locked) end,
     }))
@@ -97,32 +94,45 @@ local function buildSettings()
             if not combatBlocked() then window:SetScale(scale) end -- else applied after combat
         end,
     }))
+    UI.AddWindowSettings(modal, window) -- panel opacity (PaTiShared)
+
+    -- WATCH: the one list of what to watch (DB.watch), as a multi-select popup of your character's entries.
+    modal:AddSection("WATCH")
+    local watchButton
+    local function watchLabel()
+        local on, total = 0, 0
+        for _, group in ipairs(Watch.Choices(Watch.ClassProfile())) do
+            for _, def in ipairs(group.defs) do
+                total = total + 1
+                if DB.watch[def.key] ~= false then on = on + 1 end
+            end
+        end
+        return total > 0 and L.WATCH_SELECT:format(on, total) or L.WATCH_NONE
+    end
+    local function watchItems()
+        local items = {}
+        for _, group in ipairs(Watch.Choices(Watch.ClassProfile())) do
+            items[#items + 1] = { header = true, text = string.upper(L["WATCH_" .. group.category:upper()]) }
+            for _, def in ipairs(group.defs) do
+                items[#items + 1] = { text = Watch.DefName(def), checked = DB.watch[def.key] ~= false, keepOpen = true,
+                    onClick = function()
+                        DB.watch[def.key] = DB.watch[def.key] == false -- toggles exactly this one entry
+                        rebuild()
+                        watchButton.label:SetText(watchLabel())
+                    end }
+            end
+        end
+        return items
+    end
+    watchButton = UI.CreateButton(modal, watchLabel, 240, function(self)
+        UI.ShowPopup(self, watchItems, 240, "LEFT")
+    end)
+    modal:AddControl(watchButton)
+    modal:HookScript("OnShow", function() watchButton.label:SetText(watchLabel()) end)
+
     modal:AddSection("DISPLAY")
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
     modal:AddControls(box("SHOW_MISSING", "showMissing"), box("SHOW_EXPIRING", "showExpiring"))
-
-    -- Class list: spell names come from the client (already localized).
-    local profile, defs = Watch.ClassProfile(), {}
-    for _, category in ipairs(Watch.CATEGORIES) do
-        for _, def in ipairs(profile and profile[category] or {}) do defs[#defs + 1] = def end
-    end
-    if #defs > 0 then
-        modal:AddSection("AURAS")
-        for index = 1, #defs, 2 do
-            local pair = {}
-            for offset = 0, 1 do
-                local def = defs[index + offset]
-                if def then
-                    pair[offset + 1] = UI.CreateCheckbox(modal, function() return Watch.DefName(def) end, {
-                        get = function() return DB.watch[def.key] ~= false end,
-                        set = function(value) DB.watch[def.key] = value; rebuild() end,
-                    })
-                end
-            end
-            modal:AddControls(pair[1], pair[2])
-        end
-    end
-    UI.AddWindowSettings(modal, window) -- panel opacity + snapping (PaTiShared)
     modal:Finish(function()
         Config.RestoreDefaults(DB)
         window:ApplyOpacity()
@@ -231,24 +241,6 @@ local function specText()
     return "n/a (talents)"
 end
 
--- Weapon enchant APIs of this client and whether each slot could be read (no item names).
-local function weaponApiLine()
-    local weapons = ns.WeaponImbues.Read(GetTime())
-    local function yes(value) return value and "yes" or "no" end
-    return ("Weapon enchant API: C_Item.GetWeaponEnchantInfo %s · GetWeaponEnchantInfo %s · "
-        .. "C_PaperDollInfo.GetTemporaryEnchantmentInfo %s · main hand readable %s · off hand readable %s"):format(
-        yes(C_Item and C_Item.GetWeaponEnchantInfo), yes(GetWeaponEnchantInfo),
-        yes(C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo),
-        yes(weapons.MAINHAND.readable), yes(weapons.OFFHAND.readable))
-end
-
--- Readable raw values of one weapon slot for /pa auras.
-local function weaponSlotLine(slot, raw)
-    local remaining = raw.expiresAt and math.floor(raw.expiresAt - GetTime()) .. "s" or "-"
-    return ("%s: weapon=%s readable=%s imbue=%s remaining=%s charges=%s enchantID=%s"):format(slot,
-        tostring(raw.weapon), tostring(raw.readable), tostring(raw.has), remaining, tostring(raw.charges),
-        tostring(raw.enchantID))
-end
 
 -- /pa debug: facts for bug reports. No names, no personal data.
 local function printDebug()
@@ -268,9 +260,9 @@ local function printDebug()
         ("Profile %s · tracked: personal %d, procs %d, group %d, healing %d, weapon %d · clickable %d · pending secure: %s"):format(
             Watch.profile and Watch.profile.name or "none", counts.personal, counts.procs, counts.group, counts.healing,
             counts.weapon, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
-        weaponApiLine(),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
+        unpack(ns.WeaponImbues.Describe(GetTime())),
     })
 end
 
@@ -285,10 +277,11 @@ local function printAuraCheck()
             tostring(name ~= nil and Spells.IsKnown(id)), #Spells.Ranks(id))
     end
     if profile then list[#list + 1] = "Profile " .. profile.name end
+    local weapons = false
     for _, category in ipairs(Watch.CATEGORIES) do
         for _, def in ipairs(profile and profile[category] or {}) do
-            if def.slot then -- weapon imbues have no spell ID: show what the enchant API reports instead
-                list[#list + 1] = weaponSlotLine(def.slot, ns.WeaponImbues.Read(GetTime())[def.slot])
+            if def.slot then -- weapon imbues have no spell ID: what the enchant APIs report, once for both hands
+                weapons = true
             else
                 list[#list + 1] = describe(category .. " " .. def.key, def.spellID)
                 for _, variant in ipairs(def.variants or {}) do
@@ -296,6 +289,9 @@ local function printAuraCheck()
                 end
             end
         end
+    end
+    if weapons then
+        for _, line in ipairs(ns.WeaponImbues.Describe(GetTime())) do list[#list + 1] = line end
     end
     if not profile then list[#list + 1] = L.NO_PROFILE end
     printLines("Auras", list)
@@ -346,13 +342,13 @@ for _, event in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "GROUP_ROSTER_
     events:RegisterEvent(event)
 end
 for _, event in ipairs({ "PLAYER_SPECIALIZATION_CHANGED", "ACTIVE_TALENT_GROUP_CHANGED", "CHARACTER_POINTS_CHANGED",
-    "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED" }) do
+    "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "WEAPON_ENCHANT_CHANGED", "WEAPON_SLOT_CHANGED" }) do
     pcall(events.RegisterEvent, events, event) -- not every client generation has these
 end
 
 -- Weapon imbues: no UNIT_AURA. Inventory/equipment events are the main signal; whether this client fires them for
--- imbues is unconfirmed, so a slow check (every 2 s, only while weapon slots are watched) repaints on changes only.
-local WEAPON_CHECK_SECONDS = 2
+-- imbues is unconfirmed, so a slow check (every 1 s, only while weapon slots are watched) repaints on changes only.
+local WEAPON_CHECK_SECONDS = 1
 local weaponCheck = CreateFrame("Frame")
 weaponCheck:Hide()
 local sinceWeaponCheck = 0
@@ -368,7 +364,7 @@ end
 
 events:SetScript("OnEvent", function(_, event, unit)
     if event == "PLAYER_LOGIN" then
-        PaTiAurasDB = Config.Migrate(PaTiAurasDB)
+        PaTiAurasDB = Config.Migrate(PaTiAurasDB, Watch.ClassProfile()) -- the profile: once, for schema 1 → 2
         DB = PaTiAurasDB
         UI.SetLanguage(DB.language)
         window:Attach(DB, -330, 120)
@@ -387,8 +383,9 @@ events:SetScript("OnEvent", function(_, event, unit)
             Watch.RefreshUnit(unit)
             update()
         end
-    elseif event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_EQUIPMENT_CHANGED" then
-        if (event == "PLAYER_EQUIPMENT_CHANGED" or unit == "player") and Watch.RefreshWeapons() then update() end
+    elseif event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_EQUIPMENT_CHANGED"
+        or event == "WEAPON_ENCHANT_CHANGED" or event == "WEAPON_SLOT_CHANGED" then
+        if (event ~= "UNIT_INVENTORY_CHANGED" or unit == "player") and Watch.RefreshWeapons() then update() end
     elseif event == "PLAYER_REGEN_ENABLED" then
         -- Combat over: buff buttons point at the next missing member again, window gets its real size/scale.
         window:SetScale(DB.scale)

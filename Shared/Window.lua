@@ -6,8 +6,9 @@ ns.UI = UI
 
 local Window = {}
 
--- db: the addon's SavedVariables table (uses db.point/relativePoint/x/y, db.locked, db.opacity, db.snapWindows).
--- Old saves with only x/y are read as CENTER offsets; saves without opacity/snapWindows get the defaults.
+-- db: the addon's SavedVariables table (uses db.point/relativePoint/x/y, db.locked, db.opacity).
+-- Old saves with only x/y are read as CENTER offsets; saves without opacity get the default. An old db.snapWindows
+-- (snapping existed briefly) is simply ignored.
 function Window:Attach(db, defaultX, defaultY)
     self.db = db
     self:ClearAllPoints()
@@ -21,28 +22,6 @@ end
 function Window:ApplyOpacity()
     local r, g, b, a = UI.Color("Background")
     self:SetBackdropColor(r, g, b, a * UI.ClampOpacity(self.db and self.db.opacity))
-end
-
--- End of a drag: meet the nearest edge of another visible PaTi window (UI.SNAP_DISTANCE), then the caller saves
--- the position as usual. Nothing stays linked. Never in combat (windows with secure children must not move then);
--- off with db.snapWindows = false. Other addons' frames are only read (position, size, visibility).
-function Window:SnapToSuite()
-    if InCombatLockdown() or (self.db and self.db.snapWindows == false) then return end
-    local me = UI.ScreenRect(self)
-    if not me then return end
-    local others = {}
-    for _, frame in pairs(UI.WindowRegistry()) do
-        if frame ~= self and type(frame) == "table" and frame.IsVisible and frame:IsVisible() then
-            local ok, rect = pcall(UI.ScreenRect, frame)
-            if ok and rect then others[#others + 1] = rect end
-        end
-    end
-    local dx, dy = UI.SnapDelta(me, others, UI.SNAP_DISTANCE)
-    if dx == 0 and dy == 0 then return end
-    local scale = self:GetEffectiveScale()
-    local left, top = self:GetLeft() + dx / scale, self:GetTop() + dy / scale
-    self:ClearAllPoints()
-    self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
 end
 
 -- For the optional PaTiSuite control panel. The addon may set window.suiteSetShown(shown) → true / false (blocked,
@@ -125,7 +104,6 @@ function UI.CreateWindow(name, title, width, height)
     header:SetScript("OnDragStop", function()
         window:StopMovingOrSizing()
         window:SetUserPlaced(false) -- position lives in the addon's DB, not in WoW's layout cache
-        window:SnapToSuite()
         window:SavePosition()
     end)
     window.header = header

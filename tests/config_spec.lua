@@ -12,7 +12,7 @@ describe("Config.Migrate", function()
         assert.equal(1, db.scale)
         assert.equal("auto", db.language)
         assert.same({}, db.watch)
-        assert.equal(1, db.schema)
+        assert.equal(2, db.schema)
     end)
 
     it("keeps saved values, also false, and the position", function()
@@ -76,31 +76,57 @@ describe("Collapse state", function()
     end)
 end)
 
-describe("Weapon imbue setting", function()
-    it("is on for older saves without touching their settings; a saved false stays", function()
+describe("Schema 2: the watch list replaces the category switches", function()
+    local PROFILE = {
+        personal = { { key = "WATER_SHIELD" } }, procs = { { key = "TIDAL_WAVES" } },
+        healing = { { key = "EARTH_SHIELD" }, { key = "RIPTIDE" } },
+        weapon = { { key = "MAIN_HAND_IMBUE" }, { key = "OFF_HAND_IMBUE" } }, group = {},
+    }
+
+    it("turns a switched-off category into watch = false for each of its entries, once", function()
+        local Config = load()
+        local db = Config.Migrate({ schema = 1, showHealing = false, showWeapon = false, showPersonal = true,
+            watch = { WATER_SHIELD = false } }, PROFILE)
+        assert.same({ WATER_SHIELD = false, EARTH_SHIELD = false, RIPTIDE = false, MAIN_HAND_IMBUE = false,
+            OFF_HAND_IMBUE = false }, db.watch)
+        assert.equal(2, db.schema)
+        for _, key in ipairs({ "showPersonal", "showGroup", "showHealing", "showProcs", "showWeapon" }) do
+            assert.is_nil(db[key])
+        end
+        db.watch.EARTH_SHIELD = true -- switched on again later: a second login must not undo that
+        assert.is_true(Config.Migrate(db, PROFILE).watch.EARTH_SHIELD)
+    end)
+
+    it("keeps individual choices, position, language, scale, lock and collapse", function()
         local Config = load()
         local db = Config.Migrate({ schema = 1, collapsed = true, locked = true, scale = 0.9, language = "deDE",
-            x = 3, watch = { RIPTIDE = false }, seen = { RIPTIDE = true } })
-        assert.is_true(db.showWeapon)
+            x = 3, watch = { RIPTIDE = false }, seen = { RIPTIDE = true }, showHealing = true }, PROFILE)
         assert.same({ true, true, 0.9, "deDE", 3 }, { db.collapsed, db.locked, db.scale, db.language, db.x })
         assert.same({ RIPTIDE = false }, db.watch)
         assert.same({ RIPTIDE = true }, db.seen)
-        assert.is_false(Config.Migrate({ showWeapon = false }).showWeapon)
+    end)
+
+    it("works without a class profile and for new characters", function()
+        local Config = load()
+        assert.same({}, Config.Migrate({ schema = 1, showHealing = false }, nil).watch)
+        local db = Config.Migrate(nil, PROFILE)
+        assert.same({}, db.watch)
+        assert.is_nil(db.showHealing)
+        local restored = Config.RestoreDefaults({ watch = { RIPTIDE = false }, seen = { RIPTIDE = true } })
+        assert.same({}, restored.watch) -- Restore Defaults: everything watched again
+        assert.same({ RIPTIDE = true }, restored.seen)
     end)
 end)
 
-describe("Window settings (panel opacity, snapping)", function()
-    it("old saves get 75 % and snapping on; saved values stay; Restore Defaults resets them", function()
+describe("Window settings (panel opacity)", function()
+    it("old saves get 75 %; a saved value stays; Restore Defaults resets it; an old snapWindows is ignored", function()
         local M = load()
         local db = M.Migrate({ x = 12, y = 34 })
         assert.equal(0.75, db.opacity)
-        assert.is_true(db.snapWindows)
         assert.equal(12, db.x)
         db = M.Migrate({ opacity = 0.4, snapWindows = false })
         assert.equal(0.4, db.opacity)
-        assert.is_false(db.snapWindows)
         db = M.RestoreDefaults({ opacity = 0.4, snapWindows = false, bindings = {}, bindingRanks = {}, watch = {} })
         assert.equal(0.75, db.opacity)
-        assert.is_true(db.snapWindows)
     end)
 end)

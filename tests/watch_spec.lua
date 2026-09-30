@@ -253,13 +253,13 @@ describe("Shaman weapon imbues in the watch", function()
         _G.GetWeaponEnchantInfo = nil
     end)
 
-    it("follows the per-slot switch and the section switch", function()
+    it("follows the per-slot switch and 'PaTiAuras enabled'", function()
         local ns, db = setup("SHAMAN", {})
         equip()
         _G.GetWeaponEnchantInfo = function() return false, 0, 0, 0, false, 0, 0, 0 end
         db.watch.OFF_HAND_IMBUE = false
         assert.same({ MAINHAND = "MISSING" }, weaponStates(ns, db))
-        db.showWeapon = false
+        db.enabled = false
         assert.same({}, weaponStates(ns, db))
         _G.GetWeaponEnchantInfo = nil
     end)
@@ -332,5 +332,36 @@ describe("Priest healing auras", function()
         for _, line in ipairs(ns.Watch.Healing(db)) do names[#names + 1] = line.name end
         assert.same({ "Other" }, names)
         NAMES[139] = nil
+    end)
+end)
+
+describe("Watch.Choices (settings: what to watch)", function()
+    it("offers only your class's entries the client knows, grouped self, procs, healing, weapon", function()
+        local ns = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
+        local groups = {}
+        for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
+            local keys = {}
+            for _, def in ipairs(group.defs) do keys[#keys + 1] = def.key end
+            groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
+        end
+        assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "healing:EARTH_SHIELD,RIPTIDE",
+            "weapon:MAIN_HAND_IMBUE,OFF_HAND_IMBUE" }, groups)
+    end)
+
+    it("leaves out spells you do not know and IDs the client does not know", function()
+        local ns = setup("PRIEST", { [588] = true }) -- only Inner Fire known
+        local groups = ns.Watch.Choices(ns.Watch.ClassProfile())
+        assert.equal(1, #groups)
+        assert.equal("INNER_FIRE", groups[1].defs[1].key)
+    end)
+
+    it("switching one entry off hides exactly that entry", function()
+        local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
+        ns.Watch.Rebuild(db)
+        assert.equal(2, ns.Watch.Count().healing)
+        db.watch.RIPTIDE = false
+        ns.Watch.Rebuild(db)
+        assert.equal(1, ns.Watch.Count().healing)
+        assert.equal(1, ns.Watch.Count().personal)
     end)
 end)

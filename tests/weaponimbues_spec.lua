@@ -9,6 +9,7 @@ local function load()
     wow.install()
     _G.issecretvalue = function(value) return rawequal(value, SECRET) end
     _G.C_Item = nil
+    _G.Enum = nil
     _G.GetWeaponEnchantInfo = nil
     -- Default equipment: a weapon in both hands (item class 2).
     local items = { [16] = 1001, [17] = 1002 }
@@ -42,13 +43,34 @@ describe("WeaponImbues adapter", function()
         assert.equal("MISSING", off.state)
     end)
 
-    it("prefers C_Item.GetWeaponEnchantInfo and accepts 1/nil flags", function()
+    it("reads the classic tuple first even when C_Item.GetWeaponEnchantInfo exists (owner test 2026-09-30)", function()
         local WeaponImbues = load()
-        _G.GetWeaponEnchantInfo = function() error("must not be called") end
-        _G.C_Item = { GetWeaponEnchantInfo = function() return 1, 20000, 0, 5, nil end }
+        -- The bug: the modern API was called without a slot and read like the tuple → UNKNOWN with and without Rockbiter.
+        _G.C_Item = { GetWeaponEnchantInfo = function(slot) if slot == nil then error("slot expected") end end }
+        _G.GetWeaponEnchantInfo = function() return 1, 20000, 0, 5, nil end -- 1/nil flags as in older clients
         local main, off = states(WeaponImbues, 0)
         assert.equal("EXPIRING", main.state) -- 20 s left, below Auras.EXPIRING_SECONDS
         assert.equal("MISSING", off.state)
+        assert.equal("GetWeaponEnchantInfo", WeaponImbues.Source(0))
+    end)
+
+    it("follows Rockbiter on / off / on again with a weapon in the main hand", function()
+        local WeaponImbues = load()
+        local rockbiter = false
+        _G.GetWeaponEnchantInfo = function()
+            if rockbiter then return true, 300000, 0, 3021, false, 0, 0, 0 end
+            return false, 0, 0, 0, false, 0, 0, 0
+        end
+        assert.equal("MISSING", (states(WeaponImbues, 0)).state)
+        rockbiter = true
+        local main, _, weapons = states(WeaponImbues, 0)
+        assert.equal("ACTIVE", main.state)
+        assert.equal(300, main.remaining)
+        assert.equal(3021, weapons.MAINHAND.enchantID)
+        rockbiter = false
+        assert.equal("MISSING", (states(WeaponImbues, 0)).state)
+        rockbiter = true
+        assert.equal("ACTIVE", (states(WeaponImbues, 0)).state)
     end)
 
     it("is UNKNOWN, never MISSING, when the API is missing, errors or answers nothing", function()
@@ -82,9 +104,12 @@ describe("WeaponImbues adapter", function()
         items[17] = 1003 -- class 4 = armor (shield)
         _, off = states(WeaponImbues, 0)
         assert.is_nil(off)
+        items[17] = 1002
         _G.GetItemInfoInstant = function() return nil end
-        local main = states(WeaponImbues, 0)
-        assert.equal("UNKNOWN", main.state) -- no imbue, but cannot tell whether it is a weapon
+        local main
+        main, off = states(WeaponImbues, 0)
+        assert.equal("MISSING", main.state) -- the main-hand slot only holds weapons: no item class needed
+        assert.equal("UNKNOWN", off.state) -- off hand: weapon or shield? cannot tell → never "missing"
     end)
 
     it("keeps no old state after a weapon swap: every read describes the current equipment", function()
@@ -116,5 +141,57 @@ describe("WeaponImbues.Evaluate and Signature", function()
         assert.equal(a, b)
         assert.is_true(a ~= renewed)
         assert.is_true(a ~= gone)
+    end)
+end)
+
+describe("WeaponImbues modern fallback (C_Item.GetWeaponEnchantInfo(slot))", function()
+    local function setupModern(answers)
+        local WeaponImbues = load()
+        _G.Enum = { WeaponSlot = { MainHand = 0, OffHand = 1 }, ItemEnchantType = { Permanent = 0, Temporary = 1 } }
+        _G.C_Item = { GetWeaponEnchantInfo = function(slot)
+            local answer = answers[slot]
+            if answer == "error" then error("boom") end
+            return answer
+        end }
+        return WeaponImbues
+    end
+
+    it("is used only when the classic API is missing, and picks the imbue, not a permanent enchant", function()
+        local WeaponImbues = setupModern({
+            [0] = { { hasEnchant = true, enchantType = 0, enchantID = 1900 },
+                { hasEnchant = true, enchantType = 1, timeLeft = 600000, charges = 0, enchantID = 3021 } },
+            [1] = { { hasEnchant = true, enchantType = 0, enchantID = 1900 } }, -- permanent only
+        })
+        local main, off, weapons = states(WeaponImbues, 0)
+        assert.equal("ACTIVE", main.state)
+        assert.equal(600, main.remaining)
+        assert.equal(3021, weapons.MAINHAND.enchantID)
+        assert.equal("MISSING", off.state)
+        assert.equal("C_Item.GetWeaponEnchantInfo", WeaponImbues.Source(0))
+    end)
+
+    it("accepts a single entry table, reads nil as 'no imbue' and an error or secret flag as UNKNOWN", function()
+        local WeaponImbues = setupModern({ [0] = { hasEnchant = true, timeLeft = 20000 }, [1] = nil })
+        local main, off = states(WeaponImbues, 0)
+        assert.equal("EXPIRING", main.state)
+        assert.equal("MISSING", off.state)
+        WeaponImbues = setupModern({ [0] = "error", [1] = { { hasEnchant = SECRET } } })
+        main, off = states(WeaponImbues, 0)
+        assert.same({ "UNKNOWN", "UNKNOWN" }, { main.state, off.state })
+    end)
+
+    it("never guesses slot numbers: without Enum.WeaponSlot it stays UNKNOWN", function()
+        local WeaponImbues = setupModern({ [0] = { hasEnchant = true, timeLeft = 20000 } })
+        _G.Enum = nil
+        assert.equal("UNKNOWN", (states(WeaponImbues, 0)).state)
+    end)
+
+    it("describes both APIs for /pa auras without formatting secret values", function()
+        local WeaponImbues = load()
+        _G.GetWeaponEnchantInfo = function() return SECRET, SECRET, 0, 0, false, 0, 0, 0 end
+        local lines = WeaponImbues.Describe(0)
+        assert.truthy(lines[1]:find("Weapon API: GetWeaponEnchantInfo", 1, true))
+        assert.truthy(lines[2]:find("secret", 1, true))
+        assert.truthy(lines[3]:find("MAINHAND: weapon=true readable=false", 1, true))
     end)
 end)

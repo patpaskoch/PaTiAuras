@@ -49,19 +49,28 @@ local function getRow(index)
     row:SetScript("OnLeave", function(self) self.hover:Hide() end)
     row:SetScript("OnClick", function(self)
         local item = self.item
-        UI.HidePopup()
+        if not item.keepOpen then UI.HidePopup() end
         if item.onClick then item.onClick(item) end
+        if item.keepOpen and popup:IsShown() and popup.render then popup.render() end -- multi-select: stay open, repaint
     end)
     UI.SetTooltip(row, nil)
     rows[index] = row
     return row
 end
 
--- items: { text, icon?, checked?, disabled?, tooltip?, onClick(item) }
+-- items: list (or a function returning it, re-read after each keepOpen click) of
+-- { text, icon?, checked?, disabled?, tooltip?, onClick(item), keepOpen?, header? }.
+-- keepOpen: the click toggles and the popup stays open (multi-select lists). header: a muted, not clickable title.
 -- align "RIGHT" (menu, opens leftwards) or "LEFT" (dropdown). Clicking the same anchor again closes.
+local render
 function UI.ShowPopup(anchor, items, minWidth, align)
     if not popup then createPopup() end
     if popup:IsShown() and popup.anchor == anchor then popup:Hide(); return end
+    popup.render = function() render(anchor, type(items) == "function" and items() or items, minWidth, align) end
+    popup.render()
+end
+
+render = function(anchor, items, minWidth, align)
 
     local pad, height = UI.Spacing.SM, UI.Sizes.MenuRowHeight
     local textLeft = UI.Spacing.MD + UI.Sizes.IconMedium + UI.Spacing.MD
@@ -74,14 +83,15 @@ function UI.ShowPopup(anchor, items, minWidth, align)
         row.label:ClearAllPoints()
         row.label:SetPoint("LEFT", textLeft, 0)
         row.label:SetText(UI.Text(item.text) or "")
-        local color = item.disabled and "TextMuted" or item.checked and "Accent" or "Text"
+        local color = (item.disabled or item.header) and "TextMuted" or item.checked and "Accent" or "Text"
         row.label:SetTextColor(UI.Color(color))
+        row.label:SetFontObject(item.header and UI.Fonts.Label or UI.Fonts.Text)
         row.icon:SetTexture(item.icon)
-        row.icon:SetShown(item.icon ~= nil)
+        row.icon:SetShown(item.icon ~= nil and not item.header)
         row.icon:SetDesaturated(item.disabled == true)
         row.dot:SetColorTexture(UI.Color(item.checked and "Accent" or "TextMuted"))
-        row.dot:SetShown(item.icon == nil)
-        row:SetEnabled(not item.disabled)
+        row.dot:SetShown(item.icon == nil and not item.header)
+        row:SetEnabled(not item.disabled and not item.header)
         row.patiTooltip = item.tooltip
         width = math.max(width, math.ceil(UI.TextWidth(row.label)) + textLeft + UI.Spacing.LG)
     end

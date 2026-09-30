@@ -12,8 +12,6 @@ local Watch = {
 }
 ns.Watch = Watch
 
-local CATEGORY_SETTING = { personal = "showPersonal", procs = "showProcs", group = "showGroup", healing = "showHealing",
-    weapon = "showWeapon" }
 local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
 
 local WATCHED_UNIT = {}
@@ -59,6 +57,21 @@ function Watch.IsOffered(def, category)
     return category == "procs" or category == "weapon" or isKnown(def)
 end
 
+-- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
+-- self, procs, healing, weapon, group. Returns { { category, defs = { def, … } } } (empty categories left out).
+Watch.CHOICE_ORDER = { "personal", "procs", "healing", "weapon", "group" }
+function Watch.Choices(profile)
+    local list = {}
+    for _, category in ipairs(Watch.CHOICE_ORDER) do
+        local defs = {}
+        for _, def in ipairs(profile and profile[category] or {}) do
+            if Watch.IsOffered(def, category) and (def.slot or Spells.Name(def.spellID)) then defs[#defs + 1] = def end
+        end
+        if #defs > 0 then list[#list + 1] = { category = category, defs = defs } end
+    end
+    return list
+end
+
 -- Label of a profile entry in settings and dialogs: the client's spell name, or the slot name for weapon imbues.
 function Watch.DefName(def)
     if def.slot then return L[def.nameKey] end
@@ -74,7 +87,7 @@ function Watch.Rebuild(db)
     Watch.profile = profile
     for _, category in ipairs(Watch.CATEGORIES) do
         local list = {}
-        local shown = test or (db.enabled and db[CATEGORY_SETTING[category]])
+        local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
         for _, def in ipairs(shown and profile and profile[category] or {}) do
             local known = test or Watch.IsOffered(def, category)
             if known and (test or Auras.IsWatched(db, def)) then

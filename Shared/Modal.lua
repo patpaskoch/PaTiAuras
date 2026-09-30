@@ -186,7 +186,7 @@ function UI.CreateModal(name, title, width)
     return modal
 end
 
--- The two window settings every PaTi addon offers: panel opacity (db.opacity) and snapping (db.snapWindows).
+-- The window setting every PaTi addon offers: panel opacity (db.opacity).
 -- window: a UI.CreateWindow window after Attach (uses window.db). Call inside the settings modal build.
 function UI.AddWindowSettings(modal, window, width)
     modal:AddSection("WINDOW")
@@ -198,9 +198,5 @@ function UI.AddWindowSettings(modal, window, width)
         items = function() return items end,
         get = function() return UI.ClampOpacity(window.db.opacity) end,
         set = function(value) window.db.opacity = value; window:ApplyOpacity() end,
-    }))
-    modal:AddControls(UI.CreateCheckbox(modal, "SNAP_WINDOWS", {
-        get = function() return window.db.snapWindows ~= false end,
-        set = function(value) window.db.snapWindows = value end,
     }))
 end
