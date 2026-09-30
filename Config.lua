@@ -8,6 +8,8 @@ Config.SCALES = { 0.8, 0.9, 1, 1.1, 1.25, 1.5 }
 
 -- Position (point, relativePoint, x, y) is written by the PaTiShared window, not listed here.
 Config.DEFAULTS = {
+    opacity = 0.75, -- panel body opacity (PaTiShared window; 0.3–1)
+    snapWindows = true, -- snap to other PaTi windows at the end of a drag
     enabled = true,
     collapsed = false,
     locked = false,

@@ -4,6 +4,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Window settings (PaTiShared): panel opacity 30–100 % (default 75 %, the header stays opaque) and snapping to other
+  PaTi windows while dragging (on by default; never in combat). The window registers itself for the optional
+  PaTiSuite control panel, which shows/hides it with this addon's own rules.
 - Optional PaTiAlerts report: your watched personal buffs and weapon imbues that are missing or expiring (warning);
   active ones disappear, unclear data is never reported as missing, procs are not reported. Nothing changes without
   PaTiAlerts.

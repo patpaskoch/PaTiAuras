@@ -6,13 +6,57 @@ ns.UI = UI
 
 local Window = {}
 
--- db: the addon's SavedVariables table (uses db.point/relativePoint/x/y and db.locked).
--- Old saves with only x/y are read as CENTER offsets.
+-- db: the addon's SavedVariables table (uses db.point/relativePoint/x/y, db.locked, db.opacity, db.snapWindows).
+-- Old saves with only x/y are read as CENTER offsets; saves without opacity/snapWindows get the defaults.
 function Window:Attach(db, defaultX, defaultY)
     self.db = db
     self:ClearAllPoints()
     self:SetPoint(db.point or "CENTER", UIParent, db.relativePoint or "CENTER", db.x or defaultX or 0, db.y or defaultY or 0)
+    self:ApplyOpacity()
     self:PaintMenuButton()
+end
+
+-- Panel body opacity from db.opacity. Only the window background: header, texts, icons and bars stay as they are.
+-- A backdrop colour is no protected property, so this is fine in combat.
+function Window:ApplyOpacity()
+    local r, g, b, a = UI.Color("Background")
+    self:SetBackdropColor(r, g, b, a * UI.ClampOpacity(self.db and self.db.opacity))
+end
+
+-- End of a drag: meet the nearest edge of another visible PaTi window (UI.SNAP_DISTANCE), then the caller saves
+-- the position as usual. Nothing stays linked. Never in combat (windows with secure children must not move then);
+-- off with db.snapWindows = false. Other addons' frames are only read (position, size, visibility).
+function Window:SnapToSuite()
+    if InCombatLockdown() or (self.db and self.db.snapWindows == false) then return end
+    local me = UI.ScreenRect(self)
+    if not me then return end
+    local others = {}
+    for _, frame in pairs(UI.WindowRegistry()) do
+        if frame ~= self and type(frame) == "table" and frame.IsVisible and frame:IsVisible() then
+            local ok, rect = pcall(UI.ScreenRect, frame)
+            if ok and rect then others[#others + 1] = rect end
+        end
+    end
+    local dx, dy = UI.SnapDelta(me, others, UI.SNAP_DISTANCE)
+    if dx == 0 and dy == 0 then return end
+    local scale = self:GetEffectiveScale()
+    local left, top = self:GetLeft() + dx / scale, self:GetTop() + dy / scale
+    self:ClearAllPoints()
+    self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+end
+
+-- For the optional PaTiSuite control panel. The addon may set window.suiteSetShown(shown) → true / false (blocked,
+-- e.g. secure children in combat) and window.suiteIsShown() (e.g. "shown unless hidden by the player").
+function Window:SetSuiteShown(shown)
+    if self.suiteSetShown then return self.suiteSetShown(shown) ~= false end
+    if InCombatLockdown() and self:IsProtected() then return false end
+    self:SetShown(shown)
+    return true
+end
+
+function Window:IsSuiteShown()
+    if self.suiteIsShown then return self.suiteIsShown() == true end
+    return self:IsShown()
 end
 
 function Window:SavePosition()
@@ -67,6 +111,11 @@ function UI.CreateWindow(name, title, width, height)
     header:SetPoint("TOPRIGHT")
     header:SetHeight(UI.Sizes.HeaderHeight)
     header:EnableMouse(true)
+    -- Own opaque background: the header stays readable when the body is made more transparent.
+    local headerBackground = header:CreateTexture(nil, "BACKGROUND")
+    headerBackground:SetPoint("TOPLEFT", UI.Sizes.Border, -UI.Sizes.Border)
+    headerBackground:SetPoint("BOTTOMRIGHT", -UI.Sizes.Border, 0)
+    headerBackground:SetColorTexture(UI.Color("Background"))
     header:RegisterForDrag("LeftButton")
     -- Windows with secure children cannot be moved in combat.
     header:SetScript("OnDragStart", function()
@@ -76,6 +125,7 @@ function UI.CreateWindow(name, title, width, height)
     header:SetScript("OnDragStop", function()
         window:StopMovingOrSizing()
         window:SetUserPlaced(false) -- position lives in the addon's DB, not in WoW's layout cache
+        window:SnapToSuite()
         window:SavePosition()
     end)
     window.header = header
@@ -107,5 +157,6 @@ function UI.CreateWindow(name, title, width, height)
     UI.SetTooltip(more, "MORE")
     window.menuButton = more
     window:PaintMenuButton()
+    UI.RegisterWindow(window) -- the addon's main window (one per addon)
     return window
 end

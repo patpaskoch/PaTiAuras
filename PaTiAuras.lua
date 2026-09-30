@@ -122,8 +122,10 @@ local function buildSettings()
             modal:AddControls(pair[1], pair[2])
         end
     end
+    UI.AddWindowSettings(modal, window) -- panel opacity + snapping (PaTiShared)
     modal:Finish(function()
         Config.RestoreDefaults(DB)
+        window:ApplyOpacity()
         UI.SetLanguage(DB.language)
         window:SetLocked(DB.locked)
         window:SetScale(DB.scale)
@@ -183,11 +185,18 @@ local function toggleTestMode()
     rebuild()
 end
 
-local function setShown(shown)
-    if combatBlocked() then return end
+local function setShown(shown, quiet)
+    if InCombatLockdown() then -- secure buff buttons: the window cannot be shown/hidden in combat
+        if not quiet then say("COMBAT_LOCKED") end
+        return false
+    end
     window:SetShown(shown)
-    if shown then update() else say("HIDDEN_HINT") end
+    if shown then update() elseif not quiet then say("HIDDEN_HINT") end
+    return true
 end
+
+-- Optional PaTiSuite control panel: the same rules as the commands, without chat lines (false = not possible now).
+window.suiteSetShown = function(shown) return setShown(shown, true) end
 
 local function toggleCollapsed()
     if combatBlocked() then return end -- secure buff buttons: no hide/resize in combat

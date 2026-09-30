@@ -38,6 +38,7 @@ healing auras — active, missing or expiring. It shows; you decide.
 - **General:** on/off, sections (self, group, healing, procs, weapon imbues), language, scale, window lock
 - **Display:** timers, charges, missing, expiring
 - **Auras:** every aura of your class on/off (Shaman: also Main Hand / Off Hand imbue)
+- **Window:** panel opacity (30–100 %) and snapping to other PaTi windows while dragging
 
 ## Commands
 `/pa` or `/patiauras` — alone: show/hide · `settings` · `test` · `show` · `hide` · `lock` · `unlock` · `reset` (position) ·
