@@ -40,7 +40,16 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Group buffs are also shown solo (you are the only member, e.g. "0 / 1").
 - Group buff tooltip: "Buffed: x / y", who is missing it, who is offline/dead, and whom a click buffs.
 - `/pa test` shows your class profile with test data (generic test profile only for classes without one).
+- Optional PaTiAlerts report for group buffs: a watched group buff that a living, online member surely lacks is one
+  warning per buff (kind GROUP_AURA_MISSING): "Missing" solo, "Missing on N" in a group — no names (those stay in the
+  tooltip). Active buffs, unwatched or unknown spells, offline/dead members and unreadable (Unknown) data never alert;
+  the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
+- Weapon imbue diagnostics (owner test 2026-09-30: with Rockbiter active Main Hand still reads "Missing"): `/pa debug`
+  prints every `GetWeaponEnchantInfo()` field by name with its type, and per hand the API source, item, weapon,
+  parsed values and final state; `/pa auras` also prints every `C_Item.GetWeaponEnchantInfo` answer (no slot,
+  `Enum.WeaponSlot`, slot ID 16/17), your buffs and the main-hand tooltip lines. Secret values are printed as
+  "secret", never formatted. No detection change — the next fix waits for this output.
 - Settings: one "Watch" list instead of category switches plus a second aura list — a button opens a multi-select
   list of your character's entries (self, procs, healing, weapon, group). SavedVariables schema 2: a switched-off
   category of schema 1 becomes watch = false for each of its entries (once); the category switches are gone.
@@ -60,6 +69,10 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues
+- Shaman weapon imbues: an active imbue (Rockbiter) still reads "Missing" (owner test 2026-09-30; the earlier
+  "Unknown" is gone). Weapon detection works. Cause not yet known — needs `/pa auras` without and with the imbue.
+  Until fixed, the PaTiAlerts "weapon imbue missing" warning is wrong while an imbue is on (untick the weapon slots
+  in Watch to silence it).
 - Spell IDs and aura APIs are not yet confirmed in the Interface 16001 client (`/pa auras`, `/pa debug`).
 - Click-to-buff not tested in game yet. In combat the click target cannot move on to the next member (WoW limit).
 - `## IconTexture` support of this client is unknown. Shaman spell IDs still unconfirmed.

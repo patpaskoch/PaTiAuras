@@ -17,7 +17,8 @@ healing auras — active, missing or expiring. It shows; you decide.
   Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
   tooltip). One click, one cast; your target does not change. In combat the member stays fixed until combat ends
-- With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there
+- With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there, and
+  watched group buffs someone lacks (one line per buff: "Missing on 2")
 - Every aura can be switched on or off; a small window asks on first start which ones to watch
 - Profiles: Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
@@ -51,8 +52,10 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs and the Priest healing auras are not
   yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
-- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. Whether the Forever client offers the
-  weapon enchant API is not confirmed yet — `/pa debug` shows it; without it both slots stay "unclear".
+- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. **Known bug:** an active imbue
+  (e.g. Rockbiter) still shows "Missing" in the Forever client; the weapon itself is detected. `/pa auras` prints
+  everything the client returns — please report it once without and once with the imbue.
+- In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).
 
 ## License

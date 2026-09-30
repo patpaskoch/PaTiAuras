@@ -186,12 +186,44 @@ describe("WeaponImbues modern fallback (C_Item.GetWeaponEnchantInfo(slot))", fun
         assert.equal("UNKNOWN", (states(WeaponImbues, 0)).state)
     end)
 
-    it("describes both APIs for /pa auras without formatting secret values", function()
+    it("/pa debug: names each raw tuple field with type, the source and the final state; never formats secrets", function()
         local WeaponImbues = load()
-        _G.GetWeaponEnchantInfo = function() return SECRET, SECRET, 0, 0, false, 0, 0, 0 end
-        local lines = WeaponImbues.Describe(0)
-        assert.truthy(lines[1]:find("Weapon API: GetWeaponEnchantInfo", 1, true))
-        assert.truthy(lines[2]:find("secret", 1, true))
-        assert.truthy(lines[3]:find("MAINHAND: weapon=true readable=false", 1, true))
+        _G.GetWeaponEnchantInfo = function() return SECRET, SECRET, 0, 0, false, 0, 0, nil end
+        local lines = WeaponImbues.Describe(0, SETTINGS)
+        assert.truthy(lines[1]:find("Weapon API: source=GetWeaponEnchantInfo", 1, true))
+        assert.truthy(lines[2]:find("ok=true, 8 values: hasMainHand=secret, mainHandMsLeft=secret", 1, true))
+        assert.truthy(lines[2]:find("hasOffHand=false(boolean)", 1, true))
+        assert.truthy(lines[2]:find("offHandEnchantID=nil(nil)", 1, true)) -- a trailing nil still counts
+        assert.truthy(lines[3]:find("MAINHAND slot=16 item=1001(number) weapon=true · source=GetWeaponEnchantInfo "
+            .. "· readable=false hasImbue=nil", 1, true))
+        assert.truthy(lines[3]:find("→ state=UNKNOWN", 1, true))
+        assert.truthy(lines[4]:find("OFFHAND slot=17", 1, true))
+        assert.truthy(lines[4]:find("→ state=MISSING", 1, true))
+        assert.equal(4, #lines)
+    end)
+
+    it("/pa auras: also every modern answer (no slot, Enum slot, slot ID), your buffs and the weapon tooltip", function()
+        load()
+        _G.GetWeaponEnchantInfo = function() return false, 0, 0, 0, false, 0, 0, 0 end
+        _G.Enum = { WeaponSlot = { MainHand = 0, OffHand = 1 } }
+        _G.C_Item = { GetWeaponEnchantInfo = function(slot)
+            if slot == nil then error("slot expected") end
+            return { hasEnchant = slot == 16, timeLeft = SECRET, enchantID = 3021 }
+        end }
+        _G.C_TooltipInfo = { GetInventoryItem = function() return { lines = { { leftText = "Axt" },
+            { leftText = "Waffe des Felsbeißers (30 Min.)" }, { leftText = SECRET } } } end }
+        local ns = { AuraScan = { Read = function() return { { name = "Wasserschild", spellId = 24398 }, { secret = true } } end } }
+        wow.loadAddonFile("Auras.lua", ns)
+        wow.loadAddonFile("WeaponImbues.lua", ns)
+        local text = table.concat(ns.WeaponImbues.Describe(0, SETTINGS, true), "\n")
+        assert.truthy(text:find("C_Item.GetWeaponEnchantInfo(): ok=false error=", 1, true))
+        assert.truthy(text:find("C_Item.GetWeaponEnchantInfo(Enum MAINHAND): ok=true, 1 values: "
+            .. "#1={enchantID=3021(number), hasEnchant=false(boolean), timeLeft=secret}", 1, true))
+        assert.truthy(text:find("C_Item.GetWeaponEnchantInfo(16) probe: ok=true, 1 values: "
+            .. "#1={enchantID=3021(number), hasEnchant=true(boolean), timeLeft=secret}", 1, true))
+        assert.truthy(text:find("Player buffs (2): Wasserschild[24398], secret", 1, true))
+        assert.truthy(text:find("Main hand tooltip 2: Waffe des Felsbeißers (30 Min.)", 1, true))
+        assert.truthy(text:find("Main hand tooltip 3: secret", 1, true))
+        _G.C_TooltipInfo = nil
     end)
 end)

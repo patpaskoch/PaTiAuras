@@ -155,3 +155,19 @@ describe("Auras.Alerts (for the optional PaTiAlerts)", function()
         assert.same({}, Auras.Alerts({ item("A", "personal", "MISSING", SECRET) }, TEXTS, true, isSecret))
     end)
 end)
+
+describe("Auras.GroupAlerts (pure)", function()
+    local SECRET = setmetatable({}, { __eq = function() error("secret compared") end })
+    local function isSecret(value) return rawequal(value, SECRET) end
+    local TEXTS = { missing = "Missing", missingOn = "Missing on %d" }
+    local function group(name, missing, total)
+        return { entry = { key = "FORTITUDE", name = name }, summary = { missing = missing, total = total } }
+    end
+
+    it("never sends a secret or empty name; nothing when nobody lacks the buff", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        assert.same({}, Auras.GroupAlerts({ group(SECRET, { "A" }, 2), group("", { "A" }, 2) }, TEXTS, true, isSecret))
+        assert.same({}, Auras.GroupAlerts({ group("Fort", {}, 3) }, TEXTS, true, isSecret))
+        assert.equal("Missing on 1", Auras.GroupAlerts({ group("Fort", { "A" }, 3) }, TEXTS, true, isSecret)[1].detail)
+    end)
+end)

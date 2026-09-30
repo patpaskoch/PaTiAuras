@@ -29,7 +29,9 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-005 `/reload` ohne Lua-Fehler
 - [x] PT-AURAS-006 `/pa debug` zeigt die Aura-API: `C_UnitAuras` und `issecretvalue` vorhanden
   - ✅ VERIFIED 2026-09-28
-- [ ] PT-AURAS-007 `/pa debug` und `/pa auras` zeigen beide Waffen-APIs mit Rohwerten pro Hand
+- [ ] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
+  Typ, geparstes hasImbue und Endzustand; `/pa auras` zusätzlich alle Antworten von `C_Item.GetWeaponEnchantInfo`,
+  eigene Buffs und die Tooltip-Zeilen der Waffenhand — ohne Lua-Fehler
 
 ## Fenster
 
@@ -66,8 +68,7 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 - [x] PT-AURAS-050 Mainhand-Waffe wird beim Ausrüsten erkannt (Zeile Waffenhand erscheint)
   - ✅ VERIFIED 2026-09-30
-  - Der Fix vom 2026-09-30 hat die Waffenerkennung angepasst (jedes Mainhand-Item zählt): beim Retest von 052–055
-    mit beobachten.
+  - Auch mit dem Fix-Build bestätigt: ausrüsten, ablegen, erneut ausrüsten wird jeweils erkannt.
 - [x] PT-AURAS-051 Entfernte Mainhand-Waffe verschwindet
   - ✅ VERIFIED 2026-09-30
 - [ ] PT-AURAS-052 Mainhand ohne Imbue → MISSING (nicht UNKNOWN)
@@ -75,16 +76,28 @@ UNKNOWN darf nie als MISSING erscheinen.
   - Ohne Felsbeißer „Unbekannt“ statt „Fehlt“.
   - 🔧 FIX IMPLEMENTED 2026-09-30
   - Klassisches `GetWeaponEnchantInfo()` zuerst, `C_Item.GetWeaponEnchantInfo(slot)` nur als Rückfall.
+  - Retest 2026-09-30: ohne Imbue „Fehlt“, kein UNKNOWN mehr. Nicht aussagekräftig, solange auch ein aktiver Imbue
+    „Fehlt“ zeigt (PT-AURAS-053).
   - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-053 Rockbiter aktivieren → ACTIVE mit Restzeit
   - ❌ FAIL 2026-09-30
   - Waffe selbst wird erkannt, Imbue bleibt UNKNOWN.
   - 🔧 FIX IMPLEMENTED 2026-09-30
-  - MANUAL RETEST REQUIRED
+  - ❌ FAIL 2026-09-30
+  - Retest mit Fix: Waffe vorhanden, Waffe des Felsbeißers aktiv, Anzeige trotzdem „Fehlt“.
+  - Diagnose erweitert (PT-AURAS-007), noch kein Fix. Nächster Test: `/pa auras` ohne und mit Felsbeißer, beide
+    Ausgaben melden.
 - [ ] PT-AURAS-054 Rockbiter entfernen bzw. auslaufen lassen → MISSING
+  - ❌ FAIL 2026-09-30
+  - Zeigt „Fehlt“, aber schon vorher mit aktivem Imbue: keine Zustandsänderung erkannt.
 - [ ] PT-AURAS-055 Rockbiter erneut aktivieren → ACTIVE
+  - ❌ FAIL 2026-09-30
+  - Bleibt „Fehlt“.
 - [ ] PT-AURAS-056 Timer wird aktualisiert; unter 30 s EXPIRING; Erneuern aktualisiert innerhalb von ~1–2 s
 - [ ] PT-AURAS-057 Mit PaTiAlerts: „Waffenbuff fehlt“ erscheint bei MISSING, verschwindet bei ACTIVE, nie bei UNKNOWN
+  - ❌ FAIL 2026-09-30
+  - Warnung bleibt bei aktivem Felsbeißer. Ursache upstream: PaTiAuras meldet den aktiven Imbue als MISSING
+    (PT-AURAS-053); PaTiAlerts selbst arbeitet richtig.
 - [ ] PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand
 - [ ] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
 
@@ -127,6 +140,12 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-091 Alle gebufft: Klick tut nichts
 - [ ] PT-AURAS-092 Im Kampf bleibt das Klickziel fest (wie bei Kampfbeginn) und der Tooltip zeigt es
 - [ ] PT-AURAS-093 Offline, tote oder außer Sicht befindliche Mitglieder werden nicht als Klickziel gewählt
+- [x] PT-AURAS-094 Priester: aktiver beobachteter Gruppenbuff wird oben angezeigt und als vorhanden erkannt
+  - ✅ VERIFIED 2026-09-30
+  - Der Bericht nennt den Buff nicht ausdrücklich (Beispiel darin: Machtwort: Seelenstärke); nur dieser eine Buff.
+- [ ] PT-AURAS-095 Priester: beobachtete Machtwort: Seelenstärke fehlt → Zeile zeigt fehlend
+- [ ] PT-AURAS-096 Machtwort: Seelenstärke anwenden → Zeile zeigt vorhanden
+- [ ] PT-AURAS-097 Machtwort: Seelenstärke entfernen → wieder fehlend
 
 ## Beobachten (Einstellungen)
 
@@ -139,11 +158,24 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-105 Neu gelernter Zauber: Dialog „Neue Auren“ erscheint (nicht im Kampf), danach in der Liste
 - [ ] PT-AURAS-106 Erster Start: Dialog „Neue Auren“ bietet die Effekte an, Schließen markiert sie als gesehen
 - [ ] PT-AURAS-107 Anzeige-Schalter (Timer, Aufladungen, Fehlende, Auslaufende) wirken
+- [x] PT-AURAS-108 Priester: ein einzelner Effekt (Machtwort: Seelenstärke) lässt sich im zentralen Beobachten-Menü
+  an- und abwählen, PaTiAuras reagiert darauf
+  - ✅ VERIFIED 2026-09-30
+- [ ] PT-AURAS-109 Abgewählten Effekt wieder anwählen → Eintrag erscheint wieder
 
 ## Unabhängigkeit
 
 - [ ] PT-AURAS-110 Ohne PaTiAlerts: unverändert, kein Lua-Fehler
 - [ ] PT-AURAS-111 Mit PaTiHeal: Heil-Auren lassen sich hier abwählen, beide Addons laufen normal
+
+## PaTiAlerts: Gruppenbuffs
+
+- [ ] PT-AURAS-112 Solo: beobachteter Gruppenbuff (z. B. Machtwort: Seelenstärke) fehlt → eine Warnung „Fehlt“
+- [ ] PT-AURAS-113 Buff aktiv → Warnung verschwindet; ein aktiver Buff erzeugt nie eine Warnung
+- [ ] PT-AURAS-114 Buff im Beobachten-Menü abgewählt → keine Warnung (eine bestehende verschwindet)
+- [ ] PT-AURAS-115 Gruppe: Buff fehlt bei N Mitgliedern → genau eine Warnung „Fehlt bei N“, keine Namensliste;
+  tote und Offline-Mitglieder zählen nicht
+- [ ] PT-AURAS-116 Alle lebenden Mitglieder gebufft → Warnung verschwindet
 
 ## Combat / Sicherheit
 

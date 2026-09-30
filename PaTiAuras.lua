@@ -18,7 +18,8 @@ end
 local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
 
 -- PaTiAlerts is optional (AGENTS.md §3): report only if it is installed with API version 1, never depend on it.
--- Sent: your watched personal buffs and weapon imbues that are missing or expiring (Auras.Alerts); pcall so a problem
+-- Sent: your watched personal buffs and weapon imbues that are missing or expiring (Auras.Alerts) and your watched
+-- group buffs that a living, online member lacks (Auras.GroupAlerts, one line per buff); pcall so a problem
 -- in PaTiAlerts never breaks PaTiAuras. Test mode and "disabled" send an empty list (their alerts disappear).
 local function reportAlerts()
     local api = _G.PaTiAlertsAPI
@@ -30,6 +31,9 @@ local function reportAlerts()
         for _, item in ipairs(Watch.Weapon(DB)) do items[#items + 1] = item end
         list = ns.Auras.Alerts(items, { missing = L.STATUS_MISSING, expiring = L.STATUS_EXPIRING,
             imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret)
+        local groupAlerts = ns.Auras.GroupAlerts(Watch.Group(DB), { missing = L.STATUS_MISSING,
+            missingOn = L.ALERT_GROUP_MISSING }, DB.showMissing, isSecret)
+        for _, alert in ipairs(groupAlerts) do list[#list + 1] = alert end
     end
     pcall(api.Sync, "PaTiAuras", list)
 end
@@ -262,7 +266,7 @@ local function printDebug()
             counts.weapon, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
-        unpack(ns.WeaponImbues.Describe(GetTime())),
+        unpack(ns.WeaponImbues.Describe(GetTime(), DB)),
     })
 end
 
@@ -291,7 +295,7 @@ local function printAuraCheck()
         end
     end
     if weapons then
-        for _, line in ipairs(ns.WeaponImbues.Describe(GetTime())) do list[#list + 1] = line end
+        for _, line in ipairs(ns.WeaponImbues.Describe(GetTime(), DB, true)) do list[#list + 1] = line end
     end
     if not profile then list[#list + 1] = L.NO_PROFILE end
     printLines("Auras", list)

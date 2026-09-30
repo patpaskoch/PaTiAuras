@@ -110,3 +110,28 @@ function Auras.Summarize(members)
     end
     return summary
 end
+
+-- Alerts for PaTiAlerts from your watched group buffs. groups: Watch.Group result { { entry, summary } }.
+-- One WARNING per buff while at least one living, online member surely lacks it (Summarize leaves offline/dead out
+-- and counts UNKNOWN apart, so neither ever makes an alert); no list of names (those stay in the tooltip).
+-- Solo: "Missing"; in a group: "Missing on N". texts = { missing, missingOn (format with %d) }.
+function Auras.GroupAlerts(groups, texts, showMissing, isSecret)
+    local list = {}
+    if not showMissing then return list end
+    for _, group in ipairs(groups) do
+        local entry, summary = group.entry, group.summary
+        local name = entry.name
+        local plainName = not isSecret(name) and type(name) == "string" and name ~= ""
+        local missing = #summary.missing
+        if plainName and missing > 0 then
+            list[#list + 1] = {
+                id = "group:" .. entry.key,
+                priority = "WARNING",
+                kind = "GROUP_AURA_MISSING",
+                text = name,
+                detail = summary.total > 1 and texts.missingOn:format(missing) or texts.missing,
+            }
+        end
+    end
+    return list
+end

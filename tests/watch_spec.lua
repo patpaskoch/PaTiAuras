@@ -365,3 +365,69 @@ describe("Watch.Choices (settings: what to watch)", function()
         assert.equal(1, ns.Watch.Count().personal)
     end)
 end)
+
+describe("Group buff alerts for PaTiAlerts (Watch.Group → Auras.GroupAlerts)", function()
+    local TEXTS = { missing = "Missing", missingOn = "Missing on %d" }
+    local function alerts(ns, db)
+        return ns.Auras.GroupAlerts(ns.Watch.Group(db), TEXTS, db.showMissing, function() return false end)
+    end
+    local function alertFor(list, key)
+        for _, alert in ipairs(list) do if alert.id == "group:" .. key then return alert end end
+    end
+    local FORT = { [1243] = true }
+
+    it("solo: a watched buff you lack is one WARNING; active → no alert", function()
+        local ns, db = setup("PRIEST", FORT)
+        world.units = { player = { name = "Du", auras = {} } }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.same({ id = "group:FORTITUDE", priority = "WARNING", kind = "GROUP_AURA_MISSING",
+            text = "Machtwort: Seelenstärke", detail = "Missing" }, alerts(ns, db)[1])
+        world.units.player.auras = { aura("Machtwort: Seelenstärke", 1243, { expirationTime = 2000 }) }
+        ns.Watch.RefreshAll()
+        assert.same({}, alerts(ns, db))
+    end)
+
+    it("an unwatched buff and a buff you do not know never alert", function()
+        local ns, db = setup("PRIEST", FORT) -- Divine Spirit / Shadow Protection not known
+        world.units = { player = { name = "Du", auras = {} } }
+        db.watch.FORTITUDE = false
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.same({}, alerts(ns, db))
+    end)
+
+    it("party: exactly one alert per buff with the number missing; offline and dead never count", function()
+        local ns, db = setup("PRIEST", FORT)
+        world.units = {
+            player = { name = "Du", auras = { aura("Machtwort: Seelenstärke", 1243, { expirationTime = 2000 }) } },
+            party1 = { name = "A", auras = {} },
+            party2 = { name = "B", auras = {} },
+            party3 = { name = "Weg", offline = true },
+            party4 = { name = "Tot", dead = true },
+        }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local list = alerts(ns, db)
+        assert.equal(1, #list)
+        assert.equal("Missing on 2", list[1].detail)
+        world.units.party1.auras = { aura("Gebet der Seelenstärke", 21562, { expirationTime = 2000 }) }
+        world.units.party2.auras = { aura("Machtwort: Seelenstärke", 1243, { expirationTime = 2000 }) }
+        ns.Watch.RefreshAll()
+        assert.is_nil(alertFor(alerts(ns, db), "FORTITUDE")) -- everyone has it → removed
+    end)
+
+    it("unreadable aura data (UNKNOWN) is never a missing alert; 'show missing' off sends nothing", function()
+        local ns, db = setup("PRIEST", FORT)
+        world.units = { player = { name = "Du" }, party1 = { name = "X" } }
+        _G.C_UnitAuras = { GetAuraDataByIndex = function() error("restricted") end }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        assert.same({}, alerts(ns, db))
+        _G.C_UnitAuras = { GetAuraDataByIndex = function() return nil end }
+        ns.Watch.RefreshAll()
+        assert.equal(1, #alerts(ns, db))
+        db.showMissing = false
+        assert.same({}, alerts(ns, db))
+    end)
+end)
