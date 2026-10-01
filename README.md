@@ -24,6 +24,26 @@ healing auras — active, missing or expiring. It shows; you decide.
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
 - Works on its own. With PaTiHeal installed as well, you can switch off the healing auras here to avoid seeing them twice
 
+## PaTiSuite
+
+This addon is part of the **PaTiSuite** — a collection of small addons for World of Warcraft: Forever.
+Each one is installed on its own and works on its own; none of them is needed by another.
+
+- [PaTiSuite](https://github.com/patpaskoch/PaTiSuite) – optional control panel to show and hide the PaTi windows
+- [PaTiHeal](https://github.com/patpaskoch/PaTiHeal) – healer party frames and click casting
+- **PaTiAuras** – buff, aura and proc watcher *(this addon)*
+- [PaTiTank](https://github.com/patpaskoch/PaTiTank) – tank HUD and aggro monitor
+- [PaTiGroup](https://github.com/patpaskoch/PaTiGroup) – raid markers, ready check and pull timer
+- [PaTiQuest](https://github.com/patpaskoch/PaTiQuest) – selected quest and its objectives
+- [PaTiDungeon](https://github.com/patpaskoch/PaTiDungeon) – instance, group and combat status
+- [PaTiAlerts](https://github.com/patpaskoch/PaTiAlerts) – one window for open problems
+
+### Goes well with (optional)
+
+- [PaTiHeal](https://github.com/patpaskoch/PaTiHeal) – shows your HoTs and shields on its party frames too — untick them under Watch here to avoid seeing them twice
+- [PaTiAlerts](https://github.com/patpaskoch/PaTiAlerts) – receives your watched buffs, weapon imbues and group buffs that are missing or expiring
+- [PaTiSuite](https://github.com/patpaskoch/PaTiSuite) – shows and hides this window together with the other PaTi windows
+
 ## Installation
 1. Download the release zip (`PaTiAuras-<version>.zip`).
 2. Unpack it and copy the folder `PaTiAuras` into `World of Warcraft/<client>/Interface/AddOns/`.
@@ -57,6 +77,10 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
   everything the client returns — please report it once without and once with the imbue.
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).
+
+## Development
+
+Architecture, tests and engineering rules of the suite: [PaTiAdmin](https://github.com/patpaskoch/PaTiAdmin). PaTiAdmin is not a WoW addon — players do not install it. The shared UI code (PaTiShared) is already embedded in this addon's `Shared/` folder; there is nothing extra to install.
 
 ## License
 MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Patrick Koch.
