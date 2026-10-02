@@ -20,9 +20,13 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   Owner decision 2026-09-28: pre-selecting the next missing member is allowed; never cast, target or loop by itself.
 - Weapon imbues are concrete spells (owner decision 2026-10-02): profile entry = `spellID` (cast) + `slot` +
   `enchantIDs` (only owner-observed Forever IDs, docs/WOW_API_COMPAT.md) + `castable`. One wanted imbue per slot
-  (`Watch.SetWatched`). `PaTiAurasWeapon1..2` (SecureActionButtonTemplate, unit = player) over the weapon lines,
-  armed only out of combat and only while the imbue is MISSING; the WEAPON section comes right after GROUP.
-  Lines that could move under an armed button (watch list, "enabled", "show missing") are blocked in combat.
+  (`Watch.SetWatched`).
+- Line clicks (owner wishes 2026-10-02): `PaTiAurasLine1..8` (SecureActionButtonTemplate, unit = player) over the
+  WEAPON and SELF lines, attributes from the pure `Auras.LineActions` / `Auras.ClickAttributes`: left-click casts a
+  missing castable imbue, right-click `cancelaura` removes an active own buff/proc (by name) or imbue (target-slot).
+  Armed only out of combat; in combat the lines keep their order (`Auras.MergeRows`), since buttons cannot move.
+  WEAPON and SELF come right after GROUP. Lines that could move under an armed button (watch list, "enabled",
+  "show missing") are blocked in combat.
 - No totem or ground auras (owner decision 2026-10-02): effects that only last while a player stands in the radius of
   a placed totem or ground source (e.g. Shaman totem group buffs) are never watched — not in profiles, Watch, group
   counts, missing logic or PaTiAlerts reports, and no logic that infers from members' auras that a totem should be

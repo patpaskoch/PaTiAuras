@@ -99,15 +99,14 @@ local function groupRowTop(index) -- y of group line `index` (the section header
     return UI.Sizes.HeaderHeight + UI.Spacing.SM + index * LINE
 end
 
--- One SecureActionButtonTemplate over each weapon imbue line (owner wish 2026-10-02): while the watched imbue is
--- MISSING (also "another imbue is on"), a click casts that spell on yourself — one click, one cast, never by itself.
--- Armed only out of combat and only for a line that is shown; ACTIVE/EXPIRING/UNKNOWN lines get no button. In
--- combat the buttons keep what they had when combat started. The WEAPON section comes right after GROUP, so its
--- lines only move when the weapon itself is taken off.
-local MAX_WEAPON_BUTTONS = 2 -- one per weapon slot
-local weaponButtons = {}
-for index = 1, MAX_WEAPON_BUTTONS do
-    local button = CreateFrame("Button", "PaTiAurasWeapon" .. index, window, "SecureActionButtonTemplate")
+-- One SecureActionButtonTemplate over each WEAPON and SELF line (owner wishes 2026-10-02), actions from
+-- Auras.LineActions: left-click casts a missing weapon imbue, right-click removes an active own buff, proc or imbue.
+-- Armed only out of combat; lines without an action get no button. In combat the buttons keep what they had when
+-- combat started, and the lines keep their order (Auras.MergeRows), so a button never sits over another line.
+local MAX_LINE_BUTTONS = 8
+local lineButtons = {}
+for index = 1, MAX_LINE_BUTTONS do
+    local button = CreateFrame("Button", "PaTiAurasLine" .. index, window, "SecureActionButtonTemplate")
     button:RegisterForClicks("AnyUp", "AnyDown")
     button:SetSize(WIDTH - 2 * PAD, LINE)
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5)
@@ -117,8 +116,10 @@ for index = 1, MAX_WEAPON_BUTTONS do
     highlight:SetColorTexture(r, g, b, 0.12)
     UI.SetTooltip(button, function() return button.tooltipLines end)
     button:Hide()
-    weaponButtons[index] = button
+    lineButtons[index] = button
 end
+
+local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
 
 -- Single-target spell name for the click, or nil if you do not know it (then the row only displays).
 local function clickSpell(entry)
@@ -126,31 +127,28 @@ local function clickSpell(entry)
     return Spells.CastName(entry.spellID)
 end
 
--- Spell name for a weapon line's click, or nil (not castable, spell unknown, test mode, nothing missing).
-local function weaponClickSpell(item)
-    if not (item.entry.castable and item.result.state == "MISSING") then return nil end
-    return clickSpell(item.entry)
+-- What a click on a WEAPON/SELF line may do now (test mode: nothing).
+local function lineActions(item)
+    if Watch.testMode then return {} end
+    local castName = item.entry.castable and clickSpell(item.entry) or nil
+    return Auras.LineActions(item, castName, isSecret)
 end
 
 -- Out of combat only: position, attributes and enabled state of the buff buttons.
--- weaponLines: { { item, line } } of the shown weapon lines (line.top = its y in the window).
-local function applySecure(groupList, weaponLines)
+-- clickLines: { { item, line } } of the shown WEAPON/SELF lines (line.top = its y in the window).
+local function applySecure(groupList, clickLines)
     if InCombatLockdown() then securePending = true; return end
-    for index, button in ipairs(weaponButtons) do
-        local shown = weaponLines[index]
-        local spell = shown and weaponClickSpell(shown.item)
-        if spell then
+    for index, button in ipairs(lineButtons) do
+        local shown = clickLines[index]
+        local actions = shown and not shown.gone and lineActions(shown.item) or {}
+        local attributes = Auras.ClickAttributes(actions)
+        for _, key in ipairs(Auras.CLICK_ATTRIBUTES) do button:SetAttribute(key, attributes[key]) end
+        button.boundActions = actions
+        if attributes.unit then
             button:ClearAllPoints()
             button:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -shown.line.top)
-            button:SetAttribute("unit", "player") -- an imbue is cast on yourself, never on a party member
-            button:SetAttribute("type1", "spell")
-            button:SetAttribute("spell1", spell)
-            button.boundSpell = spell
             button:Show()
         else
-            button:SetAttribute("type1", nil)
-            button:SetAttribute("spell1", nil)
-            button.boundSpell = nil
             button:Hide()
         end
     end
@@ -184,22 +182,21 @@ local function detail(entry, result, target)
     return list
 end
 
--- Tooltip of a weapon imbue line: state, slot, "another imbue is on", and what a click does. In combat the button
--- keeps the spell it had when combat started; say so instead of promising a cast.
-local function weaponTooltip(item, button)
+-- Tooltip of a WEAPON/SELF line: state, slot, "another imbue is on", and what a left/right click does. In combat
+-- the button keeps the actions it had when combat started; say so instead of promising them.
+local function lineTooltip(item, button)
     local entry, result = item.entry, item.result
     local tip = detail(entry, result)
-    if entry.spellID then
+    if entry.category == "weapon" and entry.spellID then
         tip[#tip + 1] = L.TIP_WEAPON_SLOT:format(L[entry.slot == "OFFHAND" and "OFF_HAND" or "MAIN_HAND"])
     end
     if result.wrong then tip[#tip + 1] = L.TIP_OTHER_IMBUE end
-    if InCombatLockdown() then
-        if button and button.boundSpell then
-            tip[#tip + 1] = L.TIP_CLICK_CAST:format(button.boundSpell)
-            tip[#tip + 1] = L.TIP_COMBAT_CLICK_FIXED
-        end
-    elseif weaponClickSpell(item) then
-        tip[#tip + 1] = L.TIP_CLICK_CAST:format(entry.name)
+    local combat = InCombatLockdown()
+    local actions = combat and (button and button.boundActions or {}) or lineActions(item)
+    if actions.cast then tip[#tip + 1] = L.TIP_CLICK_CAST:format(actions.cast) end
+    if actions.cancelSpell or actions.cancelSlot then tip[#tip + 1] = L.TIP_RIGHT_CANCEL:format(entry.name) end
+    if combat and (actions.cast or actions.cancelSpell or actions.cancelSlot) then
+        tip[#tip + 1] = L.TIP_COMBAT_CLICK_FIXED
     end
     return tip
 end
@@ -228,9 +225,33 @@ local function groupTooltip(item, button)
     return tip
 end
 
+-- The WEAPON and SELF lines, rows { header = key } / { key, section, item }. Out of combat: what is watched and shown
+-- now (remembered); in combat: the remembered lines in the same order (Auras.MergeRows) — their secure buttons
+-- cannot move until combat ends.
+local frozenRows
+local function clickRows(db)
+    local rows = {}
+    local function section(key, list)
+        local shown = {}
+        for _, item in ipairs(list) do
+            if item.result.state ~= "MISSING" or db.showMissing then shown[#shown + 1] = item end
+        end
+        if #shown == 0 then return end
+        rows[#rows + 1] = { header = key }
+        for _, item in ipairs(shown) do
+            rows[#rows + 1] = { key = key .. ":" .. item.entry.key, section = key, item = item }
+        end
+    end
+    section("SECTION_WEAPON", Watch.Weapon(db))
+    section("SECTION_SELF", Watch.Self(db))
+    if InCombatLockdown() and frozenRows then return Auras.MergeRows(frozenRows, rows) end
+    frozenRows = rows
+    return rows
+end
+
 function AuraWindow.Render(db)
     local count, timers = 0, false
-    local groupList, weaponLines = {}, {}
+    local groupList, clickLines = {}, {}
     local function add(kind)
         count = count + 1
         return prepare(count, kind)
@@ -260,39 +281,24 @@ function AuraWindow.Render(db)
             if buffButtons[index] then buffButtons[index].tooltipLines = line.tooltipLines end
         end
 
-        -- WEAPON right after GROUP (its click buttons must not move in combat): one line per watched imbue, named by
-        -- its spell for a concrete imbue (e.g. Rockbiter Weapon), by the slot for a generic one.
-        local weaponList = {}
-        for _, item in ipairs(Watch.Weapon(db)) do
-            if item.result.state ~= "MISSING" or db.showMissing then weaponList[#weaponList + 1] = item end
-        end
-        if #weaponList > 0 then header("SECTION_WEAPON") end
-        for index, item in ipairs(weaponList) do
-            local line, result = add("entry"), item.result
-            line.icon:SetAura(result.icon, result.state)
-            line.name:SetText(item.entry.name)
-            line.value:SetText(valueText(item.entry, result, db))
-            line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
-            line.tooltipLines = weaponTooltip(item, weaponButtons[index])
-            if weaponButtons[index] then weaponButtons[index].tooltipLines = line.tooltipLines end
-            weaponLines[#weaponLines + 1] = { item = item, line = line }
-            timers = timers or result.remaining ~= nil
-        end
-
-        local selfList = Watch.Self(db)
-        local visible = {}
-        for _, item in ipairs(selfList) do
-            if item.result.state ~= "MISSING" or db.showMissing then visible[#visible + 1] = item end
-        end
-        if #visible > 0 then header("SECTION_SELF") end
-        for _, item in ipairs(visible) do
-            local line, result = add("entry"), item.result
-            line.icon:SetAura(result.icon or item.entry.icon, result.state)
-            line.name:SetText(item.entry.name)
-            line.value:SetText(valueText(item.entry, result, db))
-            line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
-            line.tooltipLines = detail(item.entry, result)
-            timers = timers or result.remaining ~= nil
+        -- WEAPON and SELF right after GROUP, as click lines (see clickRows): weapon imbues named by their spell (e.g.
+        -- Rockbiter Weapon) or slot, then your buffs and active procs.
+        for _, row in ipairs(clickRows(db)) do
+            if row.header then
+                header(row.header)
+            else
+                local item = row.item
+                local line, result = add("entry"), item.result
+                line.icon:SetAura(result.icon or item.entry.icon, result.state)
+                line.name:SetText(item.entry.name)
+                line.value:SetText(row.gone and "–" or valueText(item.entry, result, db))
+                line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
+                local button = lineButtons[#clickLines + 1]
+                line.tooltipLines = lineTooltip(item, button)
+                if button then button.tooltipLines = line.tooltipLines end
+                clickLines[#clickLines + 1] = { item = item, line = line, gone = row.gone }
+                timers = timers or result.remaining ~= nil
+            end
         end
 
         local healingList = Watch.Healing(db)
@@ -330,7 +336,7 @@ function AuraWindow.Render(db)
             y = y + height
         end
     end
-    applySecure(groupList, weaponLines)
+    applySecure(groupList, clickLines)
     if InCombatLockdown() then
         securePending = true -- the protected window keeps its size until combat ends
     else

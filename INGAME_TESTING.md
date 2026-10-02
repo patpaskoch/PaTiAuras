@@ -176,6 +176,20 @@ Tooltips (PaTiShared)
 - [ ] PT-AURAS-162 Gruppenbuff- und Waffenzeilen (sichere Buttons): Tooltip daneben, Klick funktioniert weiter;
   kein Lua-Fehler
 
+Rechtsklick entfernt einen aktiven Buff
+- [ ] PT-AURAS-163 Wasserschild aktiv: Rechtsklick auf die Zeile entfernt ihn von dir; Tooltip „Rechtsklick:
+  Wasserschild von dir entfernen.“; danach „Fehlt“
+- [ ] PT-AURAS-164 Aktiver Proc (z. B. Flutwellen): Rechtsklick entfernt ihn
+- [ ] PT-AURAS-165 Felsbeißer aktiv: Rechtsklick entfernt ihn von der Waffe; danach „Fehlt“ und Linksklick wirkt
+  ihn wieder
+- [ ] PT-AURAS-166 Fehlende oder unklare Zeile: Rechtsklick tut nichts, kein Hinweis im Tooltip; Linksklick auf
+  eine aktive Zeile tut nichts
+- [ ] PT-AURAS-167 Im Kampf: Rechtsklick auf eine bei Kampfbeginn aktive Zeile entfernt den Buff; ein im Kampf
+  auftauchender Proc erscheint unter den anderen Zeilen, nichts verrutscht unter dem Mauszeiger; ein im Kampf
+  abgelaufener Buff zeigt „–“
+- [ ] PT-AURAS-168 Kein Lua-Fehler, kein `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`, `taint.log` ohne
+  PaTiAuras-Eintrag
+
 ## Personal (Selbst)
 
 - [ ] PT-AURAS-060 Schamane: Wasserschild ACTIVE mit Restzeit und Aufladungen

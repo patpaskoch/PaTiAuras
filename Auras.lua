@@ -138,3 +138,71 @@ function Auras.GroupAlerts(groups, texts, showMissing, isSecret)
     end
     return list
 end
+
+-- Clicks on WEAPON and SELF lines ------------------------------------------------------------------
+-- Owner wishes 2026-10-02: left-click casts a missing castable weapon imbue; right-click removes an active own buff,
+-- proc or weapon imbue from your character. Always one click = one action, never by itself.
+
+Auras.SLOT_IDS = { MAINHAND = 16, OFFHAND = 17 } -- inventory slots ("target-slot" of the cancelaura action)
+-- Every secure attribute a line button may carry: re-arming sets all of them, so no old action survives.
+Auras.CLICK_ATTRIBUTES = { "unit", "type1", "spell1", "type2", "spell2", "target-slot2" }
+
+-- Pure: what a click on this line may do. item = { entry, result }; castName = the client's cast name of the
+-- entry's spell, nil if it cannot be cast (unknown spell, test mode). Unknown state or a name that is not a plain
+-- string: nothing. Returns { cast?, cancelSpell?, cancelSlot? }.
+function Auras.LineActions(item, castName, isSecret)
+    local entry, state = item.entry, item.result.state
+    local actions = {}
+    local active = state == "ACTIVE" or state == "EXPIRING"
+    if entry.category == "weapon" then
+        if state == "MISSING" and entry.castable then actions.cast = castName end
+        if active then actions.cancelSlot = Auras.SLOT_IDS[entry.slot] end
+    elseif active and not isSecret(entry.name) and type(entry.name) == "string" and entry.name ~= "" then
+        actions.cancelSpell = entry.name
+    end
+    return actions
+end
+
+-- Pure: the SecureActionButtonTemplate attributes for those actions (nil = cleared). Left button: cast on yourself.
+-- Right button: "cancelaura" by spell name, or for a weapon slot by "target-slot".
+function Auras.ClickAttributes(actions)
+    local cancel = actions.cancelSpell ~= nil or actions.cancelSlot ~= nil
+    return {
+        unit = (actions.cast or cancel) and "player" or nil,
+        type1 = actions.cast and "spell" or nil,
+        spell1 = actions.cast,
+        type2 = cancel and "cancelaura" or nil,
+        spell2 = actions.cancelSpell,
+        ["target-slot2"] = actions.cancelSlot,
+    }
+end
+
+-- Pure: the WEAPON/SELF line list while in combat. Their secure buttons cannot move in combat, so the lines of
+-- combat start (frozen) keep their order: a line whose buff is gone stays as { gone = true } with its entry; new
+-- lines (e.g. a proc) come after them, with their section header if it was not there. Rows: { header = key } or
+-- { key, item }.
+function Auras.MergeRows(frozen, current)
+    local fresh, used, headers, out = {}, {}, {}, {}
+    for _, row in ipairs(current) do if row.key then fresh[row.key] = row end end
+    for _, row in ipairs(frozen) do
+        if row.header then
+            headers[row.header] = true
+            out[#out + 1] = row
+        else
+            used[row.key] = true
+            out[#out + 1] = fresh[row.key] or { key = row.key, gone = true,
+                item = { entry = row.item.entry, result = { state = "MISSING", icon = row.item.result.icon } } }
+        end
+    end
+    for _, row in ipairs(current) do
+        if row.key and not used[row.key] then
+            local section = row.section
+            if section and not headers[section] then
+                headers[section] = true
+                out[#out + 1] = { header = section }
+            end
+            out[#out + 1] = row
+        end
+    end
+    return out
+end

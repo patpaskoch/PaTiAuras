@@ -171,3 +171,70 @@ describe("Auras.GroupAlerts (pure)", function()
         assert.equal("Missing on 1", Auras.GroupAlerts({ group("Fort", { "A" }, 3) }, TEXTS, true, isSecret)[1].detail)
     end)
 end)
+
+describe("Line clicks: Auras.LineActions / ClickAttributes (right-click removes, left-click casts)", function()
+    local SECRET = setmetatable({}, { __eq = function() error("secret compared") end })
+    local function isSecret(value) return rawequal(value, SECRET) end
+    local function item(category, state, name, extra)
+        local def = { key = "K", category = category, name = name or "Wasserschild" }
+        for key, value in pairs(extra or {}) do def[key] = value end
+        return { entry = def, result = { state = state } }
+    end
+    local ROCK = { slot = "MAINHAND", castable = true }
+
+    it("active own buff or proc: right-click cancels it by name, nothing on the left button", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local actions = Auras.LineActions(item("personal", "ACTIVE"), nil, isSecret)
+        assert.same({ cancelSpell = "Wasserschild" }, actions)
+        assert.same({ cancelSpell = "Flutwellen" }, Auras.LineActions(item("procs", "EXPIRING", "Flutwellen"), nil, isSecret))
+        assert.same({ unit = "player", type2 = "cancelaura", spell2 = "Wasserschild" }, Auras.ClickAttributes(actions))
+    end)
+
+    it("missing, unknown or secret-named self lines get no action", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        assert.same({}, Auras.LineActions(item("personal", "MISSING"), "Wasserschild", isSecret))
+        assert.same({}, Auras.LineActions(item("personal", "UNKNOWN"), nil, isSecret))
+        assert.same({}, Auras.LineActions(item("personal", "ACTIVE", SECRET), nil, isSecret))
+        assert.same({}, Auras.ClickAttributes({}))
+    end)
+
+    it("weapon imbue: active → right-click removes it from that weapon slot; missing → left-click casts", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local active = Auras.LineActions(item("weapon", "ACTIVE", "Waffe des Felsbeißers", ROCK), "Waffe des Felsbeißers",
+            isSecret)
+        assert.same({ cancelSlot = 16 }, active)
+        assert.same({ unit = "player", type2 = "cancelaura", ["target-slot2"] = 16 }, Auras.ClickAttributes(active))
+        local missing = Auras.LineActions(item("weapon", "MISSING", "Waffe des Felsbeißers", ROCK), "Waffe des Felsbeißers",
+            isSecret)
+        assert.same({ cast = "Waffe des Felsbeißers" }, missing)
+        assert.same({ unit = "player", type1 = "spell", spell1 = "Waffe des Felsbeißers" }, Auras.ClickAttributes(missing))
+        assert.same({}, Auras.LineActions(item("weapon", "UNKNOWN", "x", ROCK), "x", isSecret))
+        assert.same({ cancelSlot = 17 }, Auras.LineActions(item("weapon", "ACTIVE", "x", { slot = "OFFHAND" }), nil, isSecret))
+    end)
+end)
+
+describe("Auras.MergeRows (line order stays the same in combat)", function()
+    local function row(section, key, state)
+        return { key = section .. ":" .. key, section = section, item = { entry = { key = key }, result = { state = state } } }
+    end
+
+    it("keeps the lines of combat start in place; a gone buff stays as a placeholder; new ones come after", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local frozen = { { header = "SELF" }, row("SELF", "WATER", "ACTIVE"), row("SELF", "TIDAL", "ACTIVE") }
+        local current = { { header = "SELF" }, row("SELF", "EARTH", "ACTIVE"), row("SELF", "WATER", "EXPIRING") }
+        local merged = Auras.MergeRows(frozen, current)
+        assert.equal("SELF", merged[1].header)
+        assert.same({ "SELF:WATER", "EXPIRING" }, { merged[2].key, merged[2].item.result.state }) -- fresh data, same place
+        assert.same({ "SELF:TIDAL", true, "MISSING" }, { merged[3].key, merged[3].gone, merged[3].item.result.state })
+        assert.equal("SELF:EARTH", merged[4].key) -- new line below
+        assert.equal(4, #merged)
+    end)
+
+    it("adds the section header of a new line when combat started without that section", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local merged = Auras.MergeRows({ { header = "WEAPON" }, row("WEAPON", "ROCK", "ACTIVE") },
+            { { header = "WEAPON" }, row("WEAPON", "ROCK", "ACTIVE"), { header = "SELF" }, row("SELF", "TIDAL", "ACTIVE") })
+        assert.same({ "WEAPON", "WEAPON:ROCK", "SELF", "SELF:TIDAL" },
+            { merged[1].header, merged[2].key, merged[3].header, merged[4].key })
+    end)
+end)

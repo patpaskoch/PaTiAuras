@@ -4,6 +4,11 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Right-click on an active line in the window removes that buff from you (owner wish 2026-10-02): own buffs and
+  procs by name, a weapon imbue from its weapon slot (secure `cancelaura`, unit player). Left-click on a missing
+  weapon imbue still casts it. One button pool `PaTiAurasLine1..8` over the WEAPON and SELF lines, armed only out of
+  combat; in combat the lines keep the order of combat start (a buff that ended shows "–", new ones come below), so
+  a button never sits over another line.
 - Concrete weapon imbue watches (owner wish 2026-10-02): under Watch you pick the imbue you want — currently
   Rockbiter Weapon (spell 8017, offered only if your client knows it and you learned it). It counts as active only
   with its own temporary enchant ID: 29, observed by the owner in the Forever client. Another known imbue reads
@@ -103,6 +108,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues
+- Right-click remove (2026-10-02) is not tested in game; whether the Forever client's secure `cancelaura` action works
+  for buffs and weapon imbues is not confirmed.
 - Concrete weapon imbues and click-to-buff (2026-10-02) are not tested in game yet (PT-AURAS-140–157); the
   Rockbiter spell ID 8017 is still to be confirmed with `/pa auras`.
 - The weapon imbue fix of 2026-10-02 is not tested in game yet (PT-AURAS-052–057 in `INGAME_TESTING.md`).
