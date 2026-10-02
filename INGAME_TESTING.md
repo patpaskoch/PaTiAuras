@@ -24,7 +24,9 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 - [ ] PT-AURAS-001 Fresh Install aus dem Release-ZIP: genau ein Ordner `PaTiAuras/`, Addon lädt allein
 - [ ] PT-AURAS-002 PaTiAuras erscheint in der AddOn-Liste mit Beschreibung
-- [ ] PT-AURAS-003 Icon in der AddOn-Liste korrekt, keine weiße oder fehlende Textur
+- [x] PT-AURAS-003 Icon in der AddOn-Liste korrekt, keine weiße oder fehlende Textur
+  - ✅ VERIFIED 2026-10-02
+  - Owner: die Icons erscheinen im Spiel in der AddOn-Liste korrekt.
 - [ ] PT-AURAS-004 Login ohne Lua-Fehler
 - [ ] PT-AURAS-005 `/reload` ohne Lua-Fehler
 - [x] PT-AURAS-006 `/pa debug` zeigt die Aura-API: `C_UnitAuras` und `issecretvalue` vorhanden
