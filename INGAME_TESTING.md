@@ -74,7 +74,7 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - Auch mit dem Fix-Build bestätigt: ausrüsten, ablegen, erneut ausrüsten wird jeweils erkannt.
 - [x] PT-AURAS-051 Entfernte Mainhand-Waffe verschwindet
   - ✅ VERIFIED 2026-09-30
-- [ ] PT-AURAS-052 Mainhand ohne Imbue → MISSING (nicht UNKNOWN)
+- [x] PT-AURAS-052 Mainhand ohne Imbue → MISSING (nicht UNKNOWN)
   - ❌ FAIL 2026-09-30
   - Ohne Felsbeißer „Unbekannt“ statt „Fehlt“.
   - 🔧 FIX IMPLEMENTED 2026-09-30
@@ -84,7 +84,9 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - 🔧 FIX IMPLEMENTED 2026-10-02
   - `C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.MainHand)` ist jetzt die erste Quelle (siehe PT-AURAS-053).
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-053 Rockbiter aktivieren → ACTIVE mit Restzeit
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Waffe angelegt, Felsbeißer nicht aktiv → „Waffe des Felsbeißers – Fehlt“.
+- [x] PT-AURAS-053 Rockbiter aktivieren → ACTIVE mit Restzeit
   - ❌ FAIL 2026-09-30
   - Waffe selbst wird erkannt, Imbue bleibt UNKNOWN.
   - 🔧 FIX IMPLEMENTED 2026-09-30
@@ -99,11 +101,15 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - Moderne API zuerst pro Hand; `hasEnchant=true` + `timeLeft > 0` = aktiver Imbue, auch bei unbekanntem
     `enchantType`; das klassische Tupel überstimmt eine lesbare moderne Antwort nie.
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-054 Rockbiter entfernen bzw. auslaufen lassen → MISSING
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Felsbeißer gewirkt → Zeile zeigt die Restzeit statt „Fehlt“.
+- [x] PT-AURAS-054 Rockbiter entfernen bzw. auslaufen lassen → MISSING
   - ❌ FAIL 2026-09-30
   - Zeigt „Fehlt“, aber schon vorher mit aktivem Imbue: keine Zustandsänderung erkannt.
   - 🔧 FIX IMPLEMENTED 2026-10-02
   - MANUAL RETEST REQUIRED
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Felsbeißer entfernt → wieder „Fehlt“.
 - [ ] PT-AURAS-055 Rockbiter erneut aktivieren → ACTIVE
   - ❌ FAIL 2026-09-30
   - Bleibt „Fehlt“.
@@ -167,7 +173,9 @@ Abwählen (kein Waffenbuff gewünscht)
     Fehler im Klick verhindert das Neuzeichnen nicht mehr. Beim Retest: `/console scriptErrors 1`, danach
     `/pa debug` (Zeile „Weapon watch“ zeigt `ROCKBITER_WEAPON=false`).
   - MANUAL RETEST REQUIRED
+  - Owner 2026-10-02 (Teilbefund): Kästchen wird beim Anklicken leer; ob die Zeile verschwindet, noch offen.
 - [ ] PT-AURAS-159 Abgewählt → `/reload` (und Relog): bleibt abgewählt, kein „Neue Auren“-Dialog schaltet ihn wieder ein
+  - Owner 2026-10-02 (Teilbefund): nach `/reload` bleibt Felsbeißer abgewählt; Relog noch offen.
 - [ ] PT-AURAS-160 Wieder anwählen → Zeile, Zustand, Warnung und Klick zum Wirken sind wieder da
 
 Tooltips (PaTiShared)
