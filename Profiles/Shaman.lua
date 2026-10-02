@@ -21,7 +21,8 @@ ns.AuraProfiles.SHAMAN = {
         { key = "EARTH_SHIELD", spellID = 974, mine = true, showCount = true },
         { key = "RIPTIDE", spellID = 61295, mine = true },
     },
-    -- Long group buffs (summary below the frames). Shamans have none in this client version.
+    -- Long group buffs cast on players (summary below the frames). Deliberately empty: totem/ground auras only last
+    -- inside the totem's radius, so "out of range" would read as "missing" (owner decision 2026-10-02, AGENTS.md).
     group = {},
     -- Weapon imbues per slot (WeaponImbues.lua): V1 checks "an imbue is on this weapon", not which one — the client's
     -- way to name an imbue is not confirmed yet. Slots without a weapon (e.g. a shield) are not shown.

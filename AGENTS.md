@@ -18,6 +18,12 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   combat in `AuraWindow.applySecure` (target = `Auras.NextTarget`, tested). The window is therefore protected: no
   resize/show/hide/scale/move in combat (pending until PLAYER_REGEN_ENABLED); the group section stays first.
   Owner decision 2026-09-28: pre-selecting the next missing member is allowed; never cast, target or loop by itself.
+- No totem or ground auras (owner decision 2026-10-02): effects that only last while a player stands in the radius of
+  a placed totem or ground source (e.g. Shaman totem group buffs) are never watched — not in profiles, Watch, group
+  counts, missing logic or PaTiAlerts reports, and no logic that infers from members' auras that a totem should be
+  recast. Reason: leaving the radius is not "the buff is missing"; it would only make false alerts. Group buffs cast
+  directly on players (e.g. Priest Fortitude, Divine Spirit, Shadow Protection) stay. A totem feature, if ever, tracks
+  the totem itself, not the group's auras (PaTiAdmin/docs/FOLLOW_UPS.md F27).
 - Independence: no dependency on PaTiHeal/PaTiTank and no runtime API between them (owner decision 2026-09-28).
   PaTiHeal shows healer auras on its own frames with its own small profile data; duplicated spell data is accepted.
 - Slash: `/pa`, `/patiauras`.

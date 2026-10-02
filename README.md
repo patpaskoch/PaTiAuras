@@ -77,6 +77,9 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
   everything the client returns — please report it once without and once with the imbue.
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).
+- Totem and other ground auras (e.g. Shaman totem buffs) are not watched on purpose: they only last while a player
+  stands in range, so PaTiAuras would report buffs as "missing" that are just out of reach. Group buffs cast directly
+  on players (e.g. Power Word: Fortitude) are watched as before.
 
 ## Development
 
