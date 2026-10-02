@@ -1,7 +1,8 @@
 -- PaTiAuras: temporary weapon enchants (Shaman weapon imbues). They are no UNIT_AURA auras, so they have their own
 -- adapter; Watch turns them into the same ACTIVE / MISSING / EXPIRING / UNKNOWN results as every other entry.
--- V1 watches "is there an imbue on this weapon" per slot, not which one: how the Forever client identifies an imbue
--- (enchant ID, name) is not confirmed yet (docs/WOW_API_COMPAT.md). Display only — PaTiAuras never casts an imbue.
+-- A concrete imbue (e.g. Rockbiter) is recognised by its owner-observed enchant IDs (Profiles/Shaman.lua, Evaluate).
+-- This file only reads and evaluates; casting a missing imbue is a player click on the line's fixed secure button
+-- (AuraWindow.lua, Auras.LineActions) — never automatic.
 --
 -- Two enchant APIs, each with its own parser; per hand the first readable answer wins:
 --   1. C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.X) per weapon slot (ParseModern). Forever, owner's /pa auras

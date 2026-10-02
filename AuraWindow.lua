@@ -79,7 +79,7 @@ local securePending = false
 local buffButtons = {}
 for index = 1, MAX_GROUP_BUFFS do
     local button = CreateFrame("Button", "PaTiAurasBuff" .. index, window, "SecureActionButtonTemplate")
-    button:RegisterForClicks("AnyUp", "AnyDown") -- as PaTiGroup's secure buttons
+    button:RegisterForClicks("AnyUp", "AnyDown") -- as PaTiLead's secure buttons (single firing: NOT YET VERIFIED)
     button:SetSize(LINE_WIDTH, LINE)
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5) -- above the (lazily created) line frames
     local highlight = button:CreateTexture(nil, "HIGHLIGHT") -- hover only while enabled
