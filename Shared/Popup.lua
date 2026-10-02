@@ -7,6 +7,7 @@ ns.UI = UI
 local popup
 local rows = {}
 local DOT = 4
+local BOX = 14 -- same size as UI.CreateCheckbox
 
 function UI.HidePopup()
     if popup then popup:Hide() end
@@ -42,6 +43,16 @@ local function getRow(index)
     row.dot = row:CreateTexture(nil, "ARTWORK")
     row.dot:SetSize(DOT, DOT)
     row.dot:SetPoint("CENTER", row.icon, "CENTER")
+    -- Multi-select rows (keepOpen) get the look of UI.CreateCheckbox: a box, filled while checked — a coloured dot
+    -- alone was too easy to misread (owner 2026-10-02: "Rockbiter cannot be deselected").
+    row.box = CreateFrame("Frame", nil, row, "BackdropTemplate")
+    row.box:SetSize(BOX, BOX)
+    row.box:SetPoint("CENTER", row.icon, "CENTER")
+    UI.ApplyBackdrop(row.box, "Background", "BorderStrong")
+    row.boxFill = row.box:CreateTexture(nil, "ARTWORK")
+    row.boxFill:SetPoint("TOPLEFT", 3, -3)
+    row.boxFill:SetPoint("BOTTOMRIGHT", -3, 3)
+    row.boxFill:SetColorTexture(UI.Color("Accent"))
     row.label = row:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
     row.label:SetJustifyH("LEFT")
     row.label:SetWordWrap(false)
@@ -50,7 +61,12 @@ local function getRow(index)
     row:SetScript("OnClick", function(self)
         local item = self.item
         if not item.keepOpen then UI.HidePopup() end
-        if item.onClick then item.onClick(item) end
+        if item.onClick then
+            -- An error in the addon's handler must not leave a multi-select list showing the old state: report it
+            -- through WoW's error handler and repaint anyway.
+            local ok, err = pcall(item.onClick, item)
+            if not ok and geterrorhandler then geterrorhandler()(err) end
+        end
         if item.keepOpen and popup:IsShown() and popup.render then popup.render() end -- multi-select: stay open, repaint
     end)
     UI.SetTooltip(row, nil)
@@ -89,8 +105,11 @@ render = function(anchor, items, minWidth, align)
         row.icon:SetTexture(item.icon)
         row.icon:SetShown(item.icon ~= nil and not item.header)
         row.icon:SetDesaturated(item.disabled == true)
+        local multi = item.keepOpen and not item.header and item.checked ~= nil
         row.dot:SetColorTexture(UI.Color(item.checked and "Accent" or "TextMuted"))
-        row.dot:SetShown(item.icon == nil and not item.header)
+        row.dot:SetShown(item.icon == nil and not item.header and not multi)
+        row.box:SetShown(multi and item.icon == nil)
+        row.boxFill:SetShown(item.checked == true)
         row:SetEnabled(not item.disabled and not item.header)
         row.patiTooltip = item.tooltip
         width = math.max(width, math.ceil(UI.TextWidth(row.label)) + textLeft + UI.Spacing.LG)
