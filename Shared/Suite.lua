@@ -31,3 +31,35 @@ end
 function UI.RegisterWindow(frame)
     UI.WindowRegistry()[addonName] = frame
 end
+
+-- Saved window position (hardening 2026-10-02) ------------------------------------------------------------------------
+-- A broken save (odd anchor name, a string or NaN as offset) would make SetPoint fail and the window would not load.
+local ANCHORS = { TOPLEFT = true, TOP = true, TOPRIGHT = true, LEFT = true, CENTER = true, RIGHT = true,
+    BOTTOMLEFT = true, BOTTOM = true, BOTTOMRIGHT = true }
+local MAX_OFFSET = 10000 -- far beyond any screen; SetClampedToScreen keeps a valid but off-screen window visible
+
+local function offset(value, default)
+    if type(value) ~= "number" or value ~= value or math.abs(value) > MAX_OFFSET then return default end
+    return value
+end
+
+-- Pure: point, relativePoint, x, y to anchor the window with. A broken anchor or offset falls back to the default
+-- position (CENTER + defaultX/defaultY) as a whole — mixing a saved point with a default offset could put it anywhere.
+function UI.WindowPosition(db, defaultX, defaultY)
+    db = type(db) == "table" and db or {}
+    local point, relativePoint = db.point or "CENTER", db.relativePoint or "CENTER"
+    local x, y = offset(db.x, nil), offset(db.y, nil)
+    if not ANCHORS[point] or not ANCHORS[relativePoint] or (db.x ~= nil and x == nil) or (db.y ~= nil and y == nil) then
+        return "CENTER", "CENTER", defaultX or 0, defaultY or 0
+    end
+    return point, relativePoint, x or defaultX or 0, y or defaultY or 0
+end
+
+-- Pure: may the player drag the window now? Never while locked. In combat only a window the addon declared
+-- combat-movable (no secure children, window:SetCombatMovable) that WoW does not report as protected — moving a
+-- protected frame in combat is forbidden.
+function UI.CanMoveWindow(locked, inCombat, combatMovable, protected)
+    if locked then return false end
+    if not inCombat then return true end
+    return combatMovable == true and protected ~= true
+end

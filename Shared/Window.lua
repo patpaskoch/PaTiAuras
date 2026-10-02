@@ -12,7 +12,8 @@ local Window = {}
 function Window:Attach(db, defaultX, defaultY)
     self.db = db
     self:ClearAllPoints()
-    self:SetPoint(db.point or "CENTER", UIParent, db.relativePoint or "CENTER", db.x or defaultX or 0, db.y or defaultY or 0)
+    local point, relativePoint, x, y = UI.WindowPosition(db, defaultX, defaultY) -- a broken save cannot break SetPoint
+    self:SetPoint(point, UIParent, relativePoint, x, y)
     self:ApplyOpacity()
     self:PaintMenuButton()
 end
@@ -42,6 +43,11 @@ function Window:SavePosition()
     if not self.db then return end
     local point, _, relativePoint, x, y = self:GetPoint()
     self.db.point, self.db.relativePoint, self.db.x, self.db.y = point, relativePoint, x, y
+end
+
+-- Display-only windows (no secure children) may also be dragged in combat; secure windows never (protected).
+function Window:SetCombatMovable(movable)
+    self.combatMovable = movable == true
 end
 
 function Window:IsLocked()
@@ -97,9 +103,10 @@ function UI.CreateWindow(name, title, width, height)
     headerBackground:SetPoint("BOTTOMRIGHT", -UI.Sizes.Border, 0)
     headerBackground:SetColorTexture(UI.Color("Background"))
     header:RegisterForDrag("LeftButton")
-    -- Windows with secure children cannot be moved in combat.
+    -- Windows with secure children cannot be moved in combat; display-only ones may opt in (SetCombatMovable).
     header:SetScript("OnDragStart", function()
-        if window:IsLocked() or InCombatLockdown() then return end
+        local protected = window.IsProtected and window:IsProtected()
+        if not UI.CanMoveWindow(window:IsLocked(), InCombatLockdown(), window.combatMovable, protected) then return end
         window:StartMoving()
     end)
     header:SetScript("OnDragStop", function()
