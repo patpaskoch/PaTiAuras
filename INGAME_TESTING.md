@@ -110,19 +110,23 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - MANUAL RETEST REQUIRED
   - ✅ VERIFIED 2026-10-02
   - Owner: Felsbeißer entfernt → wieder „Fehlt“.
-- [ ] PT-AURAS-055 Rockbiter erneut aktivieren → ACTIVE
+- [x] PT-AURAS-055 Rockbiter erneut aktivieren → ACTIVE
   - ❌ FAIL 2026-09-30
   - Bleibt „Fehlt“.
   - 🔧 FIX IMPLEMENTED 2026-10-02
   - MANUAL RETEST REQUIRED
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Felsbeißer entfernt und erneut gewirkt → wieder Restzeit.
 - [ ] PT-AURAS-056 Timer wird aktualisiert; unter 30 s EXPIRING; Erneuern aktualisiert innerhalb von ~1–2 s
-- [ ] PT-AURAS-057 Mit PaTiAlerts: „Waffenbuff fehlt“ erscheint bei MISSING, verschwindet bei ACTIVE, nie bei UNKNOWN
+- [x] PT-AURAS-057 Mit PaTiAlerts: „Waffenbuff fehlt“ erscheint bei MISSING, verschwindet bei ACTIVE, nie bei UNKNOWN
   - ❌ FAIL 2026-09-30
   - Warnung bleibt bei aktivem Felsbeißer. Ursache upstream: PaTiAuras meldet den aktiven Imbue als MISSING
     (PT-AURAS-053); PaTiAlerts selbst arbeitet richtig.
   - 🔧 FIX IMPLEMENTED 2026-10-02
   - Fix in PaTiAuras (PT-AURAS-053), keine Änderung in PaTiAlerts.
   - MANUAL RETEST REQUIRED
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Felsbeißer fehlt → Warnung „Waffe des Felsbeißers · Fehlt“; gewirkt → Warnung weg.
 - ~~PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand~~
   - RETIRED 2026-10-02 – keine generische Schildhand-Beobachtung mehr; noch kein bestätigter Nebenhand-Waffenbuff.
 - [ ] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
@@ -163,7 +167,7 @@ PaTiAlerts
 - [ ] PT-AURAS-157 Felsbeißer aktiv → Warnung verschwindet; Unbekannt → keine Warnung
 
 Abwählen (kein Waffenbuff gewünscht)
-- [ ] PT-AURAS-158 Ausgewählten Felsbeißer in Beobachten erneut anklicken → abgewählt: keine Felsbeißer-Zeile, kein
+- [x] PT-AURAS-158 Ausgewählten Felsbeißer in Beobachten erneut anklicken → abgewählt: keine Felsbeißer-Zeile, kein
   Klick-Button, die PaTiAlerts-Warnung verschwindet (auch wenn er wirklich fehlt), keine „Waffenbuff fehlt“-Warnung
   - ❌ FAIL 2026-10-02
   - Erneuter Klick auf den ausgewählten Felsbeißer in Beobachten wählt ihn nicht ab.
@@ -174,8 +178,12 @@ Abwählen (kein Waffenbuff gewünscht)
     `/pa debug` (Zeile „Weapon watch“ zeigt `ROCKBITER_WEAPON=false`).
   - MANUAL RETEST REQUIRED
   - Owner 2026-10-02 (Teilbefund): Kästchen wird beim Anklicken leer; ob die Zeile verschwindet, noch offen.
-- [ ] PT-AURAS-159 Abgewählt → `/reload` (und Relog): bleibt abgewählt, kein „Neue Auren“-Dialog schaltet ihn wieder ein
+  - ✅ VERIFIED 2026-10-02
+  - Owner: Kästchen leer, Felsbeißer-Zeile verschwindet aus dem Fenster.
+- [x] PT-AURAS-159 Abgewählt → `/reload` (und Relog): bleibt abgewählt, kein „Neue Auren“-Dialog schaltet ihn wieder ein
   - Owner 2026-10-02 (Teilbefund): nach `/reload` bleibt Felsbeißer abgewählt; Relog noch offen.
+  - ✅ VERIFIED 2026-10-02
+  - Owner: bleibt nach `/reload` und nach Aus-/Einloggen abgewählt.
 - [ ] PT-AURAS-160 Wieder anwählen → Zeile, Zustand, Warnung und Klick zum Wirken sind wieder da
 
 Tooltips (PaTiShared)
