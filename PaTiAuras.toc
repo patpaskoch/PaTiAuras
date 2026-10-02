@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: PaTiAuras
-## Notes: Watches your buffs, procs, group buffs and healing auras
-## Notes-deDE: Überwacht deine Buffs, Procs, Gruppenbuffs und Heil-Auren
+## Notes: Watches your buffs, procs, tracking, group buffs and weapon imbues
+## Notes-deDE: Überwacht deine Buffs, Procs, Suchen, Gruppenbuffs und Waffenverzauberungen
 ## Author: PaTi
 ## Version: 0.1.0
 ## IconTexture: Interface\AddOns\PaTiAuras\Media\icon

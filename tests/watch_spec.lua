@@ -59,7 +59,7 @@ describe("Priest profile", function()
         local ns, db = setup("PRIEST", ALL_PRIEST)
         assert.equal("Priest", ns.Watch.ClassProfile().name)
         ns.Watch.Rebuild(db)
-        assert.same({ personal = 1, procs = 0, group = 3, healing = 0, weapon = 0, tracking = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
+        assert.same({ personal = 1, procs = 0, group = 3, weapon = 0, tracking = 0 }, ns.Watch.Count())
     end)
 
     it("counts the Prayer version as the same buff as the single-target spell", function()
@@ -221,11 +221,11 @@ describe("Test mode profile", function()
 end)
 
 describe("Shaman profile (regression)", function()
-    it("still tracks Water Shield, Tidal Waves, Earth Shield and Riptide, plus Rockbiter when known", function()
+    it("tracks Water Shield, Tidal Waves and Rockbiter; Earth Shield and Riptide are PaTiHeal's (no healing)", function()
         local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
         ns.Watch.Rebuild(db)
         assert.equal("Restoration Shaman", ns.Watch.profile.name)
-        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 1, tracking = 0 }, ns.Watch.Count())
+        assert.same({ personal = 1, procs = 1, group = 0, weapon = 1, tracking = 0 }, ns.Watch.Count())
     end)
 end)
 
@@ -348,40 +348,34 @@ describe("Unit basics with secret values", function()
     end)
 end)
 
-describe("Priest healing auras", function()
-    it("offers Renew, Power Word: Shield and Prayer of Mending; each can be switched off", function()
+describe("No healing category (HoTs/shields are PaTiHeal's job since 2026-10-02)", function()
+    it("Priest: Renew, Power Word: Shield and Prayer of Mending are no longer offered or watched", function()
         NAMES[139], NAMES[17], NAMES[33076] = "Erneuerung", "Machtwort: Schild", "Gebet der Besserung"
         local known = { [139] = true, [17] = true, [33076] = true }
         for id in pairs(ALL_PRIEST) do known[id] = true end
         local ns, db = setup("PRIEST", known)
         ns.Watch.Rebuild(db)
-        assert.equal(3, ns.Watch.Count().healing)
-        db.watch.RENEW = false
-        ns.Watch.Rebuild(db)
-        assert.equal(2, ns.Watch.Count().healing)
+        assert.is_nil(ns.Watch.Count().healing)
+        assert.is_nil(ns.Watch.Healing)
+        for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do assert.truthy(group.category ~= "healing") end
         NAMES[139], NAMES[17], NAMES[33076] = nil, nil, nil
     end)
 
-    it("shows only your own Renew on a member (mine), not another priest's", function()
-        NAMES[139] = "Erneuerung"
-        local known = { [139] = true }
-        local ns, db = setup("PRIEST", known)
-        world.units = {
-            player = { name = "Du", auras = {} },
-            party1 = { name = "Tank", auras = { aura("Erneuerung", 139, { sourceUnit = "party2" }) } },
-            party2 = { name = "Other", auras = { aura("Erneuerung", 139, { sourceUnit = "player" }) } },
-        }
+    it("old saved healing choices are ignored: no error, no ghost entry, other categories unchanged", function()
+        local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
+        db.watch.RIPTIDE, db.watch.EARTH_SHIELD, db.seen.RIPTIDE = true, false, true
         ns.Watch.Rebuild(db)
-        ns.Watch.RefreshAll()
-        local names = {}
-        for _, line in ipairs(ns.Watch.Healing(db)) do names[#names + 1] = line.name end
-        assert.same({ "Other" }, names)
-        NAMES[139] = nil
+        assert.same({ personal = 1, procs = 1, group = 0, weapon = 1, tracking = 0 }, ns.Watch.Count())
+        local offered = {}
+        for _, category in ipairs(ns.Watch.CATEGORIES) do
+            for _, def in ipairs(ns.Watch.ClassProfile()[category] or {}) do offered[#offered + 1] = def.key end
+        end
+        for _, key in ipairs(offered) do assert.truthy(key ~= "RIPTIDE" and key ~= "EARTH_SHIELD") end
     end)
 end)
 
 describe("Watch.Choices (settings: what to watch)", function()
-    it("offers only your class's entries the client knows, grouped self, procs, healing, weapon", function()
+    it("offers only your class's entries the client knows, grouped self, procs, weapon (no healing)", function()
         local ns = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
         local groups = {}
         for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
@@ -389,8 +383,7 @@ describe("Watch.Choices (settings: what to watch)", function()
             for _, def in ipairs(group.defs) do keys[#keys + 1] = def.key end
             groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
         end
-        assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "healing:EARTH_SHIELD,RIPTIDE",
-            "weapon:ROCKBITER_WEAPON" }, groups)
+        assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, groups)
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()
@@ -401,13 +394,13 @@ describe("Watch.Choices (settings: what to watch)", function()
     end)
 
     it("switching one entry off hides exactly that entry", function()
-        local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
+        local ns, db = setup("SHAMAN", { [24398] = true })
         ns.Watch.Rebuild(db)
-        assert.equal(2, ns.Watch.Count().healing)
-        db.watch.RIPTIDE = false
-        ns.Watch.Rebuild(db)
-        assert.equal(1, ns.Watch.Count().healing)
         assert.equal(1, ns.Watch.Count().personal)
+        db.watch.WATER_SHIELD = false
+        ns.Watch.Rebuild(db)
+        assert.equal(0, ns.Watch.Count().personal)
+        assert.equal(1, ns.Watch.Count().procs)
     end)
 end)
 

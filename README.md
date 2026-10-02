@@ -2,8 +2,8 @@
 
 <img src="assets/icon-128.png" width="96" alt="PaTiAuras icon">
 
-A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, group buffs and
-healing auras — active, missing or expiring. It shows; you decide.
+A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, tracking, group buffs and
+weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and shields on party members: PaTiHeal.)
 
 > Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
 
@@ -19,8 +19,6 @@ healing auras — active, missing or expiring. It shows; you decide.
 - **Tracking:** pick the profession tracking you want (Find Herbs, Find Minerals; Find Treasure for dwarves — only
   what you learned). The line shows whether it is on; a click on a missing one casts it (never switched by itself).
   Only one tracking can be on, so you choose one or none
-- **Healing:** your HoTs and shields per party member (Shaman: Earth Shield, Riptide;
-  Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
   tooltip). One click, one cast; your target does not change. In combat the member stays fixed until combat ends
 - With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there, and
@@ -28,7 +26,8 @@ healing auras — active, missing or expiring. It shows; you decide.
 - Every aura can be switched on or off; a small window asks on first start which ones to watch
 - Profiles: Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
-- Works on its own. With PaTiHeal installed as well, you can switch off the healing auras here to avoid seeing them twice
+- Works on its own. Your HoTs and shields on party members (Earth Shield, Riptide, Renew, Power Word: Shield,
+  Prayer of Mending) are shown by PaTiHeal on its frames — PaTiAuras no longer has a healing category (2026-10-02)
 
 ## PaTiSuite
 
@@ -47,7 +46,7 @@ Each one is installed on its own and works on its own; none of them is needed by
 
 ### Goes well with (optional)
 
-- [PaTiHeal](https://github.com/patpaskoch/PaTiHeal) – shows your HoTs and shields on its party frames too — untick them under Watch here to avoid seeing them twice
+- [PaTiHeal](https://github.com/patpaskoch/PaTiHeal) – shows your HoTs and shields on its party frames (that is its job, not PaTiAuras')
 - [PaTiAlerts](https://github.com/patpaskoch/PaTiAlerts) – receives your watched buffs, weapon imbues and group buffs that are missing or expiring
 - [PaTiSuite](https://github.com/patpaskoch/PaTiSuite) – shows and hides this window together with the other PaTi windows
 
@@ -65,7 +64,7 @@ Each one is installed on its own and works on its own; none of them is needed by
 `/pa settings` or ••• → Settings:
 - **General:** on/off, language, scale, window lock
 - **Display:** timers, charges, missing, expiring
-- **Watch:** one button opens the list of everything your character can watch (self, procs, healing, weapon, group)
+- **Watch:** one button opens the list of everything your character can watch (self, procs, weapon, tracking, group)
   — tick what you want to see
 - **Window:** panel opacity (30–100 %)
 
@@ -76,8 +75,7 @@ Each one is installed on its own and works on its own; none of them is needed by
 Hide, collapse, test mode and reset are blocked in combat (the window has secure buff buttons).
 
 ## Known limitations
-- Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs and the Priest healing auras are not
-  yet — `/pa auras` shows what your client knows.
+- Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs are not yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
 - Weapon imbues: only Rockbiter Weapon so far — its enchant ID (29) was observed by the owner in the Forever client;
   its spell ID (8017, classic data) is used only if your client knows it, and is still to be confirmed with

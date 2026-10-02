@@ -6,8 +6,10 @@ local Tracking = ns.Tracking
 
 local Watch = {
     UNITS = { "player", "party1", "party2", "party3", "party4" },
-    CATEGORIES = { "personal", "procs", "group", "healing", "weapon", "tracking" },
-    entries = { personal = {}, procs = {}, group = {}, healing = {}, weapon = {}, tracking = {} },
+    -- No "healing" category since 2026-10-02: your HoTs/shields on members are PaTiHeal's job (owner decision).
+    -- Old watch/seen keys of those entries (RIPTIDE, RENEW, …) stay in the saved table and are simply never read.
+    CATEGORIES = { "personal", "procs", "group", "weapon", "tracking" },
+    entries = { personal = {}, procs = {}, group = {}, weapon = {}, tracking = {} },
     info = {},
     testMode = false,
 }
@@ -61,8 +63,8 @@ function Watch.IsOffered(def, category)
 end
 
 -- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
--- self, procs, healing, weapon, group. Returns { { category, defs = { def, … } } } (empty categories left out).
-Watch.CHOICE_ORDER = { "personal", "procs", "healing", "weapon", "tracking", "group" }
+-- self, procs, weapon, tracking, group. Returns { { category, defs = { def, … } } } (empty categories left out).
+Watch.CHOICE_ORDER = { "personal", "procs", "weapon", "tracking", "group" }
 function Watch.Choices(profile)
     local list = {}
     for _, category in ipairs(Watch.CHOICE_ORDER) do
@@ -235,25 +237,6 @@ function Watch.Group(db)
             end
         end
         list[#list + 1] = { entry = entry, summary = Auras.Summarize(members), target = Auras.NextTarget(members) }
-    end
-    return list
-end
-
--- { { name, auras = { { entry, result } } } } — units with at least one of your healing auras active.
--- Offline/dead units have no aura list (see RefreshUnit), so they never show up here.
-function Watch.Healing(db)
-    local list, now = {}, GetTime()
-    if #Watch.entries.healing == 0 then return list end
-    for _, unit in ipairs(Watch.UNITS) do
-        local info = Watch.info[unit]
-        if info then
-            local auras = {}
-            for _, entry in ipairs(Watch.entries.healing) do
-                local result = Auras.Evaluate(entry, info.helpful, now, db)
-                if result.state == "ACTIVE" or result.state == "EXPIRING" then auras[#auras + 1] = { entry = entry, result = result } end
-            end
-            if #auras > 0 then list[#list + 1] = { name = info.name, auras = auras } end
-        end
     end
     return list
 end

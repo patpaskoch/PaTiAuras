@@ -3,6 +3,7 @@
 -- rank IDs found in the spellbook. An ID the client does not know simply hides its entry.
 -- Status: IDs taken from classic/WotLK spell data, NOT yet confirmed in the Interface 16001 client —
 -- confirm with /pa auras and record the result in PaTiAdmin/docs/WOW_API_COMPAT.md.
+-- HoTs and shields on members (Earth Shield, Riptide) are PaTiHeal's job since 2026-10-02 (owner decision).
 local _, ns = ...
 ns.AuraProfiles = ns.AuraProfiles or {}
 
@@ -15,11 +16,6 @@ ns.AuraProfiles.SHAMAN = {
     -- Short-lived effects on yourself, shown only while active; never clickable.
     procs = {
         { key = "TIDAL_WAVES", spellID = 53390, showCount = true },
-    },
-    -- Your auras on party members, shown as small icons on their frame.
-    healing = {
-        { key = "EARTH_SHIELD", spellID = 974, mine = true, showCount = true },
-        { key = "RIPTIDE", spellID = 61295, mine = true },
     },
     -- Long group buffs cast on players (summary below the frames). Deliberately empty: totem/ground auras only last
     -- inside the totem's radius, so "out of range" would read as "missing" (owner decision 2026-10-02, AGENTS.md).

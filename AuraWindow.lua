@@ -1,4 +1,4 @@
--- PaTiAuras: main window. Calm sections (GROUP, WEAPON, SELF, HEALING) of text lines with small icons.
+-- PaTiAuras: main window. Calm sections (GROUP, WEAPON, SELF, TRACKING) of text lines with small icons.
 -- The group and weapon lines carry secure click-to-buff buttons (see below); everything else is plain frames.
 local _, ns = ...
 local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spells
@@ -6,7 +6,7 @@ local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spell
 local AuraWindow = {}
 ns.AuraWindow = AuraWindow
 
-local WIDTH, LINE, ICON, UNIT_ICONS = 230, 20, 16, 4
+local WIDTH, LINE, ICON = 230, 20, 16
 local PAD = UI.Spacing.MD
 local TICK_SECONDS = 0.5 -- timer texts only; state changes come from UNIT_AURA
 
@@ -25,14 +25,6 @@ local function newLine(index)
     line.name:SetWordWrap(false)
     line.value = line:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
     line.value:SetPoint("RIGHT")
-    line.unitIcons = {}
-    for slot = 1, UNIT_ICONS do
-        local icon = UI.StyleAuraIcon(CreateFrame("Frame", nil, line), ICON)
-        icon:SetPoint("RIGHT", -(slot - 1) * (ICON + UI.Spacing.XS), 0)
-        icon:EnableMouse(true)
-        UI.SetTooltip(icon, function() return icon.tooltipLines end)
-        line.unitIcons[slot] = icon
-    end
     UI.SetTooltip(line, function() return line.tooltipLines end)
     lines[index] = line
     return line
@@ -40,14 +32,13 @@ end
 
 local MESSAGE_LINES = 3 -- status/hint texts wrap instead of being cut off with "..."
 
--- Resets a line to one of four looks: "header", "entry" (icon + name + value), "unit" (name + icons) or
--- "message" (full-width muted text that wraps onto up to MESSAGE_LINES lines).
+-- Resets a line to one of three looks: "header", "entry" (icon + name + value) or "message" (full-width muted
+-- text that wraps onto up to MESSAGE_LINES lines).
 local function prepare(index, kind)
     local line = lines[index] or newLine(index)
     local message = kind == "message"
     line.kind, line.tooltipLines = kind, nil
     line.icon:SetShown(kind == "entry")
-    for _, icon in ipairs(line.unitIcons) do icon:Hide() end
     line.name:ClearAllPoints()
     if message then
         line.name:SetPoint("TOPLEFT")
@@ -174,11 +165,10 @@ end
 
 local STATE_COLOR = { ACTIVE = "Text", EXPIRING = "Warning", MISSING = "TextMuted", UNKNOWN = "TextMuted" }
 
-local function detail(entry, result, target)
+local function detail(entry, result)
     local list = { entry.name, L.TIP_STATUS:format(L["STATUS_" .. result.state]) }
     if result.remaining then list[#list + 1] = L.TIP_REMAINING:format(UI.FormatRemaining(result.remaining)) end
     if result.count and result.count > 0 then list[#list + 1] = L.TIP_CHARGES:format(result.count) end
-    if target then list[#list + 1] = L.TIP_TARGET:format(target) end
     return list
 end
 
@@ -301,24 +291,6 @@ function AuraWindow.Render(db)
                 if button then button.tooltipLines = line.tooltipLines end
                 clickLines[#clickLines + 1] = { item = item, line = line, gone = row.gone }
                 timers = timers or result.remaining ~= nil
-            end
-        end
-
-        local healingList = Watch.Healing(db)
-        if #healingList > 0 then header("SECTION_HEALING") end
-        for _, unitItem in ipairs(healingList) do
-            local line = add("unit")
-            line.name:SetText(unitItem.name)
-            for slot, item in ipairs(unitItem.auras) do
-                local icon = line.unitIcons[slot]
-                if icon then
-                    local result = item.result
-                    icon:SetAura(result.icon or item.entry.icon, result.state,
-                        Auras.IconText(item.entry, result, db, UI.FormatRemaining))
-                    icon.tooltipLines = detail(item.entry, result, unitItem.name)
-                    icon:Show()
-                    timers = timers or result.remaining ~= nil
-                end
             end
         end
 

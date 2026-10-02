@@ -4,8 +4,8 @@ local _, ns = ...
 local Auras = {}
 ns.Auras = Auras
 
--- Below this many seconds a personal or group buff counts as "expiring". Healing auras (HoTs) are short
--- by nature and never get this state. One central value on purpose: no aggressive warnings.
+-- Below this many seconds a personal or group buff counts as "expiring".
+-- One central value on purpose: no aggressive warnings.
 Auras.EXPIRING_SECONDS = 30
 
 -- settings = PaTiAurasDB (Config.lua); watch[key] = false switches one entry off.

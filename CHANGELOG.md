@@ -115,6 +115,12 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   secret offline/dead flags no longer count as offline or dead.
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
+### Removed
+- **Healing category** (owner decision 2026-10-02): your HoTs and shields on party members (Shaman: Earth Shield,
+  Riptide; Priest: Renew, Power Word: Shield, Prayer of Mending) are now shown only by PaTiHeal, which has all of
+  them in its own profiles. PaTiAuras keeps Self, Procs, Tracking, Group buffs and Weapon imbues. Old saved watch
+  choices of the removed entries stay in `PaTiAurasDB` and are simply ignored (no error, no empty section; no
+  schema change). Weapon imbues, Rockbiter and click-to-buff are unchanged.
 ### Known Issues
 - Tracking (2026-10-02) is not tested in game: which tracking API the Forever client offers and the spell IDs are
   unconfirmed (`/pa auras`).

@@ -66,7 +66,6 @@ AuraScan.TEST_PROFILE = {
     name = "Test",
     personal = { { key = "WATER_SHIELD", spellID = 24398, expiring = true, showCount = true, clickable = true } },
     procs = { { key = "TIDAL_WAVES", spellID = 53390, showCount = true } },
-    healing = { { key = "EARTH_SHIELD", spellID = 974, showCount = true }, { key = "RIPTIDE", spellID = 61295 } },
     group = { { key = "FORTITUDE", spellID = 1243, nameKey = "TEST_GROUP_BUFF", expiring = true } },
     weapon = { { key = "MAIN_HAND_IMBUE", slot = "MAINHAND", nameKey = "MAIN_HAND", expiring = true },
         { key = "OFF_HAND_IMBUE", slot = "OFFHAND", nameKey = "OFF_HAND", expiring = true } },
@@ -80,9 +79,7 @@ AuraScan.TEST_PROFILE = {
 local TEST_AURAS = {
     player = { TIDAL_WAVES = { count = 2 }, FORTITUDE = { remaining = 1500 }, INNER_FIRE = { count = 18, remaining = 25 },
         DIVINE_SPIRIT = { remaining = 1500 }, SHADOW_PROTECTION = { remaining = 500 } },
-    party1 = { EARTH_SHIELD = { count = 5 }, RIPTIDE = { remaining = 7 }, FORTITUDE = { remaining = 1500 },
-        DIVINE_SPIRIT = { remaining = 1500 }, RENEW = { remaining = 11 }, POWER_WORD_SHIELD = { remaining = 22 },
-        PRAYER_OF_MENDING = { count = 4 } },
+    party1 = { FORTITUDE = { remaining = 1500 }, DIVINE_SPIRIT = { remaining = 1500 } },
     party2 = { DIVINE_SPIRIT = { remaining = 900 } },
     party3 = { FORTITUDE = { remaining = 20 } },
 }

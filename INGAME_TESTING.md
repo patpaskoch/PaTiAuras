@@ -55,7 +55,7 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 - [ ] PT-AURAS-030 Einstellungen und Beobachten-Auswahl bleiben nach `/reload`
 - [ ] PT-AURAS-031 Einstellungen bleiben nach Relog
-- [ ] PT-AURAS-032 Update mit alten Einstellungen: eine vorher abgeschaltete Kategorie (z. B. Heilung) bleibt nach dem
+- [ ] PT-AURAS-032 Update mit alten Einstellungen: eine vorher abgeschaltete Kategorie (z. B. Procs) bleibt nach dem
   Update abgewählt (Schema-2-Migration), Position/Sprache/Größe bleiben
 - [ ] PT-AURAS-033 „Standard wiederherstellen“: alles wieder beobachtet, Position bleibt
 
@@ -240,15 +240,30 @@ Rechtsklick entfernt einen aktiven Buff
 - [ ] PT-AURAS-071 Stapelanzahl wird angezeigt
 - [ ] PT-AURAS-072 Procs erscheinen nicht in PaTiAlerts
 
-## Healing (pro Gruppenmitglied)
+## Healing (pro Gruppenmitglied) – entfernt
 
-- [ ] PT-AURAS-075 Schamane: eigenes Erdschild am Mitglied mit Aufladungen
-- [ ] PT-AURAS-076 Schamane: eigene Springflut (Riptide) mit Restzeit
-- [ ] PT-AURAS-077 Priester: eigene Erneuerung (Renew)
-- [ ] PT-AURAS-078 Priester: eigenes Machtwort: Schild
-- [ ] PT-AURAS-079 Priester: eigenes Gebet der Besserung mit Aufladungen
-- [ ] PT-AURAS-080 HoTs/Schilde anderer Heiler erscheinen nicht
-- [ ] PT-AURAS-081 `/pa auras` listet die Heil-Auren-IDs als bekannt (Schamane und Priester melden)
+Die Healing-Kategorie wurde am 2026-10-02 entfernt (Owner-Entscheidung): eigene HoTs/Schilde auf Gruppenmitgliedern
+zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
+
+- ~~PT-AURAS-075 Schamane: eigenes Erdschild am Mitglied mit Aufladungen~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-076 Schamane: eigene Springflut (Riptide) mit Restzeit~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-077 Priester: eigene Erneuerung (Renew)~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-078 Priester: eigenes Machtwort: Schild~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-079 Priester: eigenes Gebet der Besserung mit Aufladungen~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-080 HoTs/Schilde anderer Heiler erscheinen nicht~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- ~~PT-AURAS-081 `/pa auras` listet die Heil-Auren-IDs als bekannt (Schamane und Priester melden)~~
+  - RETIRED 2026-10-02 – Healing-Kategorie aus PaTiAuras entfernt; HoTs/Schilde zeigt PaTiHeal
+- [ ] PT-AURAS-180 Kein Abschnitt „Heilung“ mehr im Fenster und keine Heil-Auren im Beobachten-Menü (Schamane und Priester)
+- [ ] PT-AURAS-181 Update mit alten Einstellungen (Heil-Auren vorher an oder abgewählt): kein Lua-Fehler, keine leere
+  Heilung-Zeile, keine Heil-Auren im Dialog „Neue Auren“; Selbst, Procs, Aufspüren, Gruppe und Felsbeißer unverändert
+- [ ] PT-AURAS-182 Mit PaTiHeal: Erdschild/Springflut bzw. Erneuerung/Machtwort: Schild erscheinen nur noch in PaTiHeal;
+  beide Addons laufen normal
 
 ## Group Buffs (Priester)
 
@@ -275,7 +290,7 @@ Rechtsklick entfernt einen aktiven Buff
 ## Beobachten (Einstellungen)
 
 - [ ] PT-AURAS-100 Button „Beobachtete Effekte auswählen (x / y)“ öffnet die Liste mit den Effekten des Charakters,
-  gruppiert nach Selbst, Procs, Heilung, Waffe, Gruppe
+  gruppiert nach Selbst, Procs, Waffe, Aufspüren, Gruppe (keine Heilung mehr)
 - [ ] PT-AURAS-101 Nur die eigene Klasse; unbekannte Zauber fehlen
 - [ ] PT-AURAS-102 Häkchen schaltet genau einen Effekt, die Liste bleibt offen, die Anzahl im Button stimmt
 - [ ] PT-AURAS-103 Abgewählter Effekt verschwindet aus dem Fenster; Auswahl bleibt nach `/reload`
@@ -291,7 +306,8 @@ Rechtsklick entfernt einen aktiven Buff
 ## Unabhängigkeit
 
 - [ ] PT-AURAS-110 Ohne PaTiAlerts: unverändert, kein Lua-Fehler
-- [ ] PT-AURAS-111 Mit PaTiHeal: Heil-Auren lassen sich hier abwählen, beide Addons laufen normal
+- ~~PT-AURAS-111 Mit PaTiHeal: Heil-Auren lassen sich hier abwählen, beide Addons laufen normal~~
+  - RETIRED 2026-10-02 – keine Heil-Auren mehr in PaTiAuras; ersetzt durch PT-AURAS-182
 
 ## PaTiAlerts: Gruppenbuffs
 

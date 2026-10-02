@@ -283,9 +283,9 @@ local function printDebug()
             tostring(interface), GetLocale(), UI.GetLanguage()),
         ("Class %s · spec %s · %s · combat %s · test mode %s"):format(tostring(classFile), specText(), groupType(),
             InCombatLockdown() and "yes" or "no", Watch.testMode and "on" or "off"),
-        ("Profile %s · tracked: personal %d, procs %d, group %d, healing %d, weapon %d · clickable %d · pending secure: %s"):format(
-            Watch.profile and Watch.profile.name or "none", counts.personal, counts.procs, counts.group, counts.healing,
-            counts.weapon, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
+        ("Profile %s · tracked: personal %d, procs %d, group %d, weapon %d, tracking %d · clickable %d · pending secure: %s"):format(
+            Watch.profile and Watch.profile.name or "none", counts.personal, counts.procs, counts.group, counts.weapon,
+            counts.tracking, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
         ("Weapon watch (nil = default on, false = off): %s"):format(weaponWatchText()),
