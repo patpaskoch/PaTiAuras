@@ -12,7 +12,7 @@ describe("Config.Migrate", function()
         assert.equal(1, db.scale)
         assert.equal("auto", db.language)
         assert.same({}, db.watch)
-        assert.equal(2, db.schema)
+        assert.equal(3, db.schema)
     end)
 
     it("keeps saved values, also false, and the position", function()
@@ -87,9 +87,9 @@ describe("Schema 2: the watch list replaces the category switches", function()
         local Config = load()
         local db = Config.Migrate({ schema = 1, showHealing = false, showWeapon = false, showPersonal = true,
             watch = { WATER_SHIELD = false } }, PROFILE)
-        assert.same({ WATER_SHIELD = false, EARTH_SHIELD = false, RIPTIDE = false, MAIN_HAND_IMBUE = false,
-            OFF_HAND_IMBUE = false }, db.watch)
-        assert.equal(2, db.schema)
+        -- The slot keys of the switched-off weapon category are then replaced by schema 3 (no concrete imbue here).
+        assert.same({ WATER_SHIELD = false, EARTH_SHIELD = false, RIPTIDE = false }, db.watch)
+        assert.equal(3, db.schema)
         for _, key in ipairs({ "showPersonal", "showGroup", "showHealing", "showProcs", "showWeapon" }) do
             assert.is_nil(db[key])
         end
@@ -128,5 +128,32 @@ describe("Window settings (panel opacity)", function()
         assert.equal(0.4, db.opacity)
         db = M.RestoreDefaults({ opacity = 0.4, snapWindows = false, bindings = {}, bindingRanks = {}, watch = {} })
         assert.equal(0.75, db.opacity)
+    end)
+end)
+
+describe("Schema 3: concrete weapon imbues replace the weapon slots", function()
+    local PROFILE = { weapon = { { key = "ROCKBITER_WEAPON", spellID = 8017, slot = "MAINHAND", enchantIDs = { 29 } } } }
+
+    it("a switched-off main hand keeps Rockbiter off and already offered (no dialog); slot keys are gone", function()
+        local db = load().Migrate({ schema = 2, watch = { MAIN_HAND_IMBUE = false, OFF_HAND_IMBUE = false },
+            seen = { MAIN_HAND_IMBUE = true, OFF_HAND_IMBUE = true, RIPTIDE = true } }, PROFILE)
+        assert.same({ ROCKBITER_WEAPON = false }, db.watch)
+        assert.same({ ROCKBITER_WEAPON = true, RIPTIDE = true }, db.seen)
+        assert.equal(3, db.schema)
+    end)
+
+    it("a watched main hand picks no imbue by itself: Rockbiter stays unset and unseen (the dialog asks)", function()
+        local db = load().Migrate({ schema = 2, watch = {}, seen = { MAIN_HAND_IMBUE = true } }, PROFILE)
+        assert.same({}, db.watch)
+        assert.same({}, db.seen)
+    end)
+
+    it("keeps an explicit Rockbiter choice, runs once, and works without a profile", function()
+        local Config = load()
+        local db = Config.Migrate({ schema = 2, watch = { MAIN_HAND_IMBUE = false, ROCKBITER_WEAPON = true } }, PROFILE)
+        assert.same({ ROCKBITER_WEAPON = true }, db.watch)
+        db.watch.ROCKBITER_WEAPON = false
+        assert.is_false(Config.Migrate(db, PROFILE).watch.ROCKBITER_WEAPON)
+        assert.same({}, Config.Migrate({ schema = 2, watch = { MAIN_HAND_IMBUE = false } }, nil).watch)
     end)
 end)

@@ -27,7 +27,7 @@ end
 -- One watched buff. `variants` (e.g. the Prayer version of a group buff) join the same entry: their names and
 -- rank IDs are added to ids/names, so either spell counts as "has the buff".
 local function makeEntry(def, category, test)
-    if def.slot then -- weapon imbue slot: no spell behind it (see WeaponImbues.lua)
+    if def.slot and not def.spellID then -- generic weapon slot (test profile): no spell behind it
         return setmetatable({ category = category, name = L[def.nameKey], ids = {}, names = {} }, { __index = def })
     end
     local name = Spells.Name(def.spellID) or (test and def.nameKey and L[def.nameKey]) or (test and def.key)
@@ -51,10 +51,12 @@ local function isKnown(def)
     return false
 end
 
--- Is this profile entry available to you? Procs always (they only show while active), everything else when you
--- know the spell or one of its variants. Used for the watch list and the "new auras" dialog.
+-- Is this profile entry available to you? Procs always (they only show while active), a generic weapon slot
+-- always, everything else (also a concrete weapon imbue) when you know the spell or one of its variants. Used for
+-- the watch list and the "new auras" dialog.
 function Watch.IsOffered(def, category)
-    return category == "procs" or category == "weapon" or isKnown(def)
+    if category == "procs" or (category == "weapon" and not def.spellID) then return true end
+    return isKnown(def)
 end
 
 -- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
@@ -65,17 +67,28 @@ function Watch.Choices(profile)
     for _, category in ipairs(Watch.CHOICE_ORDER) do
         local defs = {}
         for _, def in ipairs(profile and profile[category] or {}) do
-            if Watch.IsOffered(def, category) and (def.slot or Spells.Name(def.spellID)) then defs[#defs + 1] = def end
+            local named = (def.slot and not def.spellID) or Spells.Name(def.spellID)
+            if Watch.IsOffered(def, category) and named then defs[#defs + 1] = def end
         end
         if #defs > 0 then list[#list + 1] = { category = category, defs = defs } end
     end
     return list
 end
 
--- Label of a profile entry in settings and dialogs: the client's spell name, or the slot name for weapon imbues.
+-- Label of a profile entry in settings and dialogs: the client's spell name, or the slot name of a generic slot.
 function Watch.DefName(def)
-    if def.slot then return L[def.nameKey] end
+    if def.slot and not def.spellID then return L[def.nameKey] end
     return Spells.Name(def.spellID) or def.key
+end
+
+-- Switches one watch entry on or off (settings list, "new auras" dialog). Only one wanted imbue per weapon slot:
+-- switching a concrete imbue on switches the other imbues of that slot off (one weapon cannot carry two).
+function Watch.SetWatched(db, def, watched, profile)
+    db.watch[def.key] = watched == true
+    if not (watched and def.slot and def.spellID) then return end
+    for _, other in ipairs(profile and profile.weapon or {}) do
+        if other.key ~= def.key and other.slot == def.slot and other.spellID then db.watch[other.key] = false end
+    end
 end
 
 -- Recomputes the watched entries (login, spells learned, settings or test mode changed).
@@ -88,10 +101,15 @@ function Watch.Rebuild(db)
     for _, category in ipairs(Watch.CATEGORIES) do
         local list = {}
         local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
+        local slotTaken = {} -- weapon: the first watched imbue per slot is the wanted one (SetWatched keeps one)
         for _, def in ipairs(shown and profile and profile[category] or {}) do
             local known = test or Watch.IsOffered(def, category)
-            if known and (test or Auras.IsWatched(db, def)) then
-                list[#list + 1] = makeEntry(def, category, test)
+            if known and (test or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
+                local entry = makeEntry(def, category, test)
+                if entry then
+                    list[#list + 1] = entry
+                    if def.slot then slotTaken[def.slot] = true end
+                end
             end
         end
         Watch.entries[category] = list
@@ -141,7 +159,7 @@ end
 -- Returns true if anything changed since the last read.
 function Watch.RefreshWeapons()
     local now = GetTime()
-    Watch.weapons = Watch.testMode and WeaponImbues.TestRead(now) or WeaponImbues.Read(now)
+    Watch.weapons = Watch.testMode and WeaponImbues.TestRead(now, Watch.entries.weapon) or WeaponImbues.Read(now)
     local signature = WeaponImbues.Signature(Watch.weapons)
     local changed = signature ~= Watch.weaponSignature
     Watch.weaponSignature = signature
@@ -207,12 +225,25 @@ function Watch.Healing(db)
     return list
 end
 
--- { { entry, result } } for the watched weapon slots that hold a weapon (MISSING only when surely readable).
+-- Enchant IDs of the profile's other weapon imbues: tells "another imbue is on" from "an unknown enchant".
+local function otherEnchantIDs(entry)
+    local ids = {}
+    for _, def in ipairs(Watch.profile and Watch.profile.weapon or {}) do
+        if def.key ~= entry.key then
+            for _, id in ipairs(def.enchantIDs or {}) do ids[#ids + 1] = id end
+        end
+    end
+    return ids
+end
+
+-- { { entry, result, raw } } for the watched weapon imbues whose slot holds a weapon (MISSING only when surely
+-- readable; a concrete imbue only counts with its own enchant ID, see WeaponImbues.Evaluate).
 function Watch.Weapon(db)
     local list, now = {}, GetTime()
     for _, entry in ipairs(Watch.entries.weapon) do
-        local result = WeaponImbues.Evaluate(Watch.weapons and Watch.weapons[entry.slot], now, db)
-        if result then list[#list + 1] = { entry = entry, result = result } end
+        local raw = Watch.weapons and Watch.weapons[entry.slot]
+        local result = WeaponImbues.Evaluate(raw, now, db, entry, otherEnchantIDs(entry))
+        if result then list[#list + 1] = { entry = entry, result = result, raw = raw } end
     end
     return list
 end

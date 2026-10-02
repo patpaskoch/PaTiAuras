@@ -78,10 +78,16 @@ end
 
 local function buildSettings()
     modal = UI.CreateModal("PaTiAurasSettings", function() return "PaTiAuras " .. L.SETTINGS end, 400)
+    -- "On" and "show missing" change which lines exist; in combat the secure click buttons could not follow.
+    local LINE_KEYS = { enabled = true, showMissing = true }
     local function box(label, key)
         return UI.CreateCheckbox(modal, label, {
             get = function() return DB[key] end,
-            set = function(value) DB[key] = value; rebuild() end,
+            set = function(value)
+                if LINE_KEYS[key] and combatBlocked() then return end
+                DB[key] = value
+                rebuild()
+            end,
         })
     end
     modal:AddSection("GENERAL")
@@ -120,7 +126,9 @@ local function buildSettings()
             for _, def in ipairs(group.defs) do
                 items[#items + 1] = { text = Watch.DefName(def), checked = DB.watch[def.key] ~= false, keepOpen = true,
                     onClick = function()
-                        DB.watch[def.key] = DB.watch[def.key] == false -- toggles exactly this one entry
+                        if combatBlocked() then return end -- lines (and their click buttons) change
+                        -- Toggles this entry; a concrete weapon imbue switches the others of its slot off.
+                        Watch.SetWatched(DB, def, DB.watch[def.key] == false, Watch.ClassProfile())
                         rebuild()
                         watchButton.label:SetText(watchLabel())
                     end }
@@ -178,7 +186,11 @@ local function promptNewAuras()
     for _, def in ipairs(new) do
         dialog:AddControls(UI.CreateCheckbox(dialog, function() return Watch.DefName(def) end, {
             get = function() return DB.watch[def.key] ~= false end,
-            set = function(value) DB.watch[def.key] = value; rebuild() end,
+            set = function(value)
+                if combatBlocked() then return end
+                Watch.SetWatched(DB, def, value, Watch.ClassProfile())
+                rebuild()
+            end,
         }))
     end
     dialog:AddLabel("NEW_AURAS_LATER")
@@ -266,7 +278,7 @@ local function printDebug()
             counts.weapon, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
-        unpack(ns.WeaponImbues.Describe(GetTime(), DB)),
+        unpack(ns.WeaponImbues.Describe(GetTime(), DB, false, Watch.Weapon(DB))),
     })
 end
 
@@ -284,9 +296,8 @@ local function printAuraCheck()
     local weapons = false
     for _, category in ipairs(Watch.CATEGORIES) do
         for _, def in ipairs(profile and profile[category] or {}) do
-            if def.slot then -- weapon imbues have no spell ID: what the enchant APIs report, once for both hands
-                weapons = true
-            else
+            if def.slot then weapons = true end -- what the enchant APIs report: once, after the spell list
+            if def.spellID then
                 list[#list + 1] = describe(category .. " " .. def.key, def.spellID)
                 for _, variant in ipairs(def.variants or {}) do
                     list[#list + 1] = describe("    + same buff", variant)
@@ -295,7 +306,9 @@ local function printAuraCheck()
         end
     end
     if weapons then
-        for _, line in ipairs(ns.WeaponImbues.Describe(GetTime(), DB, true)) do list[#list + 1] = line end
+        for _, line in ipairs(ns.WeaponImbues.Describe(GetTime(), DB, true, Watch.Weapon(DB))) do
+            list[#list + 1] = line
+        end
     end
     if not profile then list[#list + 1] = L.NO_PROFILE end
     printLines("Auras", list)

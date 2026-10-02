@@ -110,3 +110,16 @@ function Spells.CastName(id, rank)
     end
     return name -- chosen rank no longer known: fall back to the highest
 end
+
+-- Diagnostics only (/pa auras): learned spells whose icon is `icon` — e.g. the enchantIconID of an active weapon
+-- imbue — as { { id, name } }, lowest ID first. Helps confirm which spell ID belongs to an observed imbue.
+function Spells.WithIcon(icon)
+    local list = {}
+    for name, family in pairs(families) do
+        for _, entry in ipairs(family.ranks) do
+            if Spells.Icon(entry.id) == icon then list[#list + 1] = { id = entry.id, name = name } end
+        end
+    end
+    table.sort(list, function(a, b) return a.id < b.id end)
+    return list
+end

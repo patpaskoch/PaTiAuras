@@ -10,7 +10,7 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   PaTiHeal's) · `Auras.lua` (state logic, pure) · `AuraScan.lua` (aura adapter + test data) ·
   `WeaponImbues.lua` (temporary weapon enchants: own adapter, not UNIT_AURA; pure Evaluate) · `Profiles/<Class>.lua` (data) ·
   `Watch.lua` (state per unit) · `AuraWindow.lua` (UI) · `PaTiAuras.lua` (init, settings, slash, events).
-- SavedVariables: `PaTiAurasDB` (per character), schema 1 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura;
+- SavedVariables: `PaTiAurasDB` (per character), schema 3 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura;
   `seen[key] = true` = already offered in the "new auras" dialog (`promptNewAuras`, `Config.NewDefs`).
 - Profiles: only classes whose spell IDs are confirmed in this client. A new profile = one data file + TOC line, no code.
   Several spells giving the same buff (e.g. Prayer versions) = one entry with `variants = { id, … }`, never two entries.
@@ -18,6 +18,11 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   combat in `AuraWindow.applySecure` (target = `Auras.NextTarget`, tested). The window is therefore protected: no
   resize/show/hide/scale/move in combat (pending until PLAYER_REGEN_ENABLED); the group section stays first.
   Owner decision 2026-09-28: pre-selecting the next missing member is allowed; never cast, target or loop by itself.
+- Weapon imbues are concrete spells (owner decision 2026-10-02): profile entry = `spellID` (cast) + `slot` +
+  `enchantIDs` (only owner-observed Forever IDs, docs/WOW_API_COMPAT.md) + `castable`. One wanted imbue per slot
+  (`Watch.SetWatched`). `PaTiAurasWeapon1..2` (SecureActionButtonTemplate, unit = player) over the weapon lines,
+  armed only out of combat and only while the imbue is MISSING; the WEAPON section comes right after GROUP.
+  Lines that could move under an armed button (watch list, "enabled", "show missing") are blocked in combat.
 - No totem or ground auras (owner decision 2026-10-02): effects that only last while a player stands in the radius of
   a placed totem or ground source (e.g. Shaman totem group buffs) are never watched — not in profiles, Watch, group
   counts, missing logic or PaTiAlerts reports, and no logic that infers from members' auras that a totem should be

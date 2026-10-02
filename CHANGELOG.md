@@ -4,6 +4,17 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Concrete weapon imbue watches (owner wish 2026-10-02): under Watch you pick the imbue you want — currently
+  Rockbiter Weapon (spell 8017, offered only if your client knows it and you learned it). It counts as active only
+  with its own temporary enchant ID: 29, observed by the owner in the Forever client. Another known imbue reads
+  Missing ("another imbue"), an unmapped or unreadable ID reads Unknown. One wanted imbue per weapon slot:
+  switching one on switches the others of that slot off.
+- Click-to-buff for a missing watched weapon imbue: a secure button over its line casts the spell on yourself
+  (one click = one cast, unit player). Armed only out of combat and only while Missing; in combat it keeps what it
+  had when combat started. Watch list, "enabled" and "show missing" are blocked in combat (lines must not move
+  under an armed button).
+- `/pa debug`, `/pa auras`: per watched imbue the wanted spell, its spell ID and expected enchant IDs against the
+  detected enchant ID, time and icon; `/pa auras` also lists learned spells with the active enchant's icon.
 - Window settings (PaTiShared): panel opacity 30–100 % (default 75 %, the header stays opaque). The window registers
   itself for the optional PaTiSuite control panel, which shows/hides it with this addon's own rules. (Snapping to
   other PaTi windows was tried and removed again: it did not work in the client.)
@@ -45,6 +56,12 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   tooltip). Active buffs, unwatched or unknown spells, offline/dead members and unreadable (Unknown) data never alert;
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
+- The weapon line is named by the watched spell ("Rockbiter Weapon  Missing" / its remaining time) instead of
+  "Main Hand"; the WEAPON section now comes right after GROUP. PaTiAlerts gets the concrete spell
+  ("Rockbiter Weapon · Missing") instead of "weapon imbue missing".
+- SavedVariables schema 3: the slot watches MAIN_HAND_IMBUE / OFF_HAND_IMBUE are gone. A switched-off main hand
+  keeps Rockbiter off (and offered, no dialog); a watched main hand picks nothing by itself — the "new auras"
+  dialog asks. There is no generic off-hand watch any more (no off-hand imbue observed yet).
 - Weapon imbue diagnostics (owner test 2026-09-30: with Rockbiter active Main Hand still reads "Missing"): `/pa debug`
   prints every `GetWeaponEnchantInfo()` field by name with its type, and per hand the API source, item, weapon,
   parsed values and final state; `/pa auras` also prints every `C_Item.GetWeaponEnchantInfo` answer (no slot,
@@ -77,6 +94,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues
+- Concrete weapon imbues and click-to-buff (2026-10-02) are not tested in game yet (PT-AURAS-140–157); the
+  Rockbiter spell ID 8017 is still to be confirmed with `/pa auras`.
 - The weapon imbue fix of 2026-10-02 is not tested in game yet (PT-AURAS-052–057 in `INGAME_TESTING.md`).
 - Spell IDs and aura APIs are not yet confirmed in the Interface 16001 client (`/pa auras`, `/pa debug`).
 - Click-to-buff not tested in game yet. In combat the click target cannot move on to the next member (WoW limit).

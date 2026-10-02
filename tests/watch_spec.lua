@@ -6,7 +6,7 @@ local NAMES = {
     [588] = "Inneres Feuer", [1243] = "Machtwort: Seelenstärke", [21562] = "Gebet der Seelenstärke",
     [14752] = "Göttlicher Willen", [27681] = "Gebet der Willenskraft", [976] = "Schattenschutz",
     [27683] = "Gebet des Schattenschutzes", [24398] = "Wasserschild", [974] = "Erdschild", [61295] = "Springflut",
-    [53390] = "Flutwellen",
+    [53390] = "Flutwellen", [8017] = "Waffe des Felsbeißers", [8024] = "Waffe der Flammenzunge",
 }
 
 local world -- per test: class, known spells, units and their auras
@@ -219,57 +219,100 @@ describe("Test mode profile", function()
 end)
 
 describe("Shaman profile (regression)", function()
-    it("still tracks Water Shield, Tidal Waves, Earth Shield and Riptide, plus both weapon slots", function()
-        local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
+    it("still tracks Water Shield, Tidal Waves, Earth Shield and Riptide, plus Rockbiter when known", function()
+        local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
         ns.Watch.Rebuild(db)
         assert.equal("Restoration Shaman", ns.Watch.profile.name)
-        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 2 }, ns.Watch.Count())
+        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 1 }, ns.Watch.Count())
     end)
 end)
 
-describe("Shaman weapon imbues in the watch", function()
-    local function weaponStates(ns, db)
+describe("Concrete weapon imbue: Rockbiter", function()
+    local ROCKBITER = 8017
+    local function weapon(ns, db)
         ns.Watch.Rebuild(db)
         ns.Watch.RefreshAll()
-        local result = {}
-        for _, item in ipairs(ns.Watch.Weapon(db)) do result[item.entry.slot] = item.result.state end
-        return result
+        return ns.Watch.Weapon(db)[1]
     end
 
     local function equip()
-        _G.GetInventoryItemID = function(_, slot) return slot == 16 and 1 or slot == 17 and 2 or nil end
+        _G.GetInventoryItemID = function(_, slot) return slot == 16 and 1 or nil end
         _G.GetInventoryItemTexture = function() return 1 end
         _G.GetItemInfoInstant = function(id) return id, "Weapon", "Axe", "INVTYPE_WEAPON", 1, 2, 0 end
     end
 
-    it("shows main hand and off hand on their own, offered without a spell ID", function()
-        local ns, db = setup("SHAMAN", {})
+    -- Classic tuple (this test client has no C_Item): hasMainHand, ms left, charges, enchantID, off hand …
+    local function mainHand(has, enchantID)
+        _G.GetWeaponEnchantInfo = function() return has, has and 900000 or 0, 0, enchantID, false, 0, 0, 0 end
+    end
+
+    it("is offered only when you know the spell, and is named by its spell, not 'Main Hand'", function()
+        local ns = setup("SHAMAN", {})
+        local def = ns.Watch.ClassProfile().weapon[1]
+        assert.is_false(ns.Watch.IsOffered(def, "weapon"))
+        assert.same({ weapon = 0 }, { weapon = ns.Watch.Count().weapon })
+        local db
+        ns, db = setup("SHAMAN", { [ROCKBITER] = true })
+        def = ns.Watch.ClassProfile().weapon[1]
+        assert.is_true(ns.Watch.IsOffered(def, "weapon"))
+        assert.equal("Waffe des Felsbeißers", ns.Watch.DefName(def))
         equip()
-        _G.GetWeaponEnchantInfo = function() return true, 900000, 0, 5, false, 0, 0, 0 end
-        assert.same({ MAINHAND = "ACTIVE", OFFHAND = "MISSING" }, weaponStates(ns, db))
-        local profile = ns.Watch.ClassProfile()
-        assert.is_true(ns.Watch.IsOffered(profile.weapon[1], "weapon"))
-        assert.equal("Main Hand", ns.Watch.DefName(profile.weapon[1]))
+        mainHand(false, 0)
+        assert.equal("Waffe des Felsbeißers", weapon(ns, db).entry.name)
         _G.GetWeaponEnchantInfo = nil
     end)
 
-    it("follows the per-slot switch and 'PaTiAuras enabled'", function()
-        local ns, db = setup("SHAMAN", {})
+    it("ACTIVE only with its own enchant ID (29, owner-observed); none → MISSING; an unmapped ID → UNKNOWN", function()
+        local ns, db = setup("SHAMAN", { [ROCKBITER] = true })
         equip()
-        _G.GetWeaponEnchantInfo = function() return false, 0, 0, 0, false, 0, 0, 0 end
-        db.watch.OFF_HAND_IMBUE = false
-        assert.same({ MAINHAND = "MISSING" }, weaponStates(ns, db))
+        mainHand(true, 29)
+        local item = weapon(ns, db)
+        assert.equal("ACTIVE", item.result.state)
+        assert.equal(900, item.result.remaining)
+        mainHand(false, 0)
+        assert.equal("MISSING", weapon(ns, db).result.state)
+        mainHand(true, 5) -- some other temporary enchant nobody mapped: never counts as Rockbiter, never "missing"
+        assert.equal("UNKNOWN", weapon(ns, db).result.state)
+        mainHand(true, nil) -- ID unreadable
+        assert.equal("UNKNOWN", weapon(ns, db).result.state)
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("no line without a weapon or while PaTiAuras is off; test mode shows it active without the API", function()
+        local ns, db = setup("SHAMAN", { [ROCKBITER] = true })
+        _G.GetInventoryItemID = function() return nil end
+        mainHand(false, 0)
+        assert.is_nil(weapon(ns, db))
+        equip()
         db.enabled = false
-        assert.same({}, weaponStates(ns, db))
-        _G.GetWeaponEnchantInfo = nil
-    end)
-
-    it("shows an imbued main hand and a missing off hand in test mode, without calling the API", function()
-        local ns, db = setup("SHAMAN", {})
+        assert.is_nil(weapon(ns, db))
+        db.enabled = true
         _G.GetWeaponEnchantInfo = function() error("test mode must not read the client") end
         ns.Watch.testMode = true
-        assert.same({ MAINHAND = "ACTIVE", OFFHAND = "MISSING" }, weaponStates(ns, db))
+        assert.equal("ACTIVE", weapon(ns, db).result.state)
         ns.Watch.testMode = false
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("one wanted imbue per slot: switching one on switches the other off; another known imbue → MISSING", function()
+        local ns, db = setup("SHAMAN", { [ROCKBITER] = true, [8024] = true })
+        local profile = ns.Watch.ClassProfile()
+        local flametongue = { key = "TEST_FLAMETONGUE", spellID = 8024, slot = "MAINHAND", enchantIDs = { 5 },
+            castable = true }
+        profile.weapon[2] = flametongue
+        equip()
+        mainHand(true, 5)
+        local list = (function() ns.Watch.Rebuild(db); ns.Watch.RefreshAll(); return ns.Watch.Weapon(db) end)()
+        assert.equal(1, #list) -- both watched by default: only the first per slot is the wanted one
+        assert.equal("ROCKBITER_WEAPON", list[1].entry.key)
+        assert.equal("MISSING", list[1].result.state)
+        assert.is_true(list[1].result.wrong) -- Flametongue (ID 5) is on: known, but not the wanted imbue
+        ns.Watch.SetWatched(db, flametongue, true, profile)
+        assert.same({ false, true }, { db.watch.ROCKBITER_WEAPON, db.watch.TEST_FLAMETONGUE })
+        assert.equal("ACTIVE", weapon(ns, db).result.state)
+        ns.Watch.SetWatched(db, profile.weapon[1], false, profile) -- switching off touches nothing else
+        assert.same({ false, true }, { db.watch.ROCKBITER_WEAPON, db.watch.TEST_FLAMETONGUE })
+        profile.weapon[2] = nil
         _G.GetWeaponEnchantInfo = nil
     end)
 end)
@@ -337,7 +380,7 @@ end)
 
 describe("Watch.Choices (settings: what to watch)", function()
     it("offers only your class's entries the client knows, grouped self, procs, healing, weapon", function()
-        local ns = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true })
+        local ns = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
         local groups = {}
         for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
             local keys = {}
@@ -345,7 +388,7 @@ describe("Watch.Choices (settings: what to watch)", function()
             groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
         end
         assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "healing:EARTH_SHIELD,RIPTIDE",
-            "weapon:MAIN_HAND_IMBUE,OFF_HAND_IMBUE" }, groups)
+            "weapon:ROCKBITER_WEAPON" }, groups)
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()

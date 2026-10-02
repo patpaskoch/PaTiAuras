@@ -10,9 +10,10 @@ healing auras — active, missing or expiring. It shows; you decide.
 ## Features
 - **Self:** your buffs (e.g. Water Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active
 - **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo
-- **Weapon (Shaman):** Main Hand and Off Hand each show whether a weapon imbue is on (with its remaining time),
-  missing, expiring or unclear. Slots without a weapon (e.g. a shield) are not shown. Which imbue it is (Flametongue,
-  Windfury …) is not shown yet
+- **Weapon (Shaman):** choose the weapon imbue you want under Watch — currently Rockbiter Weapon. The line shows
+  that spell (e.g. `Rockbiter Weapon  Missing`, or its remaining time). Another imbue never counts as Rockbiter;
+  unreadable data shows "unclear". One wanted imbue per weapon. A missing one can be cast with one click on its
+  line (on your own weapon, never by itself)
 - **Healing:** your HoTs and shields per party member (Shaman: Earth Shield, Riptide;
   Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
@@ -72,8 +73,11 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs and the Priest healing auras are not
   yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
-- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. The fix for active imbues
-  wrongly showing "Missing" (2026-10-02) is not tested in game yet; `/pa auras` prints what the client returns.
+- Weapon imbues: only Rockbiter Weapon so far — its enchant ID (29) was observed by the owner in the Forever client;
+  its spell ID (8017, classic data) is used only if your client knows it, and is still to be confirmed with
+  `/pa auras`. Another rank may have another enchant ID and then shows "unclear" until it is added. Flametongue,
+  Frostbrand and Windfury follow once their IDs are observed. Personal buffs (e.g. Water Shield) are not clickable yet.
+- In combat a click on a weapon line does what it did when combat started (WoW does not let the button change).
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).
 - Totem and other ground auras (e.g. Shaman totem buffs) are not watched on purpose: they only last while a player

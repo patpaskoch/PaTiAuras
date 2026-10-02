@@ -100,7 +100,7 @@ function WeaponImbues.ParseModern(result, now)
             local temporary = info.hasEnchant ~= false and isTemporary(info)
             if temporary then
                 local raw = { readable = true, has = true, charges = plainNumber(info.charges),
-                    enchantID = plainNumber(info.enchantID) }
+                    enchantID = plainNumber(info.enchantID), iconID = plainNumber(info.enchantIconID) }
                 local left = plainNumber(info.timeLeft)
                 if left and left > 0 then raw.expiresAt = now + left / 1000 end
                 return raw
@@ -284,8 +284,34 @@ local function tooltipLines(lines)
     end
 end
 
+-- The watched concrete imbues: wanted spell and enchant IDs against what the slot shows. desired: Watch.Weapon
+-- items { entry, result, raw }. With `detailed`, also the learned spells whose icon equals the active enchant's
+-- icon — to confirm the spell ID of an observed imbue (diagnostics only, never used for detection).
+local function desiredLines(lines, now, desired, detailed)
+    local Spells = ns.Spells
+    for _, item in ipairs(desired or {}) do
+        local entry, raw = item.entry, item.raw or {}
+        lines[#lines + 1] = ("  Desired %s: %s key=%s spellID=%s known=%s expectedEnchantIDs=%s · detected "
+            .. "enchantID=%s timeLeft=%s iconID=%s → %s%s"):format(tostring(entry.slot), tostring(entry.name),
+            tostring(entry.key),
+            tostring(entry.spellID), tostring(entry.spellID ~= nil and Spells and Spells.IsKnown(entry.spellID)),
+            table.concat(entry.enchantIDs or {}, "/"), tostring(raw.enchantID),
+            raw.expiresAt and (math.floor(raw.expiresAt - now) .. "s") or "-", tostring(raw.iconID),
+            item.result.state, item.result.wrong and " (another imbue)" or "")
+        if detailed and raw.iconID and Spells and Spells.WithIcon then
+            local found = {}
+            for _, spell in ipairs(Spells.WithIcon(raw.iconID)) do
+                found[#found + 1] = spell.name .. "[" .. spell.id .. "]"
+            end
+            lines[#lines + 1] = ("  Learned spells with icon %d: %s"):format(raw.iconID,
+                #found > 0 and table.concat(found, ", ") or "none")
+        end
+    end
+end
+
 -- Plain facts for /pa debug (detailed = false) and /pa auras (detailed = true). settings: PaTiAurasDB.
-function WeaponImbues.Describe(now, settings, detailed)
+-- desired: Watch.Weapon items (the watched concrete imbues), optional.
+function WeaponImbues.Describe(now, settings, detailed, desired)
     local lines = { ("Weapon API: source=%s · GetWeaponEnchantInfo %s · C_Item.GetWeaponEnchantInfo %s · "
         .. "Enum.WeaponSlot %s"):format(WeaponImbues.Source(now), GetWeaponEnchantInfo and "yes" or "no",
         (C_Item and C_Item.GetWeaponEnchantInfo) and "yes" or "no", (Enum and Enum.WeaponSlot) and "yes" or "no") }
@@ -295,6 +321,7 @@ function WeaponImbues.Describe(now, settings, detailed)
     end
     if detailed then modernLines(lines) end
     slotLines(lines, now, settings)
+    desiredLines(lines, now, desired, detailed)
     if detailed then
         buffLines(lines)
         tooltipLines(lines)
@@ -302,20 +329,38 @@ function WeaponImbues.Describe(now, settings, detailed)
     return lines
 end
 
+local function listed(ids, id)
+    for _, known in ipairs(ids or {}) do
+        if known == id then return true end
+    end
+    return false
+end
+
 -- Pure: the watch result of one slot, or nil when there is nothing to watch (no weapon that can be imbued).
 -- settings: PaTiAurasDB (showExpiring). Same threshold as all other buffs (Auras.EXPIRING_SECONDS).
-function WeaponImbues.Evaluate(raw, now, settings)
+-- entry: the watched profile entry. With `enchantIDs` (a concrete imbue, e.g. Rockbiter) the active temporary
+-- enchant must be one of them: an ID of another known imbue (`otherIDs`) = MISSING with wrong = true; an ID nobody
+-- mapped, or none readable = UNKNOWN (never a guess either way). Without `enchantIDs`: any imbue counts (generic).
+function WeaponImbues.Evaluate(raw, now, settings, entry, otherIDs)
     if not raw or raw.weapon == false then return nil end
-    if not raw.readable then return { state = "UNKNOWN", icon = raw.icon } end
+    local icon = entry and entry.icon or raw.icon
+    if not raw.readable then return { state = "UNKNOWN", icon = icon } end
     if raw.has then
+        local wanted = entry and entry.enchantIDs
+        if wanted and not listed(wanted, raw.enchantID) then
+            if raw.enchantID ~= nil and listed(otherIDs, raw.enchantID) then
+                return { state = "MISSING", wrong = true, icon = icon }
+            end
+            return { state = "UNKNOWN", icon = icon }
+        end
         local remaining = raw.expiresAt and math.max(0, raw.expiresAt - now)
         local state = "ACTIVE"
         if remaining and settings.showExpiring and remaining < Auras.EXPIRING_SECONDS then state = "EXPIRING" end
-        return { state = state, remaining = remaining, count = raw.charges, icon = raw.icon }
+        return { state = state, remaining = remaining, count = raw.charges, icon = icon }
     end
     -- No imbue, but is it a weapon at all? Unknown (e.g. item class unreadable) must not claim "missing".
-    if raw.weapon == nil then return { state = "UNKNOWN", icon = raw.icon } end
-    return { state = "MISSING", icon = raw.icon }
+    if raw.weapon == nil then return { state = "UNKNOWN", icon = icon } end
+    return { state = "MISSING", icon = icon }
 end
 
 -- Pure: a short plain-value fingerprint, so the slow fallback check repaints only when something changed
@@ -330,10 +375,15 @@ function WeaponImbues.Signature(weapons)
     return table.concat(parts, "|")
 end
 
--- Test mode: main hand imbued (18:42 left), off hand weapon without imbue.
-function WeaponImbues.TestRead(now)
+-- Test mode: main hand imbued (18:42 left) with the first watched main-hand imbue (entries: Watch.entries.weapon),
+-- off hand weapon without imbue.
+function WeaponImbues.TestRead(now, entries)
+    local enchantID
+    for _, entry in ipairs(entries or {}) do
+        if entry.slot == "MAINHAND" and entry.enchantIDs then enchantID = entry.enchantIDs[1]; break end
+    end
     return {
-        MAINHAND = { readable = true, has = true, expiresAt = now + 1122, weapon = true },
+        MAINHAND = { readable = true, has = true, expiresAt = now + 1122, weapon = true, enchantID = enchantID },
         OFFHAND = { readable = true, has = false, weapon = true },
     }
 end

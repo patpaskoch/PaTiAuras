@@ -333,3 +333,61 @@ describe("WeaponImbues in the Forever client (owner /pa auras 2026-10-02)", func
         assert.same({}, alerts())
     end)
 end)
+
+describe("Concrete imbue: WeaponImbues.Evaluate with a watched entry (Rockbiter)", function()
+    local ROCKBITER = { key = "ROCKBITER_WEAPON", spellID = 8017, slot = "MAINHAND", enchantIDs = { 29 },
+        name = "Waffe des Felsbeißers", icon = "spellIcon", category = "weapon", castable = true }
+    local OTHER_KNOWN = { 5 } -- e.g. a mapped Flametongue
+    local function raw(has, enchantID, expiresAt)
+        return { readable = true, has = has, enchantID = enchantID, expiresAt = expiresAt, weapon = true, icon = "item" }
+    end
+
+    it("its own enchant ID → ACTIVE with the time left and the spell icon", function()
+        local WeaponImbues = load()
+        local result = WeaponImbues.Evaluate(raw(true, 29, 3524.825), 0, SETTINGS, ROCKBITER, OTHER_KNOWN)
+        assert.same({ "ACTIVE", 3524.825, "spellIcon" }, { result.state, result.remaining, result.icon })
+    end)
+
+    it("no temporary enchant → MISSING; another known imbue → MISSING (wrong); an unmapped ID → UNKNOWN", function()
+        local WeaponImbues = load()
+        assert.equal("MISSING", WeaponImbues.Evaluate(raw(false), 0, SETTINGS, ROCKBITER, OTHER_KNOWN).state)
+        local wrong = WeaponImbues.Evaluate(raw(true, 5, 100), 0, SETTINGS, ROCKBITER, OTHER_KNOWN)
+        assert.same({ "MISSING", true }, { wrong.state, wrong.wrong })
+        assert.equal("UNKNOWN", WeaponImbues.Evaluate(raw(true, 77, 100), 0, SETTINGS, ROCKBITER, OTHER_KNOWN).state)
+        assert.equal("UNKNOWN", WeaponImbues.Evaluate(raw(true, nil, 100), 0, SETTINGS, ROCKBITER, OTHER_KNOWN).state)
+    end)
+
+    it("unreadable → UNKNOWN; no weapon → no line; the generic slot entry still accepts any imbue", function()
+        local WeaponImbues = load()
+        assert.equal("UNKNOWN", WeaponImbues.Evaluate({ readable = false, weapon = true }, 0, SETTINGS, ROCKBITER).state)
+        assert.is_nil(WeaponImbues.Evaluate({ readable = true, has = false, weapon = false }, 0, SETTINGS, ROCKBITER))
+        assert.equal("ACTIVE", WeaponImbues.Evaluate(raw(true, 77, 100), 0, SETTINGS, { slot = "MAINHAND" }).state)
+    end)
+
+    it("end to end in the Forever client: permanent enchant only → MISSING, Rockbiter (ID 29) → ACTIVE", function()
+        local WeaponImbues = load()
+        local answer = { { hasEnchant = true, enchantType = 1, timeLeft = 0, enchantID = 1900 } }
+        _G.Enum = { WeaponSlot = { MainHand = 0, OffHand = 1 }, ItemEnchantType = { None = 0, Permanent = 1, Temporary = 2 } }
+        _G.C_Item = { GetWeaponEnchantInfo = function(slot) return slot == 0 and answer or nil end }
+        local function state() return WeaponImbues.Evaluate(WeaponImbues.Read(0).MAINHAND, 0, SETTINGS, ROCKBITER, {}).state end
+        assert.equal("MISSING", state())
+        answer[2] = { hasEnchant = true, enchantType = 3, timeLeft = 3524825, enchantID = 29, enchantIconID = 136086 }
+        assert.equal("ACTIVE", state())
+        assert.equal(136086, WeaponImbues.Read(0).MAINHAND.iconID)
+    end)
+
+    it("PaTiAlerts: a missing Rockbiter is named by its spell; ACTIVE and UNKNOWN send nothing", function()
+        local WeaponImbues = load()
+        local ns = {}
+        wow.loadAddonFile("Auras.lua", ns)
+        local texts = { missing = "Fehlt", expiring = "Läuft aus", imbueMissing = "Waffenbuff fehlt", imbueExpiring = "x" }
+        local function alerts(result)
+            return ns.Auras.Alerts({ { entry = ROCKBITER, result = result } }, texts, true, function() return false end)
+        end
+        local missing = alerts(WeaponImbues.Evaluate(raw(false), 0, SETTINGS, ROCKBITER, {}))
+        assert.same({ id = "weapon:ROCKBITER_WEAPON", priority = "WARNING", kind = "WEAPON_IMBUE_MISSING",
+            text = "Waffe des Felsbeißers", detail = "Fehlt" }, missing[1])
+        assert.same({}, alerts(WeaponImbues.Evaluate(raw(true, 29, 1000), 0, SETTINGS, ROCKBITER, {})))
+        assert.same({}, alerts(WeaponImbues.Evaluate(raw(true, 77, 1000), 0, SETTINGS, ROCKBITER, {})))
+    end)
+end)

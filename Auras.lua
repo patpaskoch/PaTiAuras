@@ -75,13 +75,16 @@ function Auras.Alerts(items, texts, showMissing, isSecret)
         local plainName = not isSecret(name) and type(name) == "string" and name ~= ""
         if plainName and entry.category ~= "procs" and ((state == "MISSING" and showMissing) or state == "EXPIRING") then
             local missing = state == "MISSING"
+            -- A concrete imbue (spellID) is named by its spell like any buff ("Rockbiter Weapon · Missing"); only a
+            -- generic weapon slot ("Main Hand") needs the "weapon imbue missing" wording.
+            local slotOnly = weapon and not entry.spellID
             list[#list + 1] = {
                 id = (weapon and "weapon:" or "aura:") .. entry.key,
                 priority = "WARNING",
                 kind = weapon and (missing and "WEAPON_IMBUE_MISSING" or "WEAPON_IMBUE_EXPIRING")
                     or (missing and "AURA_MISSING" or "AURA_EXPIRING"),
                 text = name,
-                detail = weapon and (missing and texts.imbueMissing or texts.imbueExpiring)
+                detail = slotOnly and (missing and texts.imbueMissing or texts.imbueExpiring)
                     or (missing and texts.missing or texts.expiring),
             }
         end

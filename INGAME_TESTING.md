@@ -66,6 +66,9 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 ## Weapon Imbues (Schamane)
 
+Seit 2026-10-02 wird ein konkreter Waffenbuff beobachtet (Felsbeißer, Abschnitt unten), keine „Waffenhand“ mehr.
+Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelten nicht automatisch für die neue.
+
 - [x] PT-AURAS-050 Mainhand-Waffe wird beim Ausrüsten erkannt (Zeile Waffenhand erscheint)
   - ✅ VERIFIED 2026-09-30
   - Auch mit dem Fix-Build bestätigt: ausrüsten, ablegen, erneut ausrüsten wird jeweils erkannt.
@@ -114,8 +117,44 @@ UNKNOWN darf nie als MISSING erscheinen.
   - 🔧 FIX IMPLEMENTED 2026-10-02
   - Fix in PaTiAuras (PT-AURAS-053), keine Änderung in PaTiAlerts.
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand
+- ~~PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand~~
+  - RETIRED 2026-10-02 – keine generische Schildhand-Beobachtung mehr; noch kein bestätigter Nebenhand-Waffenbuff.
 - [ ] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
+
+## Konkreter Waffenbuff: Waffe des Felsbeißers
+
+Einstellungen
+- [ ] PT-AURAS-140 Beobachten zeigt unter „Waffe“ „Waffe des Felsbeißers“ (Schamane, Zauber gelernt), kein
+  „Waffenhand“/„Schildhand“ mehr
+- [ ] PT-AURAS-141 `/pa auras`: Zeile `weapon ROCKBITER_WEAPON id=8017` mit dem richtigen Namen und known=true;
+  mit aktivem Felsbeißer nennt „Learned spells with icon 136086“ den Felsbeißer (bestätigt die Spell-ID)
+- [ ] PT-AURAS-142 Auswahl (an/aus) bleibt nach `/reload`
+- [ ] PT-AURAS-143 Update von der Version davor: war die Waffenhand abgewählt, bleibt Felsbeißer aus; sonst fragt
+  der Dialog „Neue Auren“ nach Felsbeißer
+
+Anzeige
+- [ ] PT-AURAS-144 Felsbeißer fehlt: Zeile „Waffe des Felsbeißers – Fehlt“ direkt unter den Gruppenbuffs, keine
+  „Waffenhand – Fehlt“-Zeile
+- [ ] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
+- [ ] PT-AURAS-146 Ein anderer Waffenbuff (z. B. Flammenzunge) zählt nicht als Felsbeißer: Anzeige „Unbekannt“
+  (nicht „Aktiv“); `/pa auras` zeigt dessen enchantID
+- [ ] PT-AURAS-147 Höherer Rang von Felsbeißer: bleibt „Aktiv“ oder zeigt „Unbekannt“ — dann enchantID aus
+  `/pa auras` melden (bisher nur ID 29 beobachtet)
+
+Klick zum Wirken
+- [ ] PT-AURAS-150 Felsbeißer fehlt: Hover hellt die Zeile auf, Tooltip „Klicken, um Waffe des Felsbeißers zu wirken.“
+- [ ] PT-AURAS-151 Klick auf die fehlende Zeile wirkt Felsbeißer auf die eigene Waffe (ein Klick = ein Cast),
+  danach „Aktiv“ mit Restzeit; das Ziel ändert sich nicht
+- [ ] PT-AURAS-152 Aktiv oder Unbekannt: kein Klick-Hinweis, ein Klick wirkt nichts
+- [ ] PT-AURAS-153 Kein Lua-Fehler, kein `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`, `taint.log` ohne
+  PaTiAuras-Eintrag
+- [ ] PT-AURAS-154 Im Kampf: der Klick bleibt wie bei Kampfbeginn (Tooltip sagt es); Beobachten, „Aktiviert“ und
+  „Fehlende anzeigen“ sind im Kampf gesperrt mit Hinweis
+- [ ] PT-AURAS-155 Nach `/reload` funktioniert der Klick weiter
+
+PaTiAlerts
+- [ ] PT-AURAS-156 Felsbeißer fehlt: Warnung „Waffe des Felsbeißers · Fehlt“ (nicht „Waffenbuff fehlt“)
+- [ ] PT-AURAS-157 Felsbeißer aktiv → Warnung verschwindet; Unbekannt → keine Warnung
 
 ## Personal (Selbst)
 
