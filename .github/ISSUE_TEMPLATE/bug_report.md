@@ -16,7 +16,8 @@ labels: bug
 
 **Lua error** (full text, if any — e.g. from BugSack or the default error frame)
 
-**Debug output** (`/ph debug`, `/pa debug`, `/pt debug`, `/pg debug`, `/phq debug`, `/pd debug` or `/pal debug`)
+**Debug output** (`/ph debug`, `/pa debug`, `/pt debug`, `/prota debug`, `/pg debug`, `/plead debug`, `/phq debug`,
+`/pd debug`, `/pal debug` or `/psocial debug`)
 
 **Setup**
 - Addon and version (TOC / AddOns list):
