@@ -155,8 +155,10 @@ function Auras.LineActions(item, castName, isSecret)
     local actions = {}
     local active = state == "ACTIVE" or state == "EXPIRING"
     if entry.category == "weapon" then
+        -- No right-click remove for imbues: in the Forever client the secure cancelaura "target-slot" branch fails
+        -- in Blizzard's own SecureTemplates.lua:478 (global CANCELABLE_ITEMS is nil; owner's error 2026-10-02), and an
+        -- addon must not patch that global (it would taint the secure handler).
         if state == "MISSING" and entry.castable then actions.cast = castName end
-        if active then actions.cancelSlot = Auras.SLOT_IDS[entry.slot] end
     elseif active and not isSecret(entry.name) and type(entry.name) == "string" and entry.name ~= "" then
         actions.cancelSpell = entry.name
     end

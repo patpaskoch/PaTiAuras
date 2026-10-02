@@ -23,7 +23,8 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   (`Watch.SetWatched`).
 - Line clicks (owner wishes 2026-10-02): `PaTiAurasLine1..8` (SecureActionButtonTemplate, unit = player) over the
   WEAPON and SELF lines, attributes from the pure `Auras.LineActions` / `Auras.ClickAttributes`: left-click casts a
-  missing castable imbue, right-click `cancelaura` removes an active own buff/proc (by name) or imbue (target-slot).
+  missing castable imbue, right-click `cancelaura` removes an active own buff/proc by name. No imbue cancel: Forever's
+  secure target-slot branch fails (SecureTemplates.lua:478, CANCELABLE_ITEMS nil) — never patch Blizzard globals.
   Armed only out of combat; in combat the lines keep their order (`Auras.MergeRows`), since buttons cannot move.
   WEAPON and SELF come right after GROUP. Lines that could move under an armed button (watch list, "enabled",
   "show missing") are blocked in combat.

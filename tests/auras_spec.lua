@@ -198,18 +198,18 @@ describe("Line clicks: Auras.LineActions / ClickAttributes (right-click removes,
         assert.same({}, Auras.ClickAttributes({}))
     end)
 
-    it("weapon imbue: active → right-click removes it from that weapon slot; missing → left-click casts", function()
+    it("weapon imbue: missing → left-click casts; active → no right-click (Forever's secure target-slot cancel fails)",
+        function()
         local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
-        local active = Auras.LineActions(item("weapon", "ACTIVE", "Waffe des Felsbeißers", ROCK), "Waffe des Felsbeißers",
-            isSecret)
-        assert.same({ cancelSlot = 16 }, active)
-        assert.same({ unit = "player", type2 = "cancelaura", ["target-slot2"] = 16 }, Auras.ClickAttributes(active))
+        -- Owner's error 2026-10-02: SecureTemplates.lua:478 attempt to index global 'CANCELABLE_ITEMS' (a nil value)
+        assert.same({}, Auras.LineActions(item("weapon", "ACTIVE", "Waffe des Felsbeißers", ROCK), "Waffe des Felsbeißers",
+            isSecret))
+        assert.same({}, Auras.LineActions(item("weapon", "EXPIRING", "x", { slot = "OFFHAND" }), nil, isSecret))
         local missing = Auras.LineActions(item("weapon", "MISSING", "Waffe des Felsbeißers", ROCK), "Waffe des Felsbeißers",
             isSecret)
         assert.same({ cast = "Waffe des Felsbeißers" }, missing)
         assert.same({ unit = "player", type1 = "spell", spell1 = "Waffe des Felsbeißers" }, Auras.ClickAttributes(missing))
         assert.same({}, Auras.LineActions(item("weapon", "UNKNOWN", "x", ROCK), "x", isSecret))
-        assert.same({ cancelSlot = 17 }, Auras.LineActions(item("weapon", "ACTIVE", "x", { slot = "OFFHAND" }), nil, isSecret))
     end)
 end)
 

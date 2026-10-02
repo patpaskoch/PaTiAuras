@@ -180,8 +180,12 @@ Rechtsklick entfernt einen aktiven Buff
 - [ ] PT-AURAS-163 Wasserschild aktiv: Rechtsklick auf die Zeile entfernt ihn von dir; Tooltip „Rechtsklick:
   Wasserschild von dir entfernen.“; danach „Fehlt“
 - [ ] PT-AURAS-164 Aktiver Proc (z. B. Flutwellen): Rechtsklick entfernt ihn
-- [ ] PT-AURAS-165 Felsbeißer aktiv: Rechtsklick entfernt ihn von der Waffe; danach „Fehlt“ und Linksklick wirkt
-  ihn wieder
+- ~~PT-AURAS-165 Felsbeißer aktiv: Rechtsklick entfernt ihn von der Waffe~~
+  - ❌ FAIL 2026-10-02 – Lua-Fehler in Blizzards SecureTemplates.lua:478: „attempt to index global
+    'CANCELABLE_ITEMS' (a nil value)“ (Zweig target-slot von cancelaura).
+  - RETIRED 2026-10-02 – im Forever-Client nicht sauber möglich; Rechtsklick für Waffenbuffs entfernt.
+- [ ] PT-AURAS-169 Felsbeißer aktiv: Rechtsklick tut nichts und erzeugt keinen Lua-Fehler; Tooltip ohne
+  Rechtsklick-Hinweis
 - [ ] PT-AURAS-166 Fehlende oder unklare Zeile: Rechtsklick tut nichts, kein Hinweis im Tooltip; Linksklick auf
   eine aktive Zeile tut nichts
 - [ ] PT-AURAS-167 Im Kampf: Rechtsklick auf eine bei Kampfbeginn aktive Zeile entfernt den Buff; ein im Kampf

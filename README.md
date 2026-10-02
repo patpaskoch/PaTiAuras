@@ -9,7 +9,8 @@ healing auras — active, missing or expiring. It shows; you decide.
 
 ## Features
 - **Self:** your buffs (e.g. Water Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active.
-  Right-click an active buff, proc or weapon imbue line to remove it from yourself (one click, never by itself)
+  Right-click an active buff or proc line to remove it from yourself (one click, never by itself; weapon imbues
+  cannot be removed this way in the Forever client)
 - **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo
 - **Weapon (Shaman):** choose the weapon imbue you want under Watch — currently Rockbiter Weapon. The line shows
   that spell (e.g. `Rockbiter Weapon  Missing`, or its remaining time). Another imbue never counts as Rockbiter;

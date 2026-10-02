@@ -5,7 +5,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 ## [Unreleased] — 0.1.0
 ### Added
 - Right-click on an active line in the window removes that buff from you (owner wish 2026-10-02): own buffs and
-  procs by name, a weapon imbue from its weapon slot (secure `cancelaura`, unit player). Left-click on a missing
+  procs by name (secure `cancelaura`, unit player). Weapon imbues are left out: the Forever client's secure
+  target-slot cancel fails in Blizzard's SecureTemplates.lua:478 (`CANCELABLE_ITEMS` is nil, owner's error).
+  Left-click on a missing
   weapon imbue still casts it. One button pool `PaTiAurasLine1..8` over the WEAPON and SELF lines, armed only out of
   combat; in combat the lines keep the order of combat start (a buff that ended shows "–", new ones come below), so
   a button never sits over another line.
