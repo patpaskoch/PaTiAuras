@@ -259,6 +259,15 @@ end
 
 
 -- /pa debug: facts for bug reports. No names, no personal data.
+-- Saved watch value per weapon imbue of your profile (to see a deselected one in /pa debug).
+local function weaponWatchText()
+    local parts = {}
+    for _, def in ipairs(Watch.profile and Watch.profile.weapon or {}) do
+        parts[#parts + 1] = def.key .. "=" .. tostring(DB.watch[def.key])
+    end
+    return #parts > 0 and table.concat(parts, ", ") or "none"
+end
+
 local function printDebug()
     local version, build, _, interface = GetBuildInfo()
     local _, classFile = UnitClass("player")
@@ -278,6 +287,7 @@ local function printDebug()
             counts.weapon, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
+        ("Weapon watch (nil = default on, false = off): %s"):format(weaponWatchText()),
         unpack(ns.WeaponImbues.Describe(GetTime(), DB, false, Watch.Weapon(DB))),
     })
 end

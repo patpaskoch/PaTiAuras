@@ -159,6 +159,14 @@ PaTiAlerts
 Abwählen (kein Waffenbuff gewünscht)
 - [ ] PT-AURAS-158 Ausgewählten Felsbeißer in Beobachten erneut anklicken → abgewählt: keine Felsbeißer-Zeile, kein
   Klick-Button, die PaTiAlerts-Warnung verschwindet (auch wenn er wirklich fehlt), keine „Waffenbuff fehlt“-Warnung
+  - ❌ FAIL 2026-10-02
+  - Erneuter Klick auf den ausgewählten Felsbeißer in Beobachten wählt ihn nicht ab.
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - Logik nachgestellt (CI, Popup-Klick mit Attrappen): Abwählen speichert `false` und zeichnet neu. Behoben wurde, was
+    im Client davon abweichen kann: Mehrfachauswahl zeigt jetzt ein Kästchen statt nur eines Farbpunkts, und ein
+    Fehler im Klick verhindert das Neuzeichnen nicht mehr. Beim Retest: `/console scriptErrors 1`, danach
+    `/pa debug` (Zeile „Weapon watch“ zeigt `ROCKBITER_WEAPON=false`).
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-159 Abgewählt → `/reload` (und Relog): bleibt abgewählt, kein „Neue Auren“-Dialog schaltet ihn wieder ein
 - [ ] PT-AURAS-160 Wieder anwählen → Zeile, Zustand, Warnung und Klick zum Wirken sind wieder da
 

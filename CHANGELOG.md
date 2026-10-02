@@ -80,6 +80,10 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Watch: re-clicking the chosen Rockbiter did not deselect it in the owner's test (2026-10-02). The toggle logic was
+  correct (reproduced in CI with the real popup code: false is saved, the list repaints); fixed what could differ in
+  the client — the list now shows check boxes instead of a 4 px dot, and an error during the rebuild no longer stops
+  the repaint (PaTiShared). `/pa debug` shows the saved weapon watch values (`ROCKBITER_WEAPON=false`).
 - Weapon imbues: an active imbue (Rockbiter) read "Missing" (owner test 2026-09-30, `/pa auras` 2026-10-02).
   In the Forever client `GetWeaponEnchantInfo()` says `hasMainHand=false` while
   `C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.MainHand)` reports the imbue with `hasEnchant=true`, a positive
