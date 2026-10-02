@@ -56,6 +56,11 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   tooltip). Active buffs, unwatched or unknown spells, offline/dead members and unreadable (Unknown) data never alert;
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
+- Weapon imbue watch: 0 or 1 wanted imbue per slot (owner 2026-10-02). Clicking the chosen imbue again deselects
+  it: no line, no click button, no PaTiAlerts warning (and no generic one) for that slot. Deselecting also turns
+  the slot's still undecided imbues off, so none moves up by itself; an explicit choice wins over the default.
+  `watch = false` stays over `/reload`, login and rebuilds; only Restore Defaults watches everything again.
+- Tooltips sit beside the hovered line (PaTiShared).
 - The weapon line is named by the watched spell ("Rockbiter Weapon  Missing" / its remaining time) instead of
   "Main Hand"; the WEAPON section now comes right after GROUP. PaTiAlerts gets the concrete spell
   ("Rockbiter Weapon · Missing") instead of "weapon imbue missing".

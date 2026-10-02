@@ -81,14 +81,31 @@ function Watch.DefName(def)
     return Spells.Name(def.spellID) or def.key
 end
 
--- Switches one watch entry on or off (settings list, "new auras" dialog). Only one wanted imbue per weapon slot:
--- switching a concrete imbue on switches the other imbues of that slot off (one weapon cannot carry two).
+-- Switches one watch entry on or off (settings list, "new auras" dialog). 0 or 1 wanted imbue per weapon slot
+-- (owner 2026-10-02): switching a concrete imbue on switches the other imbues of that slot off (one weapon cannot
+-- carry two); switching it off also turns the slot's still undecided imbues off — "no imbue" stays a real choice
+-- instead of the next one moving up.
 function Watch.SetWatched(db, def, watched, profile)
     db.watch[def.key] = watched == true
-    if not (watched and def.slot and def.spellID) then return end
+    if not (def.slot and def.spellID) then return end
     for _, other in ipairs(profile and profile.weapon or {}) do
-        if other.key ~= def.key and other.slot == def.slot and other.spellID then db.watch[other.key] = false end
+        if other.key ~= def.key and other.slot == def.slot and other.spellID
+            and (watched or db.watch[other.key] == nil) then
+            db.watch[other.key] = false
+        end
     end
+end
+
+-- Weapon defs in the order Rebuild picks the wanted one per slot: explicitly chosen (watch = true) first, then the
+-- undecided ones (nil = default on), each in profile order.
+local function weaponPickOrder(defs, db)
+    local chosen, others = {}, {}
+    for _, def in ipairs(defs) do
+        local list = db.watch[def.key] == true and chosen or others
+        list[#list + 1] = def
+    end
+    for _, def in ipairs(others) do chosen[#chosen + 1] = def end
+    return chosen
 end
 
 -- Recomputes the watched entries (login, spells learned, settings or test mode changed).
@@ -102,7 +119,9 @@ function Watch.Rebuild(db)
         local list = {}
         local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
         local slotTaken = {} -- weapon: the first watched imbue per slot is the wanted one (SetWatched keeps one)
-        for _, def in ipairs(shown and profile and profile[category] or {}) do
+        local defs = shown and profile and profile[category] or {}
+        if category == "weapon" then defs = weaponPickOrder(defs, db) end
+        for _, def in ipairs(defs) do
             local known = test or Watch.IsOffered(def, category)
             if known and (test or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
                 local entry = makeEntry(def, category, test)

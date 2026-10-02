@@ -156,6 +156,18 @@ PaTiAlerts
 - [ ] PT-AURAS-156 Felsbeißer fehlt: Warnung „Waffe des Felsbeißers · Fehlt“ (nicht „Waffenbuff fehlt“)
 - [ ] PT-AURAS-157 Felsbeißer aktiv → Warnung verschwindet; Unbekannt → keine Warnung
 
+Abwählen (kein Waffenbuff gewünscht)
+- [ ] PT-AURAS-158 Ausgewählten Felsbeißer in Beobachten erneut anklicken → abgewählt: keine Felsbeißer-Zeile, kein
+  Klick-Button, die PaTiAlerts-Warnung verschwindet (auch wenn er wirklich fehlt), keine „Waffenbuff fehlt“-Warnung
+- [ ] PT-AURAS-159 Abgewählt → `/reload` (und Relog): bleibt abgewählt, kein „Neue Auren“-Dialog schaltet ihn wieder ein
+- [ ] PT-AURAS-160 Wieder anwählen → Zeile, Zustand, Warnung und Klick zum Wirken sind wieder da
+
+Tooltips (PaTiShared)
+- [ ] PT-AURAS-161 Fenster links: Tooltip einer Aura-Zeile steht rechts daneben, Icon und Name bleiben sichtbar;
+  Fenster rechts: Tooltip links daneben
+- [ ] PT-AURAS-162 Gruppenbuff- und Waffenzeilen (sichere Buttons): Tooltip daneben, Klick funktioniert weiter;
+  kein Lua-Fehler
+
 ## Personal (Selbst)
 
 - [ ] PT-AURAS-060 Schamane: Wasserschild ACTIVE mit Restzeit und Aufladungen

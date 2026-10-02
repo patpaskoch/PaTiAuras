@@ -474,3 +474,82 @@ describe("Group buff alerts for PaTiAlerts (Watch.Group → Auras.GroupAlerts)",
         assert.same({}, alerts(ns, db))
     end)
 end)
+
+describe("Weapon imbue: 0 or 1 wanted per slot — deselecting means no imbue (owner 2026-10-02)", function()
+    local function equip()
+        _G.GetInventoryItemID = function(_, slot) return slot == 16 and 1 or nil end
+        _G.GetInventoryItemTexture = function() return 1 end
+        _G.GetItemInfoInstant = function(id) return id, "Weapon", "Axe", "INVTYPE_WEAPON", 1, 2, 0 end
+        _G.GetWeaponEnchantInfo = function() return false, 0, 0, 0, false, 0, 0, 0 end -- Rockbiter missing
+    end
+    local function weaponList(ns, db)
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        return ns.Watch.Weapon(db)
+    end
+    local function alerts(ns, db)
+        return ns.Auras.Alerts(weaponList(ns, db), { missing = "Fehlt", expiring = "x", imbueMissing = "Waffenbuff fehlt",
+            imbueExpiring = "y" }, db.showMissing, function() return false end)
+    end
+
+    it("Rockbiter on → watched and missing (alert); off → no line, no alert (no generic fallback); on again → back", function()
+        local ns, db = setup("SHAMAN", { [8017] = true })
+        local profile = ns.Watch.ClassProfile()
+        equip()
+        assert.equal("MISSING", weaponList(ns, db)[1].result.state)
+        assert.equal("Waffe des Felsbeißers", alerts(ns, db)[1].text)
+        ns.Watch.SetWatched(db, profile.weapon[1], false, profile)
+        assert.is_false(db.watch.ROCKBITER_WEAPON)
+        assert.same({}, weaponList(ns, db)) -- nothing to show, so no click button either (AuraWindow arms per line)
+        assert.same({}, alerts(ns, db))
+        ns.Watch.SetWatched(db, profile.weapon[1], true, profile)
+        assert.equal("MISSING", weaponList(ns, db)[1].result.state)
+        assert.equal(1, #alerts(ns, db))
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("a deselected imbue stays off after /reload (migration) and every rebuild", function()
+        local ns, db = setup("SHAMAN", { [8017] = true })
+        local profile = ns.Watch.ClassProfile()
+        equip()
+        ns.Watch.SetWatched(db, profile.weapon[1], false, profile)
+        db.seen.ROCKBITER_WEAPON = true
+        db = ns.Config.Migrate(db, profile) -- what PLAYER_LOGIN does after /reload
+        assert.is_false(db.watch.ROCKBITER_WEAPON)
+        weaponList(ns, db)
+        assert.same({}, weaponList(ns, db))
+        assert.is_false(db.watch.ROCKBITER_WEAPON)
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("two imbues: A on → B on switches A off; B clicked again → none; nothing moves up by itself", function()
+        local ns, db = setup("SHAMAN", { [8017] = true, [8024] = true })
+        local profile = ns.Watch.ClassProfile()
+        local a, b = profile.weapon[1], { key = "TEST_FLAMETONGUE", spellID = 8024, slot = "MAINHAND", enchantIDs = { 5 } }
+        profile.weapon[2] = b
+        equip()
+        ns.Watch.SetWatched(db, a, true, profile)
+        ns.Watch.SetWatched(db, b, true, profile)
+        assert.same({ false, true }, { db.watch.ROCKBITER_WEAPON, db.watch.TEST_FLAMETONGUE })
+        assert.equal("TEST_FLAMETONGUE", weaponList(ns, db)[1].entry.key)
+        ns.Watch.SetWatched(db, b, false, profile)
+        assert.same({ false, false }, { db.watch.ROCKBITER_WEAPON, db.watch.TEST_FLAMETONGUE })
+        assert.same({}, weaponList(ns, db))
+        profile.weapon[2] = nil
+        _G.GetWeaponEnchantInfo = nil
+    end)
+
+    it("deselecting the default one with an undecided second imbue: none, not the second", function()
+        local ns, db = setup("SHAMAN", { [8017] = true, [8024] = true })
+        local profile = ns.Watch.ClassProfile()
+        profile.weapon[2] = { key = "TEST_FLAMETONGUE", spellID = 8024, slot = "MAINHAND", enchantIDs = { 5 } }
+        equip()
+        assert.equal("ROCKBITER_WEAPON", weaponList(ns, db)[1].entry.key) -- both undecided: the first one
+        ns.Watch.SetWatched(db, profile.weapon[1], false, profile)
+        assert.same({}, weaponList(ns, db))
+        db.watch = { TEST_FLAMETONGUE = true } -- an explicit choice wins over an undecided earlier entry
+        assert.equal("TEST_FLAMETONGUE", weaponList(ns, db)[1].entry.key)
+        profile.weapon[2] = nil
+        _G.GetWeaponEnchantInfo = nil
+    end)
+end)
