@@ -229,7 +229,7 @@ describe("WeaponImbues modern API (C_Item.GetWeaponEnchantInfo(slot))", function
 end)
 
 -- Values from the owner's /pa auras in the Forever client (2026-10-02, Rockbiter on): the classic tuple said "no
--- imbue", the modern API had an entry hasEnchant=true, timeLeft=3524825, enchantType=3 (not in the client's enum).
+-- imbue", the modern API had an entry hasEnchant=true, timeLeft=3524825, enchantType=3 (= Imbue in the client's enum).
 describe("WeaponImbues in the Forever client (owner /pa auras 2026-10-02)", function()
     local FOREVER_ENUM = { WeaponSlot = { MainHand = 0, OffHand = 1, Ranged = 2 },
         ItemEnchantType = { None = 0, Permanent = 1, Temporary = 2 } }

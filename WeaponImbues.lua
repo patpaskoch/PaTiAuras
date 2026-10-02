@@ -5,8 +5,9 @@
 --
 -- Two enchant APIs, each with its own parser; per hand the first readable answer wins:
 --   1. C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.X) per weapon slot (ParseModern). Forever, owner's /pa auras
---      2026-10-02 with Rockbiter on: an entry hasEnchant=true, timeLeft=3524825 (ms), enchantType=3 — a value not in
---      Enum.ItemEnchantType (None 0, Permanent 1, Temporary 2). Used only with Enum.WeaponSlot (no guessed numbers).
+--      2026-10-02 with Rockbiter on: an entry hasEnchant=true, timeLeft=3524825 (ms), enchantType=3 = Imbue in
+--      Enum.ItemEnchantType (None 0, Permanent 1, Temporary 2, Imbue 3).
+--      Used only with Enum.WeaponSlot (no guessed numbers).
 --   2. GetWeaponEnchantInfo()             classic tuple (ParseLegacy), only where 1 is missing or unreadable: in the
 --      same test it said hasMainHand=false while Rockbiter was on, so it must never override a readable 1.
 local _, ns = ...
@@ -69,8 +70,8 @@ function WeaponImbues.ParseLegacy(values, now)
 end
 
 -- Is this modern enchant entry a temporary one (an imbue)? true / false, or nil when that cannot be read.
--- A positive time left is the reliable signal (Forever reports the active imbue with enchantType=3, which is not in
--- its Enum.ItemEnchantType). Without time left only a readable type decides: Temporary/Imbue (enum or name) = yes;
+-- A positive time left is the reliable signal (Forever reports the active imbue with enchantType=3 = Imbue in
+-- Enum.ItemEnchantType). Without time left only a readable type decides: Temporary/Imbue (enum or name) = yes;
 -- Permanent, None, an unknown number or no type = no (a permanent enchant has no time left).
 local function isTemporary(info)
     local left, kind = plainNumber(info.timeLeft), info.enchantType
