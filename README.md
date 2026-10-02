@@ -42,6 +42,7 @@ Each one is installed on its own and works on its own; none of them is needed by
 - [PaTiGroup](https://github.com/patpaskoch/PaTiGroup) – raid markers, ready check and pull timer
 - [PaTiQuest](https://github.com/patpaskoch/PaTiQuest) – selected quest and its objectives
 - [PaTiDungeon](https://github.com/patpaskoch/PaTiDungeon) – instance, group and combat status
+- [PaTiSocial](https://github.com/patpaskoch/PaTiSocial) – "Party Social": quick emote and message buttons
 - [PaTiAlerts](https://github.com/patpaskoch/PaTiAlerts) – one window for open problems
 
 ### Goes well with (optional)
