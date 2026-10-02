@@ -3,12 +3,12 @@
 -- V1 watches "is there an imbue on this weapon" per slot, not which one: how the Forever client identifies an imbue
 -- (enchant ID, name) is not confirmed yet (docs/WOW_API_COMPAT.md). Display only — PaTiAuras never casts an imbue.
 --
--- Two enchant APIs, each with its own parser, one priority chain (owner test 2026-09-30: calling
--- C_Item.GetWeaponEnchantInfo() without a slot and reading it like the old tuple gave UNKNOWN with and without
--- Rockbiter):
---   1. GetWeaponEnchantInfo()            classic tuple for both hands in one call (ParseLegacy)
---   2. C_Item.GetWeaponEnchantInfo(slot) per weapon slot, only if 1 is missing or answers nothing (ParseModern);
---      its slot values and fields are unconfirmed in this client, so it is used only with Enum.WeaponSlot.
+-- Two enchant APIs, each with its own parser; per hand the first readable answer wins:
+--   1. C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.X) per weapon slot (ParseModern). Forever, owner's /pa auras
+--      2026-10-02 with Rockbiter on: an entry hasEnchant=true, timeLeft=3524825 (ms), enchantType=3 — a value not in
+--      Enum.ItemEnchantType (None 0, Permanent 1, Temporary 2). Used only with Enum.WeaponSlot (no guessed numbers).
+--   2. GetWeaponEnchantInfo()             classic tuple (ParseLegacy), only where 1 is missing or unreadable: in the
+--      same test it said hasMainHand=false while Rockbiter was on, so it must never override a readable 1.
 local _, ns = ...
 local Auras = ns.Auras
 
@@ -68,41 +68,47 @@ function WeaponImbues.ParseLegacy(values, now)
     }
 end
 
--- Is this modern enchant entry a temporary one (an imbue), not a permanent enchant? By its type when readable
--- (Enum.ItemEnchantType.Temporary/Imbue if the client has it, or a type name), else by "has time left".
+-- Is this modern enchant entry a temporary one (an imbue)? true / false, or nil when that cannot be read.
+-- A positive time left is the reliable signal (Forever reports the active imbue with enchantType=3, which is not in
+-- its Enum.ItemEnchantType). Without time left only a readable type decides: Temporary/Imbue (enum or name) = yes;
+-- Permanent, None, an unknown number or no type = no (a permanent enchant has no time left).
 local function isTemporary(info)
-    local kind = info.enchantType
-    if not isSecret(kind) and kind ~= nil then
-        local enum = Enum and Enum.ItemEnchantType
-        if type(kind) == "number" and enum then return kind == enum.Temporary or kind == enum.Imbue end
-        if type(kind) == "string" then
-            local upper = kind:upper()
-            return upper:find("TEMP", 1, true) ~= nil or upper:find("IMBUE", 1, true) ~= nil
-        end
+    local left, kind = plainNumber(info.timeLeft), info.enchantType
+    if left and left > 0 then return true end
+    if isSecret(info.timeLeft) or isSecret(kind) then return nil end
+    local enum = Enum and Enum.ItemEnchantType
+    if type(kind) == "number" and enum then return kind == enum.Temporary or kind == enum.Imbue end
+    if type(kind) == "string" then
+        local upper = kind:upper()
+        return upper:find("TEMP", 1, true) ~= nil or upper:find("IMBUE", 1, true) ~= nil
     end
-    local left = plainNumber(info.timeLeft)
-    return left ~= nil and left > 0
+    return false
 end
 
 -- Pure: one C_Item.GetWeaponEnchantInfo(slot) result → raw slot. Accepts one entry table or a list of entries;
--- picks the temporary (imbue) entry, never a permanent enchant. timeLeft is taken as milliseconds like the classic
--- API (ASSUMPTION — /pa auras prints the raw values). A nil answer = no imbue on that slot.
+-- picks the temporary (imbue) entry, never a permanent enchant. timeLeft is milliseconds (Forever: 3524825 for a
+-- fresh Rockbiter ≈ 58.7 min). A nil answer = no imbue on that slot. If no entry is surely an imbue but one could
+-- not be read (secret values), the slot is unreadable (→ UNKNOWN), never "no imbue".
 function WeaponImbues.ParseModern(result, now)
     if result == nil then return { readable = true, has = false } end
     if isSecret(result) or type(result) ~= "table" then return { readable = false } end
     local entries = result[1] ~= nil and result or { result }
+    local unclear = false
     for _, info in ipairs(entries) do
         if type(info) == "table" then
             if isSecret(info.hasEnchant) then return { readable = false } end
-            if info.hasEnchant ~= false and isTemporary(info) then
+            local temporary = info.hasEnchant ~= false and isTemporary(info)
+            if temporary then
                 local raw = { readable = true, has = true, charges = plainNumber(info.charges),
                     enchantID = plainNumber(info.enchantID) }
                 local left = plainNumber(info.timeLeft)
                 if left and left > 0 then raw.expiresAt = now + left / 1000 end
                 return raw
             end
+            if temporary == nil then unclear = true end
         end
     end
+    if unclear then return { readable = false } end
     return { readable = true, has = false }
 end
 
@@ -134,27 +140,37 @@ local function readModern(now)
     return result
 end
 
--- Which API answers now: "GetWeaponEnchantInfo", "C_Item.GetWeaponEnchantInfo" or "none".
+local MODERN, LEGACY = "C_Item.GetWeaponEnchantInfo", "GetWeaponEnchantInfo"
+
+-- Which API is asked first now: "C_Item.GetWeaponEnchantInfo", "GetWeaponEnchantInfo" or "none".
 function WeaponImbues.Source(now)
-    if readLegacy(now or 0) then return "GetWeaponEnchantInfo" end
-    if readModern(now or 0) then return "C_Item.GetWeaponEnchantInfo" end
+    if readModern(now or 0) then return MODERN end
+    if readLegacy(now or 0) then return LEGACY end
     return "none"
 end
 
--- { MAINHAND = raw, OFFHAND = raw }, raw = { readable, has, expiresAt?, charges?, enchantID?, weapon, icon }.
--- A missing API, an error or an empty answer is unreadable (→ UNKNOWN), never "no imbue". Read fresh every time:
--- nothing is cached, so a weapon swap never keeps an old state.
-function WeaponImbues.Read(now)
-    local source = "GetWeaponEnchantInfo"
-    local result = readLegacy(now)
-    if not result then source, result = "C_Item.GetWeaponEnchantInfo", readModern(now) end
-    if not result then
-        source, result = "none", { MAINHAND = { readable = false }, OFFHAND = { readable = false } }
+-- { MAINHAND = raw, OFFHAND = raw }, raw = { readable, has, expiresAt?, charges?, enchantID?, source, weapon, icon }.
+-- Per hand the modern answer wins when it is readable. Without the modern API the classic tuple decides. If the
+-- modern API exists but this hand was unreadable, the tuple may only confirm an imbue: its "no imbue" was wrong in
+-- Forever, so that stays UNKNOWN, never MISSING. A missing API, an error or an empty answer is unreadable too.
+-- Read fresh every time: nothing is cached, so a weapon swap never keeps an old state.
+local function pick(fromModern, fromLegacy)
+    if fromModern and fromModern.readable then fromModern.source = MODERN; return fromModern end
+    if fromLegacy and (not fromModern or (fromLegacy.readable and fromLegacy.has)) then
+        fromLegacy.source = LEGACY
+        return fromLegacy
     end
+    return { readable = false, source = fromModern and MODERN or "none" }
+end
+
+function WeaponImbues.Read(now)
+    local modern, legacy = readModern(now), readLegacy(now)
+    local result = {}
     for slot, slotID in pairs(WeaponImbues.SLOTS) do
-        result[slot].source = source
-        result[slot].weapon = weaponIn(slot, slotID)
-        result[slot].icon = iconOf(slotID)
+        local raw = pick(modern and modern[slot], legacy and legacy[slot])
+        raw.weapon = weaponIn(slot, slotID)
+        raw.icon = iconOf(slotID)
+        result[slot] = raw
     end
     return result
 end

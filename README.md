@@ -72,9 +72,8 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs and the Priest healing auras are not
   yet — `/pa auras` shows what your client knows.
 - Only your class profile (Shaman, Priest); other classes see no profile yet.
-- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. **Known bug:** an active imbue
-  (e.g. Rockbiter) still shows "Missing" in the Forever client; the weapon itself is detected. `/pa auras` prints
-  everything the client returns — please report it once without and once with the imbue.
+- Weapon imbues: V1 only tells whether an imbue is on each weapon, not which one. The fix for active imbues
+  wrongly showing "Missing" (2026-10-02) is not tested in game yet; `/pa auras` prints what the client returns.
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).
 - Totem and other ground auras (e.g. Shaman totem buffs) are not watched on purpose: they only last while a player

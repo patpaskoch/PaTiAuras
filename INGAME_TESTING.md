@@ -78,6 +78,8 @@ UNKNOWN darf nie als MISSING erscheinen.
   - Klassisches `GetWeaponEnchantInfo()` zuerst, `C_Item.GetWeaponEnchantInfo(slot)` nur als Rückfall.
   - Retest 2026-09-30: ohne Imbue „Fehlt“, kein UNKNOWN mehr. Nicht aussagekräftig, solange auch ein aktiver Imbue
     „Fehlt“ zeigt (PT-AURAS-053).
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - `C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.MainHand)` ist jetzt die erste Quelle (siehe PT-AURAS-053).
   - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-053 Rockbiter aktivieren → ACTIVE mit Restzeit
   - ❌ FAIL 2026-09-30
@@ -87,17 +89,31 @@ UNKNOWN darf nie als MISSING erscheinen.
   - Retest mit Fix: Waffe vorhanden, Waffe des Felsbeißers aktiv, Anzeige trotzdem „Fehlt“.
   - Diagnose erweitert (PT-AURAS-007), noch kein Fix. Nächster Test: `/pa auras` ohne und mit Felsbeißer, beide
     Ausgaben melden.
+  - Owner-Diagnose 2026-10-02 (Felsbeißer aktiv): `GetWeaponEnchantInfo()` meldet `hasMainHand=false`;
+    `C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.MainHand)` hat einen Eintrag `hasEnchant=true`, `timeLeft=3524825`,
+    `enchantType=3` (nicht in `Enum.ItemEnchantType`: None 0, Permanent 1, Temporary 2).
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - Moderne API zuerst pro Hand; `hasEnchant=true` + `timeLeft > 0` = aktiver Imbue, auch bei unbekanntem
+    `enchantType`; das klassische Tupel überstimmt eine lesbare moderne Antwort nie.
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-054 Rockbiter entfernen bzw. auslaufen lassen → MISSING
   - ❌ FAIL 2026-09-30
   - Zeigt „Fehlt“, aber schon vorher mit aktivem Imbue: keine Zustandsänderung erkannt.
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-055 Rockbiter erneut aktivieren → ACTIVE
   - ❌ FAIL 2026-09-30
   - Bleibt „Fehlt“.
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-056 Timer wird aktualisiert; unter 30 s EXPIRING; Erneuern aktualisiert innerhalb von ~1–2 s
 - [ ] PT-AURAS-057 Mit PaTiAlerts: „Waffenbuff fehlt“ erscheint bei MISSING, verschwindet bei ACTIVE, nie bei UNKNOWN
   - ❌ FAIL 2026-09-30
   - Warnung bleibt bei aktivem Felsbeißer. Ursache upstream: PaTiAuras meldet den aktiven Imbue als MISSING
     (PT-AURAS-053); PaTiAlerts selbst arbeitet richtig.
+  - 🔧 FIX IMPLEMENTED 2026-10-02
+  - Fix in PaTiAuras (PT-AURAS-053), keine Änderung in PaTiAlerts.
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand
 - [ ] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
 

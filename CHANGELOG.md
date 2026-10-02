@@ -49,7 +49,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   prints every `GetWeaponEnchantInfo()` field by name with its type, and per hand the API source, item, weapon,
   parsed values and final state; `/pa auras` also prints every `C_Item.GetWeaponEnchantInfo` answer (no slot,
   `Enum.WeaponSlot`, slot ID 16/17), your buffs and the main-hand tooltip lines. Secret values are printed as
-  "secret", never formatted. No detection change — the next fix waits for this output.
+  "secret", never formatted.
 - Settings: one "Watch" list instead of category switches plus a second aura list — a button opens a multi-select
   list of your character's entries (self, procs, healing, weapon, group). SavedVariables schema 2: a switched-off
   category of schema 1 becomes watch = false for each of its entries (once); the category switches are gone.
@@ -58,6 +58,14 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Weapon imbues: an active imbue (Rockbiter) read "Missing" (owner test 2026-09-30, `/pa auras` 2026-10-02).
+  In the Forever client `GetWeaponEnchantInfo()` says `hasMainHand=false` while
+  `C_Item.GetWeaponEnchantInfo(Enum.WeaponSlot.MainHand)` reports the imbue with `hasEnchant=true`, a positive
+  `timeLeft` and `enchantType=3`, a value missing from the client's `Enum.ItemEnchantType` — so the old code
+  trusted the wrong tuple and also dropped the entry by its type. Now per hand the modern API comes first;
+  `hasEnchant` + positive `timeLeft` counts as an imbue whatever the type; a permanent enchant (no time left) never
+  does; the tuple only fills a hand the modern API cannot read, and then only to confirm an imbue (its "no imbue"
+  stays Unknown). No enchant IDs are hard-coded.
 - Weapon imbues showed "Unknown" with and without Rockbiter (owner test 2026-09-30): the adapter called
   `C_Item.GetWeaponEnchantInfo()` without a slot and read it like the classic tuple. Now one priority chain with
   separate parsers: `GetWeaponEnchantInfo()` (classic tuple, both hands) first, `C_Item.GetWeaponEnchantInfo(slot)`
@@ -69,10 +77,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues
-- Shaman weapon imbues: an active imbue (Rockbiter) still reads "Missing" (owner test 2026-09-30; the earlier
-  "Unknown" is gone). Weapon detection works. Cause not yet known — needs `/pa auras` without and with the imbue.
-  Until fixed, the PaTiAlerts "weapon imbue missing" warning is wrong while an imbue is on (untick the weapon slots
-  in Watch to silence it).
+- The weapon imbue fix of 2026-10-02 is not tested in game yet (PT-AURAS-052–057 in `INGAME_TESTING.md`).
 - Spell IDs and aura APIs are not yet confirmed in the Interface 16001 client (`/pa auras`, `/pa debug`).
 - Click-to-buff not tested in game yet. In combat the click target cannot move on to the next member (WoW limit).
 - `## IconTexture` support of this client is unknown. Shaman spell IDs still unconfirmed.

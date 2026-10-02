@@ -43,7 +43,7 @@ describe("WeaponImbues adapter", function()
         assert.equal("MISSING", off.state)
     end)
 
-    it("reads the classic tuple first even when C_Item.GetWeaponEnchantInfo exists (owner test 2026-09-30)", function()
+    it("uses the classic tuple when the modern API cannot be asked per slot (no Enum.WeaponSlot)", function()
         local WeaponImbues = load()
         -- The bug: the modern API was called without a slot and read like the tuple → UNKNOWN with and without Rockbiter.
         _G.C_Item = { GetWeaponEnchantInfo = function(slot) if slot == nil then error("slot expected") end end }
@@ -144,7 +144,7 @@ describe("WeaponImbues.Evaluate and Signature", function()
     end)
 end)
 
-describe("WeaponImbues modern fallback (C_Item.GetWeaponEnchantInfo(slot))", function()
+describe("WeaponImbues modern API (C_Item.GetWeaponEnchantInfo(slot))", function()
     local function setupModern(answers)
         local WeaponImbues = load()
         _G.Enum = { WeaponSlot = { MainHand = 0, OffHand = 1 }, ItemEnchantType = { Permanent = 0, Temporary = 1 } }
@@ -156,7 +156,7 @@ describe("WeaponImbues modern fallback (C_Item.GetWeaponEnchantInfo(slot))", fun
         return WeaponImbues
     end
 
-    it("is used only when the classic API is missing, and picks the imbue, not a permanent enchant", function()
+    it("is asked first per slot and picks the imbue, not a permanent enchant", function()
         local WeaponImbues = setupModern({
             [0] = { { hasEnchant = true, enchantType = 0, enchantID = 1900 },
                 { hasEnchant = true, enchantType = 1, timeLeft = 600000, charges = 0, enchantID = 3021 } },
@@ -225,5 +225,111 @@ describe("WeaponImbues modern fallback (C_Item.GetWeaponEnchantInfo(slot))", fun
         assert.truthy(text:find("Main hand tooltip 2: Waffe des Felsbeißers (30 Min.)", 1, true))
         assert.truthy(text:find("Main hand tooltip 3: secret", 1, true))
         _G.C_TooltipInfo = nil
+    end)
+end)
+
+-- Values from the owner's /pa auras in the Forever client (2026-10-02, Rockbiter on): the classic tuple said "no
+-- imbue", the modern API had an entry hasEnchant=true, timeLeft=3524825, enchantType=3 (not in the client's enum).
+describe("WeaponImbues in the Forever client (owner /pa auras 2026-10-02)", function()
+    local FOREVER_ENUM = { WeaponSlot = { MainHand = 0, OffHand = 1, Ranged = 2 },
+        ItemEnchantType = { None = 0, Permanent = 1, Temporary = 2 } }
+    local PERMANENT = { hasEnchant = true, enchantType = 1, timeLeft = 0, enchantID = 1900 }
+    local function rockbiter(timeLeft)
+        return { hasEnchant = true, enchantType = 3, timeLeft = timeLeft or 3524825, enchantIconID = 136086,
+            enchantID = 29 }
+    end
+    -- answers[0] = main hand, answers[1] = off hand; legacy = what GetWeaponEnchantInfo() returns.
+    local function forever(answers, legacy)
+        local WeaponImbues, items = load()
+        _G.Enum = FOREVER_ENUM
+        _G.C_Item = { GetWeaponEnchantInfo = function(slot)
+            local answer = answers[slot]
+            if answer == "error" then error("boom") end
+            return answer
+        end }
+        _G.GetWeaponEnchantInfo = legacy or function() return false, nil, nil, nil, false, nil, nil, nil end
+        return WeaponImbues, items
+    end
+
+    it("reads hasEnchant + positive timeLeft as an active imbue although enchantType=3 is unknown", function()
+        local WeaponImbues = forever({ [0] = { rockbiter() } })
+        local main, _, weapons = states(WeaponImbues, 0)
+        assert.equal("ACTIVE", main.state)
+        assert.equal(3524.825, main.remaining)
+        assert.equal("C_Item.GetWeaponEnchantInfo", weapons.MAINHAND.source)
+        assert.equal("C_Item.GetWeaponEnchantInfo", WeaponImbues.Source(0))
+    end)
+
+    it("an active modern imbue wins over the classic tuple's wrong hasMainHand=false", function()
+        local WeaponImbues = forever({ [0] = { rockbiter() } },
+            function() return false, nil, nil, nil, false, nil, nil, nil end)
+        assert.equal("ACTIVE", (states(WeaponImbues, 0)).state)
+    end)
+
+    it("picks the temporary entry next to a permanent one; a permanent enchant alone is no imbue", function()
+        local WeaponImbues = forever({ [0] = { PERMANENT, rockbiter() }, [1] = { PERMANENT } })
+        local main, off = states(WeaponImbues, 0)
+        assert.equal("ACTIVE", main.state)
+        assert.equal("MISSING", off.state)
+    end)
+
+    it("readable without a temporary entry (nil, empty list, hasEnchant=false) is MISSING", function()
+        local WeaponImbues = forever({ [0] = nil, [1] = {} })
+        local main, off = states(WeaponImbues, 0)
+        assert.same({ "MISSING", "MISSING" }, { main.state, off.state })
+        WeaponImbues = forever({ [0] = { { hasEnchant = false, enchantType = 3, timeLeft = 0 } } })
+        assert.equal("MISSING", (states(WeaponImbues, 0)).state)
+    end)
+
+    it("follows Rockbiter on / off / on again (the owner's test sequence)", function()
+        local answers = { [0] = { PERMANENT } }
+        local WeaponImbues = forever(answers)
+        assert.equal("MISSING", (states(WeaponImbues, 0)).state)
+        answers[0] = { PERMANENT, rockbiter() }
+        assert.equal("ACTIVE", (states(WeaponImbues, 0)).state)
+        answers[0] = { PERMANENT }
+        assert.equal("MISSING", (states(WeaponImbues, 0)).state)
+        answers[0] = { PERMANENT, rockbiter(20000) } -- 20 s left
+        assert.equal("EXPIRING", (states(WeaponImbues, 0)).state)
+    end)
+
+    it("is UNKNOWN, never MISSING, when the modern answer is secret, errors or its time cannot be read", function()
+        local WeaponImbues = forever({ [0] = SECRET, [1] = "error" })
+        local main, off = states(WeaponImbues, 0)
+        assert.same({ "UNKNOWN", "UNKNOWN" }, { main.state, off.state }) -- the tuple's "no imbue" never decides
+        WeaponImbues = forever({ [0] = { { hasEnchant = true, enchantType = 3, timeLeft = SECRET } } })
+        assert.equal("UNKNOWN", (states(WeaponImbues, 0)).state)
+    end)
+
+    it("an unreadable modern hand still shows an imbue the classic tuple confirms", function()
+        local WeaponImbues = forever({ [0] = "error" }, function() return true, 600000, 0, 5, false, 0, 0, 0 end)
+        local main, _, weapons = states(WeaponImbues, 0)
+        assert.equal("ACTIVE", main.state)
+        assert.equal("GetWeaponEnchantInfo", weapons.MAINHAND.source)
+    end)
+
+    it("shows no line when the weapon is taken off", function()
+        local WeaponImbues, items = forever({ [0] = { rockbiter() } })
+        items[16] = nil
+        assert.is_nil((states(WeaponImbues, 0)))
+    end)
+
+    it("PaTiAlerts: MISSING sends the warning, ACTIVE and UNKNOWN send none", function()
+        local answers = { [0] = { PERMANENT } }
+        local WeaponImbues = forever(answers)
+        local ns = { WeaponImbues = WeaponImbues }
+        wow.loadAddonFile("Auras.lua", ns)
+        local entry = { key = "MAIN_HAND_IMBUE", category = "weapon", name = "Waffenhand" }
+        local texts = { missing = "m", expiring = "e", imbueMissing = "Waffenbuff fehlt", imbueExpiring = "x" }
+        local function alerts()
+            local result = states(WeaponImbues, 0)
+            local function isSecret(value) return rawequal(value, SECRET) end
+            return ns.Auras.Alerts({ { entry = entry, result = result } }, texts, true, isSecret)
+        end
+        assert.equal("Waffenbuff fehlt", alerts()[1].detail)
+        answers[0] = { PERMANENT, rockbiter() }
+        assert.same({}, alerts())
+        answers[0] = SECRET
+        assert.same({}, alerts())
     end)
 end)
