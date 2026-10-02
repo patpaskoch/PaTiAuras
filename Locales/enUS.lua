@@ -6,6 +6,10 @@ ns.Locales.enUS = L
 
 L.GENERAL = "General"
 L.DISPLAY = "Display"
+L.CATEGORY_LAYOUT = "Category layout"
+L.LAYOUT_VERTICAL = "Vertical (stacked)"
+L.LAYOUT_HORIZONTAL = "Horizontal (columns)"
+L.LAYOUT_AFTER_COMBAT = "category layout saved; it is applied when combat ends."
 L.ENABLE = "Enable PaTiAuras"
 L.LOCK_WINDOW = "Lock window"
 L.SCALE = "Scale"

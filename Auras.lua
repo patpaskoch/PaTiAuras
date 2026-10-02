@@ -212,3 +212,47 @@ function Auras.MergeRows(frozen, current)
     end
     return out
 end
+
+-- Category layout (owner wish 2026-10-02) ---------------------------------------------------------
+-- "vertical": everything in one column, exactly the line order of before. "horizontal": every category (GROUP,
+-- WEAPON, SELF, TRACKING) is its own column, side by side; the lines inside a column stay vertical.
+Auras.CATEGORY_LAYOUTS = { "vertical", "horizontal" }
+
+-- Pure: where each block (one column of lines) goes. blocks = { { key, height } } in order; "vertical" stacks them,
+-- "horizontal" puts them side by side (`gap` apart) and starts a new row of columns only when the next one would
+-- pass maxWidth. frozen (in combat): { origins = { [key] = { x, y } }, height } of the last layout out of combat —
+-- known blocks keep that origin (their secure buttons cannot move), a block that appeared in combat goes below
+-- everything. Returns origins { [key] = { x, y } }, width, height (y downwards from the top of the content).
+function Auras.PlaceBlocks(blocks, layout, columnWidth, gap, maxWidth, frozen)
+    local origins, x, y, rowHeight, width, height = {}, 0, 0, 0, 0, 0
+    local below = frozen and frozen.height or 0
+    for _, block in ipairs(blocks) do
+        local origin = frozen and frozen.origins[block.key]
+        if frozen and not origin then
+            origin = { x = 0, y = below }
+            below = below + block.height
+        elseif not frozen then
+            if layout == "horizontal" then
+                if x > 0 and x + columnWidth > maxWidth then x, y, rowHeight = 0, y + rowHeight + gap, 0 end
+                origin = { x = x, y = y }
+                x = x + columnWidth + gap
+                rowHeight = math.max(rowHeight, block.height)
+            else
+                origin = { x = 0, y = y }
+                y = y + block.height
+            end
+        end
+        origins[block.key] = origin
+        width = math.max(width, origin.x + columnWidth)
+        height = math.max(height, origin.y + block.height)
+    end
+    return origins, width, height
+end
+
+-- Pure: one width for all columns — wide enough for the widest line (naturalWidths, px), never below minWidth (the
+-- vertical width) and never above maxWidth; long names beyond that end in "…" with the full name in the tooltip.
+function Auras.ColumnWidth(naturalWidths, minWidth, maxWidth)
+    local width = minWidth
+    for _, natural in ipairs(naturalWidths) do width = math.max(width, math.ceil(natural)) end
+    return math.min(width, maxWidth)
+end

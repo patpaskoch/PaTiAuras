@@ -18,6 +18,7 @@ Config.DEFAULTS = {
     showCharges = true, -- charges and stacks (both are the aura's application count)
     showMissing = true,
     showExpiring = true,
+    categoryLayout = "vertical", -- "vertical" | "horizontal" (Auras.CATEGORY_LAYOUTS); new key, no schema step
 }
 
 -- Schema 1 had one switch per category besides the per-aura watch list; schema 2 has only the watch list.
@@ -35,6 +36,7 @@ function Config.Migrate(db, profile)
     for key, value in pairs(Config.DEFAULTS) do
         if db[key] == nil then db[key] = value end
     end
+    if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
     if type(db.watch) ~= "table" then db.watch = {} end
     if db.seen == nil then db.seen = {} end -- aura keys already offered in the "new auras" dialog
     if (db.schema or 1) < 2 then

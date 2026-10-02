@@ -1,5 +1,6 @@
 -- PaTiAuras: main window. Calm sections (GROUP, WEAPON, SELF, TRACKING) of text lines with small icons.
 -- The group and weapon lines carry secure click-to-buff buttons (see below); everything else is plain frames.
+-- Category layout: vertical (one column, default) or horizontal (one column per category), see placeLines.
 local _, ns = ...
 local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spells
 
@@ -8,6 +9,10 @@ ns.AuraWindow = AuraWindow
 
 local WIDTH, LINE, ICON = 230, 20, 16
 local PAD = UI.Spacing.MD
+local LINE_WIDTH = WIDTH - 2 * PAD -- one line = one column width (vertical layout: the whole window)
+local COLUMN_GAP, MAX_COLUMN_WIDTH = UI.Spacing.LG, 320 -- horizontal layout: space between columns, widest column
+local SCREEN_SHARE = 0.9 -- horizontal: the columns may use this share of the screen width before they wrap
+local VALUE_SPACE = 60 -- right part of an entry line reserved for its value (time, "4 / 5", status)
 local TICK_SECONDS = 0.5 -- timer texts only; state changes come from UNIT_AURA
 
 local window = UI.CreateWindow("PaTiAurasFrame", "PaTiAuras", WIDTH, UI.Sizes.HeaderHeight + 40)
@@ -16,7 +21,7 @@ local lines = {}
 
 local function newLine(index)
     local line = CreateFrame("Frame", nil, window)
-    line:SetSize(WIDTH - 2 * PAD, LINE)
+    line:SetSize(LINE_WIDTH, LINE)
     line:EnableMouse(true)
     line.icon = UI.StyleAuraIcon(CreateFrame("Frame", nil, line), ICON)
     line.icon:SetPoint("LEFT")
@@ -45,7 +50,7 @@ local function prepare(index, kind)
         line.name:SetPoint("TOPRIGHT")
     else
         line.name:SetPoint("LEFT", kind == "entry" and ICON + UI.Spacing.SM or 0, 0)
-        line.name:SetPoint("RIGHT", line, "RIGHT", -60, 0)
+        line.name:SetPoint("RIGHT", line, "RIGHT", -VALUE_SPACE, 0)
     end
     line.name:SetWordWrap(message)
     if line.name.SetMaxLines then line.name:SetMaxLines(message and MESSAGE_LINES or 1) end
@@ -75,7 +80,7 @@ local buffButtons = {}
 for index = 1, MAX_GROUP_BUFFS do
     local button = CreateFrame("Button", "PaTiAurasBuff" .. index, window, "SecureActionButtonTemplate")
     button:RegisterForClicks("AnyUp", "AnyDown") -- as PaTiGroup's secure buttons
-    button:SetSize(WIDTH - 2 * PAD, LINE)
+    button:SetSize(LINE_WIDTH, LINE)
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5) -- above the (lazily created) line frames
     local highlight = button:CreateTexture(nil, "HIGHLIGHT") -- hover only while enabled
     highlight:SetAllPoints()
@@ -84,10 +89,6 @@ for index = 1, MAX_GROUP_BUFFS do
     UI.SetTooltip(button, function() return button.tooltipLines end)
     button:Hide()
     buffButtons[index] = button
-end
-
-local function groupRowTop(index) -- y of group line `index` (the section header is row 0)
-    return UI.Sizes.HeaderHeight + UI.Spacing.SM + index * LINE
 end
 
 -- One SecureActionButtonTemplate over each WEAPON and SELF line (owner wishes 2026-10-02), actions from
@@ -99,7 +100,7 @@ local lineButtons = {}
 for index = 1, MAX_LINE_BUTTONS do
     local button = CreateFrame("Button", "PaTiAurasLine" .. index, window, "SecureActionButtonTemplate")
     button:RegisterForClicks("AnyUp", "AnyDown")
-    button:SetSize(WIDTH - 2 * PAD, LINE)
+    button:SetSize(LINE_WIDTH, LINE)
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints()
@@ -125,9 +126,17 @@ local function lineActions(item)
     return Auras.LineActions(item, castName, isSecret)
 end
 
+-- A secure button exactly over its line: same position (line.left / line.top in the window) and width.
+local function coverLine(button, line)
+    button:ClearAllPoints()
+    button:SetPoint("TOPLEFT", window, "TOPLEFT", PAD + line.left, -line.top)
+    button:SetWidth(line:GetWidth())
+end
+
 -- Out of combat only: position, attributes and enabled state of the buff buttons.
--- clickLines: { { item, line } } of the shown WEAPON/SELF lines (line.top = its y in the window).
-local function applySecure(groupList, clickLines)
+-- groupLines: the shown GROUP lines, in the order of groupList. clickLines: { { item, line } } of the shown
+-- WEAPON/SELF/TRACKING lines. Buttons follow the lines, in both category layouts.
+local function applySecure(groupList, groupLines, clickLines)
     if InCombatLockdown() then securePending = true; return end
     for index, button in ipairs(lineButtons) do
         local shown = clickLines[index]
@@ -136,8 +145,7 @@ local function applySecure(groupList, clickLines)
         for _, key in ipairs(Auras.CLICK_ATTRIBUTES) do button:SetAttribute(key, attributes[key]) end
         button.boundActions = actions
         if attributes.unit then
-            button:ClearAllPoints()
-            button:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -shown.line.top)
+            coverLine(button, shown.line)
             button:Show()
         else
             button:Hide()
@@ -147,8 +155,7 @@ local function applySecure(groupList, clickLines)
         local item = groupList[index]
         if item then
             local spell = item.target and clickSpell(item.entry)
-            button:ClearAllPoints()
-            button:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -groupRowTop(index))
+            coverLine(button, groupLines[index])
             button:SetAttribute("unit", spell and item.target.unit or nil)
             button:SetAttribute("type1", spell and "spell" or nil)
             button:SetAttribute("spell1", spell)
@@ -242,12 +249,71 @@ local function clickRows(db)
     return rows
 end
 
+-- Category layout in use. Out of combat it follows db.categoryLayout; in combat the layout of combat start stays
+-- (with the column origins in frozenLayout), because the secure buttons over the lines cannot move until combat ends.
+local appliedLayout, frozenLayout, columnWidth = "vertical", nil, LINE_WIDTH
+
+-- Width a line would need to show everything without "…": icon, name, value space.
+local function naturalWidth(line)
+    if line.kind == "message" then return 0 end
+    local iconSpace = line.kind == "entry" and ICON + UI.Spacing.SM or 0
+    return iconSpace + UI.TextWidth(line.name) + UI.Spacing.SM + VALUE_SPACE
+end
+
+-- The block (column) a row belongs to: its section; a "gone" row of combat keeps the section of its key.
+local function rowBlock(row)
+    return row.header or row.section or (row.key and row.key:match("^(.-):")) or "SECTION_SELF"
+end
+
+-- Places lines 1..count by their block: "vertical" = one block in line order (the layout of before), "horizontal"
+-- = one column per category (Auras.PlaceBlocks). Sets line.left / line.top. Returns the content width and height.
+local function placeLines(count)
+    local combat = InCombatLockdown()
+    local blocks, byKey, natural = {}, {}, {}
+    for index = 1, count do
+        local line = lines[index]
+        local key = appliedLayout == "horizontal" and line.block or "ALL"
+        local block = byKey[key]
+        if not block then
+            block = { key = key, height = 0 }
+            byKey[key] = block
+            blocks[#blocks + 1] = block
+        end
+        if line.kind == "message" then line:SetWidth(LINE_WIDTH) end -- a message wraps at the vertical width
+        line.offset = block.height
+        block.height = block.height + lineHeight(line)
+        natural[#natural + 1] = naturalWidth(line)
+    end
+    if not combat then
+        columnWidth = appliedLayout == "horizontal" and Auras.ColumnWidth(natural, LINE_WIDTH, MAX_COLUMN_WIDTH)
+            or LINE_WIDTH
+    end
+    local scale = window:GetScale() or 1
+    local maxWidth = (UIParent:GetWidth() or 0) * SCREEN_SHARE / scale - 2 * PAD
+    local origins, width, height = Auras.PlaceBlocks(blocks, appliedLayout, columnWidth, COLUMN_GAP, maxWidth,
+        combat and frozenLayout or nil)
+    if not combat then frozenLayout = { origins = origins, height = height } end
+    local top = UI.Sizes.HeaderHeight + UI.Spacing.SM
+    for index = 1, count do
+        local line = lines[index]
+        local origin = origins[appliedLayout == "horizontal" and line.block or "ALL"]
+        line.left, line.top = origin.x, top + origin.y + line.offset
+        line:SetSize(line.kind == "message" and LINE_WIDTH or columnWidth, lineHeight(line))
+        line:ClearAllPoints()
+        line:SetPoint("TOPLEFT", PAD + line.left, -line.top)
+    end
+    return width, top + height
+end
+
 function AuraWindow.Render(db)
-    local count, timers = 0, false
-    local groupList, clickLines = {}, {}
+    if not InCombatLockdown() then appliedLayout = db.categoryLayout end
+    local count, timers, block = 0, false, "MESSAGE"
+    local groupList, groupLines, clickLines = {}, {}, {}
     local function add(kind)
         count = count + 1
-        return prepare(count, kind)
+        local line = prepare(count, kind)
+        line.block = block
+        return line
     end
     local function header(key)
         add("header").name:SetText(string.upper(L[key]))
@@ -260,8 +326,9 @@ function AuraWindow.Render(db)
     elseif not Watch.profile then
         add("message").name:SetText(L.NO_PROFILE)
     else
-        -- GROUP first: its rows sit at fixed positions, so the secure buttons over them never need to move in combat.
+        -- GROUP first: in both layouts its lines start at the top left and never move in combat.
         groupList = Watch.Group(db)
+        block = "SECTION_GROUP"
         if #groupList > 0 then header("SECTION_GROUP") end
         for index, item in ipairs(groupList) do
             local line, summary = add("entry"), item.summary
@@ -272,11 +339,13 @@ function AuraWindow.Render(db)
             line.value:SetTextColor(UI.Color(incomplete and db.showMissing and "Warning" or "Text"))
             line.tooltipLines = groupTooltip(item, buffButtons[index])
             if buffButtons[index] then buffButtons[index].tooltipLines = line.tooltipLines end
+            groupLines[index] = line
         end
 
-        -- WEAPON and SELF right after GROUP, as click lines (see clickRows): weapon imbues named by their spell (e.g.
-        -- Rockbiter Weapon) or slot, then your buffs and active procs.
+        -- WEAPON, SELF and TRACKING after GROUP, as click lines (see clickRows): weapon imbues named by their spell
+        -- (e.g. Rockbiter Weapon) or slot, then your buffs and active procs, then tracking.
         for _, row in ipairs(clickRows(db)) do
+            block = rowBlock(row)
             if row.header then
                 header(row.header)
             else
@@ -294,28 +363,17 @@ function AuraWindow.Render(db)
             end
         end
 
+        block = "MESSAGE"
         if count == 0 then add("message").name:SetText(L.NOTHING_WATCHED) end
     end
 
-    -- Stack the lines by their real height (a wrapped message may take up to three rows).
-    local y = UI.Sizes.HeaderHeight + UI.Spacing.SM
-    for index, line in ipairs(lines) do
-        if index > count then
-            line:Hide()
-        else
-            local height = lineHeight(line)
-            line:SetHeight(height)
-            line:ClearAllPoints()
-            line:SetPoint("TOPLEFT", PAD, -y)
-            line.top = y
-            y = y + height
-        end
-    end
-    applySecure(groupList, clickLines)
+    for index = count + 1, #lines do lines[index]:Hide() end
+    local width, height = placeLines(count)
+    applySecure(groupList, groupLines, clickLines)
     if InCombatLockdown() then
         securePending = true -- the protected window keeps its size until combat ends
     else
-        window:SetHeight(y + PAD)
+        window:SetSize(math.max(WIDTH, width + 2 * PAD), height + PAD)
     end
     return timers
 end

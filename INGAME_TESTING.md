@@ -318,6 +318,27 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
   tote und Offline-Mitglieder zählen nicht
 - [ ] PT-AURAS-116 Alle lebenden Mitglieder gebufft → Warnung verschwindet
 
+## Kategorie-Layout (Darstellung)
+
+- [ ] PT-AURAS-190 Ohne Änderung (Bestand und Neuinstallation): Kategorien wie bisher untereinander (Vertikal)
+- [ ] PT-AURAS-191 Einstellungen → Darstellung → Kategorie-Layout „Horizontal“: GROUP, WEAPON, SELF, TRACKING als Spalten
+  nebeneinander; in jeder Spalte stehen die Einträge untereinander, nie quer gemischt
+- [ ] PT-AURAS-192 Horizontal: keine abgeschnittenen Namen (deDE, lange Namen wie „Machtwort: Seelenstärke“), keine
+  riesigen Leerflächen; Fensterbreite passt sich an
+- [ ] PT-AURAS-193 Horizontal mit großer Größe (Scale 150 %) oder schmalem Bildschirm: Spalten brechen in eine zweite
+  Reihe um, nichts liegt außerhalb des Bildschirms
+- [ ] PT-AURAS-194 Layout bleibt nach `/reload`; zurück auf „Vertikal“ zeigt wieder das alte Bild
+- [ ] PT-AURAS-195 Horizontal: Klick auf eine Gruppenbuff-Zeile bufft genau diesen Buff (Tooltip-Ziel), Klick auf eine
+  fehlende Waffen-/Aufspüren-Zeile wirkt genau diesen Zauber — kein Button liegt über einer anderen Zeile (Hover-Rahmen
+  deckt genau die Zeile)
+- [ ] PT-AURAS-196 Layout im Kampf umstellen: Chat-Hinweis „wird nach dem Kampf angewendet“, im Kampf bleibt das alte
+  Layout, nach dem Kampf wechselt es; kein `ADDON_ACTION_BLOCKED`
+- [ ] PT-AURAS-197 Horizontal im Kampf: neuer Proc erscheint, ohne dass andere Zeilen/Buttons verrutschen; nach dem
+  Kampf ordnet sich alles neu
+- [ ] PT-AURAS-198 Horizontal mit nur einer Kategorie (z. B. nur Selbst) und ohne Kategorien („nichts beobachtet“):
+  sinnvolle Breite, kein Fehler
+- [ ] PT-AURAS-199 Einklappen/Ausklappen und Test Mode im horizontalen Layout ohne Fehler
+
 ## Combat / Sicherheit
 
 - [ ] PT-AURAS-120 Kein Lua-Fehler im Kampf

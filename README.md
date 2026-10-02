@@ -63,7 +63,8 @@ Each one is installed on its own and works on its own; none of them is needed by
 ## Settings
 `/pa settings` or ••• → Settings:
 - **General:** on/off, language, scale, window lock
-- **Display:** timers, charges, missing, expiring
+- **Display:** category layout (vertical = stacked, the default; horizontal = one column per category, the
+  entries inside a column stay one below the other), timers, charges, missing, expiring
 - **Watch:** one button opens the list of everything your character can watch (self, procs, weapon, tracking, group)
   — tick what you want to see
 - **Window:** panel opacity (30–100 %)

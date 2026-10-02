@@ -4,6 +4,12 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Settings → Display → **Category layout**: Vertical (stacked, default — unchanged for existing installs) or
+  Horizontal (GROUP, WEAPON, SELF, TRACKING as columns side by side; the entries inside a column stay vertical).
+  Columns share one width, wide enough for long names (up to 320 px, then "…"), and wrap into a second row when the
+  screen is too narrow. Saved as `PaTiAurasDB.categoryLayout` (new key with default, no schema step).
+  The secure buttons follow their lines in both layouts. In combat the layout of combat start stays (the buttons
+  cannot move): a change is saved at once and applied after combat (chat note).
 - Profession tracking (owner wish 2026-10-02): Watch offers the tracking spells you learned (Find Herbs, Find
   Minerals, Find Treasure — classic IDs, hidden if the client does not know them), 0 or 1 wanted (slot TRACKING, like
   weapon imbues). New TRACKING section: Active / Missing ("another tracking is on") / Unknown; a left-click on a

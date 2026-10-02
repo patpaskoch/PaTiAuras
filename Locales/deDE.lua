@@ -6,6 +6,10 @@ ns.Locales.deDE = L
 
 L.GENERAL = "Allgemein"
 L.DISPLAY = "Darstellung"
+L.CATEGORY_LAYOUT = "Kategorie-Layout"
+L.LAYOUT_VERTICAL = "Vertikal (untereinander)"
+L.LAYOUT_HORIZONTAL = "Horizontal (Spalten)"
+L.LAYOUT_AFTER_COMBAT = "Kategorie-Layout gespeichert; es wird nach dem Kampf angewendet."
 L.ENABLE = "PaTiAuras aktivieren"
 L.LOCK_WINDOW = "Fenster sperren"
 L.SCALE = "Größe"

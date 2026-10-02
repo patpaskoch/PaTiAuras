@@ -144,6 +144,20 @@ local function buildSettings()
     modal:HookScript("OnShow", function() watchButton.label:SetText(watchLabel()) end)
 
     modal:AddSection("DISPLAY")
+    -- Categories stacked or side by side. In combat the secure buttons cannot move: saved now, shown after combat.
+    local layouts = {}
+    for _, layout in ipairs(ns.Auras.CATEGORY_LAYOUTS) do
+        layouts[#layouts + 1] = { value = layout, text = "LAYOUT_" .. layout:upper() }
+    end
+    modal:AddRow("CATEGORY_LAYOUT", UI.CreateDropdown(modal, 170, {
+        items = function() return layouts end,
+        get = function() return DB.categoryLayout end,
+        set = function(layout)
+            DB.categoryLayout = layout
+            if InCombatLockdown() then say("LAYOUT_AFTER_COMBAT") end
+            update()
+        end,
+    }))
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
     modal:AddControls(box("SHOW_MISSING", "showMissing"), box("SHOW_EXPIRING", "showExpiring"))
     modal:Finish(function()
