@@ -66,13 +66,14 @@ function Window:SetTestMode(on)
     if self.testBadge then self.testBadge:SetShown(on) end
 end
 
--- Locked windows keep the ••• button quiet until hovered.
+-- The ••• button stays quiet until hovered (UI.WindowHeader.MenuAlpha; locked windows even quieter).
 function Window:PaintMenuButton(hovered)
     local more = self.menuButton
     local r, g, b = UI.Color(hovered and "Text" or "TextMuted")
     for _, dot in ipairs(more.dots) do dot:SetColorTexture(r, g, b, 1) end
     more.hover:SetShown(hovered)
-    more:SetAlpha((self:IsLocked() and not hovered) and 0.4 or 1)
+    local rest = self:IsLocked() and 0.4 or UI.WindowHeader.MenuAlpha
+    more:SetAlpha(hovered and 1 or rest)
 end
 
 -- name: global frame name (e.g. "PaTiHealFrame"); title: see UI.Text.
@@ -108,8 +109,10 @@ function UI.CreateWindow(name, title, width, height)
     end)
     window.header = header
 
-    local titleText = header:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
+    local titleText = header:CreateFontString(nil, "OVERLAY", UI.WindowHeader.TitleFont)
     titleText:SetPoint("LEFT", UI.Spacing.MD, 0)
+    titleText:SetTextColor(UI.Color(UI.WindowHeader.TitleColor))
+    titleText:SetAlpha(UI.WindowHeader.TitleAlpha) -- the TEST badge is its own frame: it stays fully visible
     UI.BindText(titleText, title)
     window.title = titleText
 

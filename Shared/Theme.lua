@@ -42,6 +42,16 @@ UI.Fonts = {
     Number = "NumberFontNormalSmall", -- timers and stack counts on icons
 }
 
+-- Main window header (UI.CreateWindow): the addon name orients, it should not draw the eye away from the gameplay
+-- content (owner 2026-10-02). Smaller font, muted colour, reduced alpha for the title and the ••• button at rest.
+-- Only the main window header — modal titles, warnings, bars and aura texts keep their own look.
+UI.WindowHeader = {
+    TitleFont = "GameFontHighlightSmall",
+    TitleColor = "TextMuted",
+    TitleAlpha = 0.75,
+    MenuAlpha = 0.75, -- ••• at rest (locked windows: 0.4 until hovered)
+}
+
 UI.WHITE = "Interface\\Buttons\\WHITE8X8"
 
 function UI.Color(name)
