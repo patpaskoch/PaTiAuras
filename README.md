@@ -16,6 +16,9 @@ healing auras — active, missing or expiring. It shows; you decide.
   that spell (e.g. `Rockbiter Weapon  Missing`, or its remaining time). Another imbue never counts as Rockbiter;
   unreadable data shows "unclear". One wanted imbue per weapon. A missing one can be cast with one click on its
   line (on your own weapon, never by itself). Click the chosen imbue again in Watch to watch none for that weapon
+- **Tracking:** pick the profession tracking you want (Find Herbs, Find Minerals; Find Treasure for dwarves — only
+  what you learned). The line shows whether it is on; a click on a missing one casts it (never switched by itself).
+  Only one tracking can be on, so you choose one or none
 - **Healing:** your HoTs and shields per party member (Shaman: Earth Shield, Riptide;
   Priest: Renew, Power Word: Shield, Prayer of Mending)
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the

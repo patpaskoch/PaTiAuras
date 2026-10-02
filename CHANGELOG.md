@@ -4,6 +4,12 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Profession tracking (owner wish 2026-10-02): Watch offers the tracking spells you learned (Find Herbs, Find
+  Minerals, Find Treasure — classic IDs, hidden if the client does not know them), 0 or 1 wanted (slot TRACKING, like
+  weapon imbues). New TRACKING section: Active / Missing ("another tracking is on") / Unknown; a left-click on a
+  missing one casts it. Own adapter `Tracking.lua`: C_Minimap.GetTrackingInfo, GetTrackingInfo or GetTrackingTexture,
+  or shown as a buff; MINIMAP_UPDATE_TRACKING plus the 1 s fallback check. PaTiAlerts reports a missing one.
+  `/pa auras` prints the tracking API and every listed type. Classes without a profile do not get it yet.
 - Right-click on an active line in the window removes that buff from you (owner wish 2026-10-02): own buffs and
   procs by name (secure `cancelaura`, unit player). Weapon imbues are left out: the Forever client's secure
   target-slot cancel fails in Blizzard's SecureTemplates.lua:478 (`CANCELABLE_ITEMS` is nil, owner's error).
@@ -110,6 +116,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - Hint texts such as "no aura profile for your class" wrap onto up to three lines instead of being cut off.
 - If reading auras fails (e.g. restricted values), the state is Unknown instead of wrongly Missing.
 ### Known Issues
+- Tracking (2026-10-02) is not tested in game: which tracking API the Forever client offers and the spell IDs are
+  unconfirmed (`/pa auras`).
 - Right-click remove (2026-10-02) is not tested in game; whether the Forever client's secure `cancelaura` action works
   for buffs and weapon imbues is not confirmed.
 - Concrete weapon imbues and click-to-buff (2026-10-02) are not tested in game yet (PT-AURAS-140–157); the

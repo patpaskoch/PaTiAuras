@@ -8,7 +8,9 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   no trigger editor, no scripting, no import strings, no boss auras, no raid matrix.
 - Files: `Config.lua` (SavedVariables defaults/migration, pure) · `SpellBook.lua` (spell adapter, deliberate copy of
   PaTiHeal's) · `Auras.lua` (state logic, pure) · `AuraScan.lua` (aura adapter + test data) ·
-  `WeaponImbues.lua` (temporary weapon enchants: own adapter, not UNIT_AURA; pure Evaluate) · `Profiles/<Class>.lua` (data) ·
+  `WeaponImbues.lua` (temporary weapon enchants: own adapter, not UNIT_AURA; pure Evaluate) · `Tracking.lua`
+  (profession tracking: own adapter, pure Evaluate) · `Profiles/<Class>.lua` (data) · `Profiles/Tracking.lua` (tracking
+  spells, added to every class profile, slot TRACKING = 0 or 1 wanted) ·
   `Watch.lua` (state per unit) · `AuraWindow.lua` (UI) · `PaTiAuras.lua` (init, settings, slash, events).
 - SavedVariables: `PaTiAurasDB` (per character), schema 3 — see `Config.DEFAULTS`; `watch[key] = false` hides one aura;
   `seen[key] = true` = already offered in the "new auras" dialog (`promptNewAuras`, `Config.NewDefs`).

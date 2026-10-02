@@ -139,9 +139,9 @@ function Auras.GroupAlerts(groups, texts, showMissing, isSecret)
     return list
 end
 
--- Clicks on WEAPON and SELF lines ------------------------------------------------------------------
--- Owner wishes 2026-10-02: left-click casts a missing castable weapon imbue; right-click removes an active own buff,
--- proc or weapon imbue from your character. Always one click = one action, never by itself.
+-- Clicks on WEAPON, SELF and TRACKING lines ------------------------------------------------------
+-- Owner wishes 2026-10-02: left-click casts a missing castable weapon imbue or tracking; right-click removes an active
+-- own buff or proc from your character. Always one click = one action, never by itself.
 
 Auras.SLOT_IDS = { MAINHAND = 16, OFFHAND = 17 } -- inventory slots ("target-slot" of the cancelaura action)
 -- Every secure attribute a line button may carry: re-arming sets all of them, so no old action survives.
@@ -159,7 +159,11 @@ function Auras.LineActions(item, castName, isSecret)
         -- in Blizzard's own SecureTemplates.lua:478 (global CANCELABLE_ITEMS is nil; owner's error 2026-10-02), and an
         -- addon must not patch that global (it would taint the secure handler).
         if state == "MISSING" and entry.castable then actions.cast = castName end
-    elseif active and not isSecret(entry.name) and type(entry.name) == "string" and entry.name ~= "" then
+    elseif entry.category == "tracking" then
+        -- Tracking (owner wish 2026-10-02): a missing one is cast with a left-click; nothing switches it by itself.
+        if state == "MISSING" and entry.castable then actions.cast = castName end
+    elseif (entry.category == "personal" or entry.category == "procs") and active
+        and not isSecret(entry.name) and type(entry.name) == "string" and entry.name ~= "" then
         actions.cancelSpell = entry.name
     end
     return actions

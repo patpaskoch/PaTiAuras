@@ -29,6 +29,7 @@ local function reportAlerts()
         local items = {}
         for _, item in ipairs(Watch.Self(DB)) do items[#items + 1] = item end
         for _, item in ipairs(Watch.Weapon(DB)) do items[#items + 1] = item end
+        for _, item in ipairs(Watch.Tracking(DB)) do items[#items + 1] = item end
         list = ns.Auras.Alerts(items, { missing = L.STATUS_MISSING, expiring = L.STATUS_EXPIRING,
             imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret)
         local groupAlerts = ns.Auras.GroupAlerts(Watch.Group(DB), { missing = L.STATUS_MISSING,
@@ -306,7 +307,7 @@ local function printAuraCheck()
     local weapons = false
     for _, category in ipairs(Watch.CATEGORIES) do
         for _, def in ipairs(profile and profile[category] or {}) do
-            if def.slot then weapons = true end -- what the enchant APIs report: once, after the spell list
+            if def.slot and category == "weapon" then weapons = true end -- enchant APIs: once, after the spells
             if def.spellID then
                 list[#list + 1] = describe(category .. " " .. def.key, def.spellID)
                 for _, variant in ipairs(def.variants or {}) do
@@ -319,6 +320,9 @@ local function printAuraCheck()
         for _, line in ipairs(ns.WeaponImbues.Describe(GetTime(), DB, true, Watch.Weapon(DB))) do
             list[#list + 1] = line
         end
+    end
+    if #(profile and profile.tracking or {}) > 0 then
+        for _, line in ipairs(ns.Tracking.Describe()) do list[#list + 1] = line end
     end
     if not profile then list[#list + 1] = L.NO_PROFILE end
     printLines("Auras", list)
@@ -369,12 +373,14 @@ for _, event in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "GROUP_ROSTER_
     events:RegisterEvent(event)
 end
 for _, event in ipairs({ "PLAYER_SPECIALIZATION_CHANGED", "ACTIVE_TALENT_GROUP_CHANGED", "CHARACTER_POINTS_CHANGED",
-    "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "WEAPON_ENCHANT_CHANGED", "WEAPON_SLOT_CHANGED" }) do
+    "UNIT_INVENTORY_CHANGED", "PLAYER_EQUIPMENT_CHANGED", "WEAPON_ENCHANT_CHANGED", "WEAPON_SLOT_CHANGED",
+    "MINIMAP_UPDATE_TRACKING" }) do
     pcall(events.RegisterEvent, events, event) -- not every client generation has these
 end
 
--- Weapon imbues: no UNIT_AURA. Inventory/equipment events are the main signal; whether this client fires them for
--- imbues is unconfirmed, so a slow check (every 1 s, only while weapon slots are watched) repaints on changes only.
+-- Weapon imbues and tracking: no UNIT_AURA. Inventory/equipment/tracking events are the main signal; whether this
+-- client fires them is unconfirmed, so a slow check (every 1 s, only while imbues or tracking are watched) repaints
+-- on changes only.
 local WEAPON_CHECK_SECONDS = 1
 local weaponCheck = CreateFrame("Frame")
 weaponCheck:Hide()
@@ -383,10 +389,13 @@ weaponCheck:SetScript("OnUpdate", function(_, elapsed)
     sinceWeaponCheck = sinceWeaponCheck + elapsed
     if sinceWeaponCheck < WEAPON_CHECK_SECONDS then return end
     sinceWeaponCheck = 0
-    if Watch.RefreshWeapons() then update() end
+    local changed = Watch.RefreshWeapons()
+    if Watch.RefreshTracking() then changed = true end
+    if changed then update() end
 end)
 updateWeaponCheck = function() -- assigns the local declared above rebuild()
-    weaponCheck:SetShown(DB ~= nil and DB.enabled and not Watch.testMode and #Watch.entries.weapon > 0)
+    weaponCheck:SetShown(DB ~= nil and DB.enabled and not Watch.testMode
+        and (#Watch.entries.weapon > 0 or #Watch.entries.tracking > 0))
 end
 
 events:SetScript("OnEvent", function(_, event, unit)
@@ -413,6 +422,8 @@ events:SetScript("OnEvent", function(_, event, unit)
     elseif event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_EQUIPMENT_CHANGED"
         or event == "WEAPON_ENCHANT_CHANGED" or event == "WEAPON_SLOT_CHANGED" then
         if (event ~= "UNIT_INVENTORY_CHANGED" or unit == "player") and Watch.RefreshWeapons() then update() end
+    elseif event == "MINIMAP_UPDATE_TRACKING" then
+        if Watch.RefreshTracking() then update() end
     elseif event == "PLAYER_REGEN_ENABLED" then
         -- Combat over: buff buttons point at the next missing member again, window gets its real size/scale.
         window:SetScale(DB.scale)

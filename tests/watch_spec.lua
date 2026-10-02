@@ -7,6 +7,7 @@ local NAMES = {
     [14752] = "Göttlicher Willen", [27681] = "Gebet der Willenskraft", [976] = "Schattenschutz",
     [27683] = "Gebet des Schattenschutzes", [24398] = "Wasserschild", [974] = "Erdschild", [61295] = "Springflut",
     [53390] = "Flutwellen", [8017] = "Waffe des Felsbeißers", [8024] = "Waffe der Flammenzunge",
+    [2383] = "Kräutersuche", [2580] = "Mineraliensuche",
 }
 
 local world -- per test: class, known spells, units and their auras
@@ -37,7 +38,8 @@ local function setup(class, known)
     end }
     local ns = {}
     for _, file in ipairs({ "Shared/Locales/enUS.lua", "Shared/Locale.lua", "Locales/enUS.lua", "Config.lua", "SpellBook.lua",
-        "Auras.lua", "AuraScan.lua", "WeaponImbues.lua", "Profiles/Shaman.lua", "Profiles/Priest.lua", "Watch.lua" }) do
+        "Auras.lua", "AuraScan.lua", "WeaponImbues.lua", "Tracking.lua", "Profiles/Shaman.lua", "Profiles/Priest.lua",
+        "Profiles/Tracking.lua", "Watch.lua" }) do
         wow.loadAddonFile(file, ns)
     end
     ns.Watch.testMode = false
@@ -57,7 +59,7 @@ describe("Priest profile", function()
         local ns, db = setup("PRIEST", ALL_PRIEST)
         assert.equal("Priest", ns.Watch.ClassProfile().name)
         ns.Watch.Rebuild(db)
-        assert.same({ personal = 1, procs = 0, group = 3, healing = 0, weapon = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
+        assert.same({ personal = 1, procs = 0, group = 3, healing = 0, weapon = 0, tracking = 0 }, ns.Watch.Count()) -- healing IDs unknown to this mock client
     end)
 
     it("counts the Prayer version as the same buff as the single-target spell", function()
@@ -223,7 +225,7 @@ describe("Shaman profile (regression)", function()
         local ns, db = setup("SHAMAN", { [24398] = true, [974] = true, [61295] = true, [8017] = true })
         ns.Watch.Rebuild(db)
         assert.equal("Restoration Shaman", ns.Watch.profile.name)
-        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 1 }, ns.Watch.Count())
+        assert.same({ personal = 1, procs = 1, group = 0, healing = 2, weapon = 1, tracking = 0 }, ns.Watch.Count())
     end)
 end)
 
@@ -551,5 +553,33 @@ describe("Weapon imbue: 0 or 1 wanted per slot — deselecting means no imbue (o
         assert.equal("TEST_FLAMETONGUE", weaponList(ns, db)[1].entry.key)
         profile.weapon[2] = nil
         _G.GetWeaponEnchantInfo = nil
+    end)
+end)
+
+describe("Profession tracking in the watch (owner 2026-10-02)", function()
+    it("is in every class profile, offered only when learned, 0 or 1 wanted, missing one is cast with a click", function()
+        local ns, db = setup("SHAMAN", { [2383] = true, [2580] = true })
+        local profile = ns.Watch.ClassProfile()
+        assert.equal(ns.AuraTracking, profile.tracking)
+        assert.equal(ns.AuraTracking, ns.AuraProfiles.PRIEST.tracking)
+        local choices = {}
+        for _, group in ipairs(ns.Watch.Choices(profile)) do
+            if group.category == "tracking" then for _, def in ipairs(group.defs) do choices[#choices + 1] = def.key end end
+        end
+        assert.same({ "FIND_HERBS", "FIND_MINERALS" }, choices) -- treasure not learned: not offered
+        _G.GetTrackingTexture = function() return nil end -- nothing tracked
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local list = ns.Watch.Tracking(db)
+        assert.equal(1, #list) -- both undecided: only the first is the wanted one
+        assert.same({ "FIND_HERBS", "MISSING" }, { list[1].entry.key, list[1].result.state })
+        local actions = ns.Auras.LineActions(list[1], "Kräutersuche", function() return false end)
+        assert.same({ cast = "Kräutersuche" }, actions)
+        ns.Watch.SetWatched(db, profile.tracking[2], true, profile) -- minerals wanted: herbs off
+        assert.same({ false, true }, { db.watch.FIND_HERBS, db.watch.FIND_MINERALS })
+        ns.Watch.SetWatched(db, profile.tracking[2], false, profile) -- none
+        ns.Watch.Rebuild(db)
+        assert.same({}, ns.Watch.Tracking(db))
+        _G.GetTrackingTexture = nil
     end)
 end)

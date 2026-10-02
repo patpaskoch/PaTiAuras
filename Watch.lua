@@ -2,11 +2,12 @@
 -- v1 covers the 5-player party: player + party1..4.
 local _, ns = ...
 local L, Auras, Spells, AuraScan, WeaponImbues = ns.UI.L, ns.Auras, ns.Spells, ns.AuraScan, ns.WeaponImbues
+local Tracking = ns.Tracking
 
 local Watch = {
     UNITS = { "player", "party1", "party2", "party3", "party4" },
-    CATEGORIES = { "personal", "procs", "group", "healing", "weapon" },
-    entries = { personal = {}, procs = {}, group = {}, healing = {}, weapon = {} },
+    CATEGORIES = { "personal", "procs", "group", "healing", "weapon", "tracking" },
+    entries = { personal = {}, procs = {}, group = {}, healing = {}, weapon = {}, tracking = {} },
     info = {},
     testMode = false,
 }
@@ -61,7 +62,7 @@ end
 
 -- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
 -- self, procs, healing, weapon, group. Returns { { category, defs = { def, … } } } (empty categories left out).
-Watch.CHOICE_ORDER = { "personal", "procs", "healing", "weapon", "group" }
+Watch.CHOICE_ORDER = { "personal", "procs", "healing", "weapon", "tracking", "group" }
 function Watch.Choices(profile)
     local list = {}
     for _, category in ipairs(Watch.CHOICE_ORDER) do
@@ -81,17 +82,19 @@ function Watch.DefName(def)
     return Spells.Name(def.spellID) or def.key
 end
 
--- Switches one watch entry on or off (settings list, "new auras" dialog). 0 or 1 wanted imbue per weapon slot
--- (owner 2026-10-02): switching a concrete imbue on switches the other imbues of that slot off (one weapon cannot
--- carry two); switching it off also turns the slot's still undecided imbues off — "no imbue" stays a real choice
--- instead of the next one moving up.
+-- Switches one watch entry on or off (settings list, "new auras" dialog). 0 or 1 wanted entry per slot — a weapon
+-- slot or TRACKING (owner 2026-10-02): switching one on switches the others of that slot off (one weapon cannot
+-- carry two imbues, only one tracking can be on); switching it off also turns the slot's still undecided ones off —
+-- "none" stays a real choice instead of the next one moving up.
 function Watch.SetWatched(db, def, watched, profile)
     db.watch[def.key] = watched == true
     if not (def.slot and def.spellID) then return end
-    for _, other in ipairs(profile and profile.weapon or {}) do
-        if other.key ~= def.key and other.slot == def.slot and other.spellID
-            and (watched or db.watch[other.key] == nil) then
-            db.watch[other.key] = false
+    for _, list in pairs(profile or {}) do
+        for _, other in ipairs(type(list) == "table" and list or {}) do
+            if other.key ~= def.key and other.slot == def.slot and other.spellID
+                and (watched or db.watch[other.key] == nil) then
+                db.watch[other.key] = false
+            end
         end
     end
 end
@@ -120,7 +123,7 @@ function Watch.Rebuild(db)
         local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
         local slotTaken = {} -- weapon: the first watched imbue per slot is the wanted one (SetWatched keeps one)
         local defs = shown and profile and profile[category] or {}
-        if category == "weapon" then defs = weaponPickOrder(defs, db) end
+        if category == "weapon" or category == "tracking" then defs = weaponPickOrder(defs, db) end
         for _, def in ipairs(defs) do
             local known = test or Watch.IsOffered(def, category)
             if known and (test or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
@@ -185,9 +188,20 @@ function Watch.RefreshWeapons()
     return changed
 end
 
+-- Tracking (no UNIT_AURA of its own): re-read on MINIMAP_UPDATE_TRACKING and by the slow fallback check.
+-- Returns true if anything changed since the last read.
+function Watch.RefreshTracking()
+    Watch.trackingRead = Watch.testMode and Tracking.TestRead(Watch.entries.tracking) or Tracking.Read()
+    local signature = Tracking.Signature(Watch.trackingRead)
+    local changed = signature ~= Watch.trackingSignature
+    Watch.trackingSignature = signature
+    return changed
+end
+
 function Watch.RefreshAll()
     for _, unit in ipairs(Watch.UNITS) do Watch.RefreshUnit(unit) end
     Watch.RefreshWeapons()
+    Watch.RefreshTracking()
 end
 
 -- View data for the window ---------------------------------------------------------------------
@@ -263,6 +277,19 @@ function Watch.Weapon(db)
         local raw = Watch.weapons and Watch.weapons[entry.slot]
         local result = WeaponImbues.Evaluate(raw, now, db, entry, otherEnchantIDs(entry))
         if result then list[#list + 1] = { entry = entry, result = result, raw = raw } end
+    end
+    return list
+end
+
+-- { { entry, result } } for the watched tracking (0 or 1, see SetWatched): ACTIVE / MISSING (wrong = another one
+-- is on) / UNKNOWN from Tracking.Evaluate. Some clients also show tracking as a buff: that counts as ACTIVE.
+function Watch.Tracking(db)
+    local list, now = {}, GetTime()
+    local read = Watch.trackingRead or { list = {} }
+    local helpful = Watch.info.player and Watch.info.player.helpful or {}
+    for _, entry in ipairs(Watch.entries.tracking) do
+        local asBuff = not Watch.testMode and Auras.Evaluate(entry, helpful, now, db).state == "ACTIVE"
+        list[#list + 1] = { entry = entry, result = Tracking.Evaluate(entry, read, asBuff) }
     end
     return list
 end

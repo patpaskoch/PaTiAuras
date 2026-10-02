@@ -15,8 +15,10 @@ SpellBook.lua
 Auras.lua
 AuraScan.lua
 WeaponImbues.lua
+Tracking.lua
 Profiles\Shaman.lua
 Profiles\Priest.lua
+Profiles\Tracking.lua
 Watch.lua
 AuraWindow.lua
 PaTiAuras.lua

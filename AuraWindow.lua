@@ -190,7 +190,9 @@ local function lineTooltip(item, button)
     if entry.category == "weapon" and entry.spellID then
         tip[#tip + 1] = L.TIP_WEAPON_SLOT:format(L[entry.slot == "OFFHAND" and "OFF_HAND" or "MAIN_HAND"])
     end
-    if result.wrong then tip[#tip + 1] = L.TIP_OTHER_IMBUE end
+    if result.wrong then
+        tip[#tip + 1] = entry.category == "tracking" and L.TIP_OTHER_TRACKING or L.TIP_OTHER_IMBUE
+    end
     local combat = InCombatLockdown()
     local actions = combat and (button and button.boundActions or {}) or lineActions(item)
     if actions.cast then tip[#tip + 1] = L.TIP_CLICK_CAST:format(actions.cast) end
@@ -244,6 +246,7 @@ local function clickRows(db)
     end
     section("SECTION_WEAPON", Watch.Weapon(db))
     section("SECTION_SELF", Watch.Self(db))
+    section("SECTION_TRACKING", Watch.Tracking(db))
     if InCombatLockdown() and frozenRows then return Auras.MergeRows(frozenRows, rows) end
     frozenRows = rows
     return rows

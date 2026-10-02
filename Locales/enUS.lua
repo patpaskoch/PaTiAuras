@@ -65,3 +65,6 @@ L.TIP_COMBAT_CLICK_FIXED = "In combat the click stays as it was when combat star
 L.TIP_OTHER_IMBUE = "Another weapon imbue is on this weapon."
 L.TIP_WEAPON_SLOT = "%s · weapon imbue"
 L.TIP_RIGHT_CANCEL = "Right-click: remove %s from yourself."
+L.WATCH_TRACKING = "Tracking"
+L.SECTION_TRACKING = "Tracking"
+L.TIP_OTHER_TRACKING = "Another tracking is on."

@@ -194,6 +194,20 @@ Rechtsklick entfernt einen aktiven Buff
 - [ ] PT-AURAS-168 Kein Lua-Fehler, kein `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`, `taint.log` ohne
   PaTiAuras-Eintrag
 
+## Aufspüren (Berufe)
+
+- [ ] PT-AURAS-170 `/pa auras` mit und ohne Kräutersuche: Zeile „Tracking API …“ und die Liste zeigen, was der
+  Client meldet (beide Ausgaben melden); Zeile `tracking FIND_HERBS id=2383` mit richtigem Namen
+- [ ] PT-AURAS-171 Beobachten zeigt unter „Aufspüren“ nur die gelernten Zauber (z. B. Kräutersuche, Mineraliensuche)
+- [ ] PT-AURAS-172 Kräutersuche gewählt, nicht aktiv: Zeile „Kräutersuche – Fehlt“; Linksklick wirkt sie, danach
+  „Aktiv“; ein Klick = ein Cast
+- [ ] PT-AURAS-173 Mineraliensuche aktiv, Kräutersuche gewählt: „Fehlt“ mit Hinweis „anderes Aufspüren“ (kein
+  automatisches Umschalten)
+- [ ] PT-AURAS-174 Nur ein Aufspüren wählbar: Mineraliensuche anwählen wählt Kräutersuche ab; erneut anklicken →
+  keins; bleibt nach `/reload`
+- [ ] PT-AURAS-175 Mit PaTiAlerts: gewähltes Aufspüren fehlt → Warnung; aktiv → weg; Unbekannt → keine
+- [ ] PT-AURAS-176 Kein Lua-Fehler, kein `ADDON_ACTION_BLOCKED`; im Kampf wie die anderen Klickzeilen
+
 ## Personal (Selbst)
 
 - [ ] PT-AURAS-060 Schamane: Wasserschild ACTIVE mit Restzeit und Aufladungen
