@@ -32,13 +32,16 @@ Config.OLD_WEAPON_SLOTS = { MAIN_HAND_IMBUE = "MAINHAND", OFF_HAND_IMBUE = "OFFH
 -- profile: your class profile (Watch.ClassProfile) — schema 1 → 2 turns a switched-off category into
 -- watch[key] = false for each of its entries (once), so nothing the player had hidden comes back.
 function Config.Migrate(db, profile)
-    db = db or {}
+    if type(db) ~= "table" then db = {} end -- nil or a broken save (string, number …): start fresh
     for key, value in pairs(Config.DEFAULTS) do
         if db[key] == nil then db[key] = value end
     end
+    -- A broken scale would make SetScale fail on login: only a sane number is kept (saved values elsewhere stay).
+    if type(db.scale) ~= "number" or db.scale < 0.5 or db.scale > 2 then db.scale = Config.DEFAULTS.scale end
     if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
     if type(db.watch) ~= "table" then db.watch = {} end
-    if db.seen == nil then db.seen = {} end -- aura keys already offered in the "new auras" dialog
+    if type(db.seen) ~= "table" then db.seen = {} end -- aura keys already offered in the "new auras" dialog
+    if type(db.schema) ~= "number" then db.schema = nil end -- a broken schema counts as "before schema 2"
     if (db.schema or 1) < 2 then
         for category, setting in pairs(Config.OLD_CATEGORY_SETTINGS) do
             if db[setting] == false then
