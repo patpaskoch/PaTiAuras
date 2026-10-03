@@ -84,8 +84,7 @@ for index = 1, MAX_GROUP_BUFFS do
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5) -- above the (lazily created) line frames
     local highlight = button:CreateTexture(nil, "HIGHLIGHT") -- hover only while enabled
     highlight:SetAllPoints()
-    local r, g, b = UI.Color("Accent")
-    highlight:SetColorTexture(r, g, b, 0.12)
+    UI.Paint(highlight, "SetColorTexture", "Accent", 0.12)
     UI.SetTooltip(button, function() return button.tooltipLines end)
     button:Hide()
     buffButtons[index] = button
@@ -104,8 +103,7 @@ for index = 1, MAX_LINE_BUTTONS do
     button:SetFrameLevel((window:GetFrameLevel() or 0) + 5)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints()
-    local r, g, b = UI.Color("Accent")
-    highlight:SetColorTexture(r, g, b, 0.12)
+    UI.Paint(highlight, "SetColorTexture", "Accent", 0.12)
     UI.SetTooltip(button, function() return button.tooltipLines end)
     button:Hide()
     lineButtons[index] = button

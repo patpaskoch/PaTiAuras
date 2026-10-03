@@ -14,6 +14,7 @@ function Window:Attach(db, defaultX, defaultY)
     self:ClearAllPoints()
     local point, relativePoint, x, y = UI.WindowPosition(db, defaultX, defaultY) -- a broken save cannot break SetPoint
     self:SetPoint(point, UIParent, relativePoint, x, y)
+    self:ApplyTheme() -- this addon's saved theme (db.theme), before the opacity that depends on its colours
     self:ApplyOpacity()
     self:PaintMenuButton()
 end
@@ -23,6 +24,21 @@ end
 function Window:ApplyOpacity()
     local r, g, b, a = UI.Color("Background")
     self:SetBackdropColor(r, g, b, a * UI.ClampOpacity(self.db and self.db.opacity))
+end
+
+-- This addon's theme from db.theme (invalid → default; written back so the save stays clean).
+function Window:ApplyTheme()
+    if not self.db then return end
+    self.db.theme = UI.SetTheme(self.db.theme)
+end
+
+-- For the optional PaTiSuite control panel: switch this addon to theme `id`. The addon stores it itself in its own
+-- db.theme (PaTiSuite never writes another addon's SavedVariables). Returns false before the addon has loaded its DB.
+function Window:SetSuiteTheme(id)
+    if not self.db then return false end
+    self.db.theme = UI.ResolveTheme(id)
+    self:ApplyTheme()
+    return true
 end
 
 -- For the optional PaTiSuite control panel. The addon may set window.suiteSetShown(shown) → true / false (blocked,
@@ -101,7 +117,7 @@ function UI.CreateWindow(name, title, width, height)
     local headerBackground = header:CreateTexture(nil, "BACKGROUND")
     headerBackground:SetPoint("TOPLEFT", UI.Sizes.Border, -UI.Sizes.Border)
     headerBackground:SetPoint("BOTTOMRIGHT", -UI.Sizes.Border, 0)
-    headerBackground:SetColorTexture(UI.Color("Background"))
+    UI.Paint(headerBackground, "SetColorTexture", "Background")
     header:RegisterForDrag("LeftButton")
     -- Windows with secure children cannot be moved in combat; display-only ones may opt in (SetCombatMovable).
     header:SetScript("OnDragStart", function()
@@ -118,7 +134,7 @@ function UI.CreateWindow(name, title, width, height)
 
     local titleText = header:CreateFontString(nil, "OVERLAY", UI.WindowHeader.TitleFont)
     titleText:SetPoint("LEFT", UI.Spacing.MD, 0)
-    titleText:SetTextColor(UI.Color(UI.WindowHeader.TitleColor))
+    UI.Paint(titleText, "SetTextColor", UI.WindowHeader.TitleColor)
     titleText:SetAlpha(UI.WindowHeader.TitleAlpha) -- the TEST badge is its own frame: it stays fully visible
     UI.BindText(titleText, title)
     window.title = titleText
@@ -128,7 +144,7 @@ function UI.CreateWindow(name, title, width, height)
     more:SetPoint("RIGHT", -UI.Spacing.XS, 0)
     more.hover = more:CreateTexture(nil, "BACKGROUND")
     more.hover:SetAllPoints()
-    more.hover:SetColorTexture(UI.Color("PanelHover"))
+    UI.Paint(more.hover, "SetColorTexture", "PanelHover")
     more.dots = {}
     for offset = -1, 1 do
         local dot = more:CreateTexture(nil, "ARTWORK")
@@ -144,6 +160,11 @@ function UI.CreateWindow(name, title, width, height)
     end)
     UI.SetTooltip(more, "MORE")
     window.menuButton = more
+    -- Theme change: the body colour carries the panel opacity, the ••• dots their hover state.
+    UI.OnThemeChanged(function()
+        window:ApplyOpacity()
+        window:PaintMenuButton(window.menuButton:IsMouseOver())
+    end)
     window:PaintMenuButton()
     UI.RegisterWindow(window) -- the addon's main window (one per addon)
     return window

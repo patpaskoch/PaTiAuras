@@ -18,7 +18,7 @@ function UI.CreateDropdown(parent, width, options)
     dropdown.arrow:SetSize(12, 12)
     dropdown.arrow:SetPoint("RIGHT", -UI.Spacing.MD, 0)
     local arrowLines = { UI.Line(dropdown.arrow, 6, -45, -2, 0), UI.Line(dropdown.arrow, 6, 45, 2, 0) }
-    for _, line in ipairs(arrowLines) do line:SetColorTexture(UI.Color("TextMuted")) end
+    for _, line in ipairs(arrowLines) do UI.Paint(line, "SetColorTexture", "TextMuted") end
 
     function dropdown:LayoutLabel(dx, dy)
         local left = UI.Spacing.MD
@@ -44,6 +44,8 @@ function UI.CreateDropdown(parent, width, options)
         self.label:SetTextColor(UI.Color(selected and self:IsEnabled() and "Text" or "TextMuted"))
         self:LayoutLabel(0, 0)
     end
+
+    UI.OnThemeChanged(function() dropdown:Refresh() end) -- label colour (after the button repaint)
 
     dropdown:SetScript("OnClick", function(self)
         local current = self.options.get()

@@ -4,6 +4,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Themes (owner wish 2026-10-03): Settings → Window → Theme — Default (the PaTi look as before), WoForever (warm brown, gold/bronze) or Dracula (dark, purple/pink/cyan accents). Colours only; layout, secure buttons and behaviour are unchanged. Saved per character in this addon (`theme`, unknown values → Default); Restore Defaults returns to Default. PaTiSuite can switch all PaTi windows at once.
 - Settings → Display → **Category layout**: Vertical (stacked, default — unchanged for existing installs) or
   Horizontal (GROUP, WEAPON, SELF, TRACKING as columns side by side; the entries inside a column stay vertical).
   Columns share one width, wide enough for long names (up to 320 px, then "…"), and wrap into a second row when the

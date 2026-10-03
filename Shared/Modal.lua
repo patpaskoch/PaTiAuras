@@ -12,7 +12,7 @@ function Modal:AddSection(text)
     self.sections = self.sections + 1
     local label = self:CreateFontString(nil, "OVERLAY", UI.Fonts.Label)
     label:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
-    label:SetTextColor(UI.Color("TextMuted"))
+    UI.Paint(label, "SetTextColor", "TextMuted")
     UI.BindText(label, function() return string.upper(UI.Text(text) or "") end)
     self.cursor = self.cursor - SECTION_HEIGHT - UI.Spacing.SM
     return label
@@ -27,7 +27,7 @@ function Modal:AddRow(text, control)
     label:SetPoint("RIGHT", control, "LEFT", -UI.Spacing.MD, 0)
     label:SetJustifyH("LEFT")
     label:SetWordWrap(false)
-    label:SetTextColor(UI.Color("Text"))
+    UI.Paint(label, "SetTextColor", "Text")
     UI.BindText(label, text)
     self.cursor = self.cursor - height - UI.Spacing.SM
     return label
@@ -73,17 +73,17 @@ function Modal:AddNote(title, highlight, text, minLines)
     note:SetWidth(width)
     local background = note:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints()
-    background:SetColorTexture(UI.Color("PanelHover"))
+    UI.Paint(background, "SetColorTexture", "PanelHover")
     local accent = note:CreateTexture(nil, "ARTWORK")
     accent:SetPoint("TOPLEFT")
     accent:SetPoint("BOTTOMLEFT")
     accent:SetWidth(2)
-    accent:SetColorTexture(UI.Color("Accent"))
+    UI.Paint(accent, "SetColorTexture", "Accent")
 
     local left = 2 + UI.Spacing.MD
     local heading = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
     heading:SetPoint("TOPLEFT", left, -UI.Spacing.MD)
-    heading:SetTextColor(UI.Color("Text"))
+    UI.Paint(heading, "SetTextColor", "Text")
     UI.BindText(heading, title)
     local anchor, height = heading, UI.Spacing.MD + 14
     if highlight then
@@ -91,7 +91,7 @@ function Modal:AddNote(title, highlight, text, minLines)
         path:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
         path:SetWidth(inner)
         path:SetJustifyH("LEFT")
-        path:SetTextColor(UI.Color("Accent"))
+        UI.Paint(path, "SetTextColor", "Accent")
         UI.BindText(path, highlight)
         anchor, height = path, height + UI.Spacing.SM + 14
     end
@@ -100,7 +100,7 @@ function Modal:AddNote(title, highlight, text, minLines)
     body:SetWidth(inner)
     body:SetJustifyH("LEFT")
     body:SetWordWrap(true)
-    body:SetTextColor(UI.Color("TextMuted"))
+    UI.Paint(body, "SetTextColor", "TextMuted")
     UI.BindText(body, text)
     local bodyHeight = math.max(body:GetStringHeight() or 0, (minLines or 1) * NOTE_LINE)
     height = height + UI.Spacing.SM + bodyHeight + UI.Spacing.MD
@@ -116,7 +116,7 @@ function Modal:Finish(onDefaults)
     divider:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
     divider:SetPoint("TOPRIGHT", -UI.Spacing.LG, self.cursor)
     divider:SetHeight(1)
-    divider:SetColorTexture(UI.Color("Border"))
+    UI.Paint(divider, "SetColorTexture", "Border")
 
     local close = UI.CreateButton(self, "CLOSE", nil, function() self:Hide() end)
     close:SetPoint("BOTTOMRIGHT", -UI.Spacing.LG, UI.Spacing.LG)
@@ -174,22 +174,35 @@ function UI.CreateModal(name, title, width)
     close:SetScript("OnClick", function() modal:Hide() end)
     UI.SetTooltip(close, "CLOSE")
     paintClose(false)
+    UI.OnThemeChanged(function() paintClose(close:IsMouseOver()) end)
 
     local divider = modal:CreateTexture(nil, "BORDER")
     divider:SetPoint("TOPLEFT", 1, -headerHeight)
     divider:SetPoint("TOPRIGHT", -1, -headerHeight)
     divider:SetHeight(1)
-    divider:SetColorTexture(UI.Color("Border"))
+    UI.Paint(divider, "SetColorTexture", "Border")
 
     modal.sections = 0
     modal.cursor = -headerHeight - UI.Spacing.LG
     return modal
 end
 
--- The window setting every PaTi addon offers: panel opacity (db.opacity).
+-- The window settings every PaTi addon offers: theme (db.theme) and panel opacity (db.opacity).
 -- window: a UI.CreateWindow window after Attach (uses window.db). Call inside the settings modal build.
-function UI.AddWindowSettings(modal, window, width)
+-- onThemeChosen(id) (optional): called after the player picked a theme here (PaTiSuite passes it on to all windows).
+function UI.AddWindowSettings(modal, window, width, onThemeChosen)
     modal:AddSection("WINDOW")
+    local themes = {}
+    for _, id in ipairs(UI.THEME_ORDER) do themes[#themes + 1] = { value = id, text = "THEME_" .. id:upper() } end
+    modal:AddRow("THEME", UI.CreateDropdown(modal, width or 170, {
+        items = function() return themes end,
+        get = function() return UI.ResolveTheme(window.db.theme) end,
+        set = function(id)
+            window.db.theme = id
+            window:ApplyTheme()
+            if onThemeChosen then onThemeChosen(id) end
+        end,
+    }))
     local items = {}
     for _, value in ipairs(UI.OPACITY_STEPS) do
         items[#items + 1] = { value = value, text = function() return ("%d %%"):format(value * 100 + 0.5) end }

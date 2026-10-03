@@ -38,6 +38,7 @@ function UI.StyleButton(button, text, width)
 
     button:SetScript("OnEnter", function(self) paint(self, true) end)
     button:SetScript("OnLeave", function(self) paint(self, false) end)
+    UI.OnThemeChanged(function() paint(button, button:IsMouseOver()) end) -- hover state colours follow the theme
     button:SetScript("OnEnable", function(self) paint(self, self:IsMouseOver()) end)
     button:SetScript("OnDisable", function(self) paint(self, false); self:LayoutLabel(0, 0) end)
     button:SetScript("OnMouseDown", function(self) if self:IsEnabled() then self:LayoutLabel(1, -1) end end)

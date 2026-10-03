@@ -9,6 +9,7 @@ Config.SCALES = { 0.8, 0.9, 1, 1.1, 1.25, 1.5 }
 -- Position (point, relativePoint, x, y) is written by the PaTiShared window, not listed here.
 Config.DEFAULTS = {
     opacity = 0.75, -- panel body opacity (PaTiShared window; 0.3–1)
+    theme = "default", -- "default" | "woforever" | "dracula" (PaTiShared UI.THEMES; colours only)
     enabled = true,
     collapsed = false,
     locked = false,
@@ -38,6 +39,8 @@ function Config.Migrate(db, profile)
     end
     -- A broken scale would make SetScale fail on login: only a sane number is kept (saved values elsewhere stay).
     if type(db.scale) ~= "number" or db.scale < 0.5 or db.scale > 2 then db.scale = Config.DEFAULTS.scale end
+    -- Theme: one of the three PaTiShared themes; a typo or an old value falls back to the default look.
+    if db.theme ~= "default" and db.theme ~= "woforever" and db.theme ~= "dracula" then db.theme = "default" end
     if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
     if type(db.watch) ~= "table" then db.watch = {} end
     if type(db.seen) ~= "table" then db.seen = {} end -- aura keys already offered in the "new auras" dialog
