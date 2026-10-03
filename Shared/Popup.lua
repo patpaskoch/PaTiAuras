@@ -78,6 +78,11 @@ end
 -- { text, icon?, checked?, disabled?, tooltip?, onClick(item), keepOpen?, header? }.
 -- keepOpen: the click toggles and the popup stays open (multi-select lists). header: a muted, not clickable title.
 -- align "RIGHT" (menu, opens leftwards) or "LEFT" (dropdown). Clicking the same anchor again closes.
+-- An open popup repaints its state colours (labels, dots) after a theme change; static parts use UI.Paint.
+UI.OnThemeChanged(function()
+    if popup and popup:IsShown() and popup.render then popup.render() end
+end)
+
 local render
 function UI.ShowPopup(anchor, items, minWidth, align)
     if not popup then createPopup() end
