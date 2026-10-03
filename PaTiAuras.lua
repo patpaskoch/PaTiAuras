@@ -17,6 +17,8 @@ end
 
 local function isSecret(value) return issecretvalue ~= nil and issecretvalue(value) == true end
 
+local alertsError -- last error PaTiAlerts raised in Sync (diagnostics only)
+
 -- PaTiAlerts is optional (AGENTS.md §3): report only if it is installed with API version 1, never depend on it.
 -- Sent: your watched personal buffs and weapon imbues that are missing or expiring (Auras.Alerts) and your watched
 -- group buffs that a living, online member lacks (Auras.GroupAlerts, one line per buff); pcall so a problem
@@ -36,7 +38,8 @@ local function reportAlerts()
             missingOn = L.ALERT_GROUP_MISSING }, DB.showMissing, isSecret)
         for _, alert in ipairs(groupAlerts) do list[#list + 1] = alert end
     end
-    pcall(api.Sync, "PaTiAuras", list)
+    local ok, err = pcall(api.Sync, "PaTiAuras", list)
+    if not ok then alertsError = tostring(err):sub(1, 120) end -- /pa debug only; PaTiAuras keeps running
 end
 
 -- After every redraw (events and the 0.5 s timer redraw), so "expiring" reaches PaTiAlerts in time.
@@ -302,6 +305,8 @@ local function printDebug()
             counts.tracking, clickable, AuraWindow.HasPendingSecure() and "yes" or "no"),
         ("APIs: auras %s · issecretvalue %s · spellbook %s"):format(ns.AuraScan.ApiName(), issecretvalue and "yes" or "no",
             Spells.Rescan() and "ok" or "unreadable"),
+        ("Last caught errors: aura read %s · PaTiAlerts %s"):format(ns.AuraScan.lastError or "none",
+            alertsError or "none"),
         ("Weapon watch (nil = default on, false = off): %s"):format(weaponWatchText()),
         unpack(ns.WeaponImbues.Describe(GetTime(), DB, false, Watch.Weapon(DB))),
     })
