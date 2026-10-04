@@ -168,7 +168,8 @@ local function applySecure(groupList, groupLines, clickLines)
     securePending = false
 end
 
-local STATE_COLOR = { ACTIVE = "Text", EXPIRING = "Warning", MISSING = "TextMuted", UNKNOWN = "TextMuted" }
+-- MISSING in red (owner wish 2026-10-04): a missing buff or weapon imbue is the line to act on.
+local STATE_COLOR = { ACTIVE = "Text", EXPIRING = "Warning", MISSING = "Danger", UNKNOWN = "TextMuted" }
 
 local function detail(entry, result)
     local list = { entry.name, L.TIP_STATUS:format(L["STATUS_" .. result.state]) }

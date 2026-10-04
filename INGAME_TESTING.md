@@ -145,21 +145,32 @@ Einstellungen
   der Dialog „Neue Auren“ nach Felsbeißer
 
 Anzeige
-- [ ] PT-AURAS-144 Felsbeißer fehlt: Zeile „Waffe des Felsbeißers – Fehlt“ direkt unter den Gruppenbuffs, keine
+- [x] PT-AURAS-144 Felsbeißer fehlt: Zeile „Waffe des Felsbeißers – Fehlt“ direkt unter den Gruppenbuffs, keine
   „Waffenhand – Fehlt“-Zeile
+  - ✅ VERIFIED 2026-10-04
+  - Owner: die Zeile „Waffe des Felsbeißers – Fehlt“ erscheint so. Wunsch: „Fehlt“ rot → PT-AURAS-200
+- [ ] PT-AURAS-200 „Fehlt“ (Waffe, eigene Buffs, Tracking) steht rot statt grau, in allen drei Themes gut lesbar
+  - 🔧 FIX IMPLEMENTED 2026-10-04 (Owner-Wunsch: Fehlt rot)
+  - MANUAL RETEST REQUIRED
 - [ ] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
+  - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
 - [ ] PT-AURAS-146 Ein anderer Waffenbuff (z. B. Flammenzunge) zählt nicht als Felsbeißer: Anzeige „Unbekannt“
   (nicht „Aktiv“); `/pa auras` zeigt dessen enchantID
 - [ ] PT-AURAS-147 Höherer Rang von Felsbeißer: bleibt „Aktiv“ oder zeigt „Unbekannt“ — dann enchantID aus
   `/pa auras` melden (bisher nur ID 29 beobachtet)
 
 Klick zum Wirken
-- [ ] PT-AURAS-150 Felsbeißer fehlt: Hover hellt die Zeile auf, Tooltip „Klicken, um Waffe des Felsbeißers zu wirken.“
-- [ ] PT-AURAS-151 Klick auf die fehlende Zeile wirkt Felsbeißer auf die eigene Waffe (ein Klick = ein Cast),
+- [x] PT-AURAS-150 Felsbeißer fehlt: Hover hellt die Zeile auf, Tooltip „Klicken, um Waffe des Felsbeißers zu wirken.“
+  - ✅ VERIFIED 2026-10-04
+  - Owner: Hover und Tooltip passen so.
+- [x] PT-AURAS-151 Klick auf die fehlende Zeile wirkt Felsbeißer auf die eigene Waffe (ein Klick = ein Cast),
   danach „Aktiv“ mit Restzeit; das Ziel ändert sich nicht
+  - ✅ VERIFIED 2026-10-04
+  - Owner: Klick wirkt Felsbeißer; danach steht die Restzeit (statt des Worts „Aktiv“), das Icon ist farbig.
 - [ ] PT-AURAS-152 Aktiv oder Unbekannt: kein Klick-Hinweis, ein Klick wirkt nichts
 - [ ] PT-AURAS-153 Kein Lua-Fehler, kein `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`, `taint.log` ohne
   PaTiAuras-Eintrag
+  - Owner 2026-10-04: keine Fehlermeldung, kein `ADDON_ACTION_BLOCKED`. Noch offen: `taint.log` geprüft.
 - [ ] PT-AURAS-154 Im Kampf: der Klick bleibt wie bei Kampfbeginn (Tooltip sagt es); Beobachten, „Aktiviert“ und
   „Fehlende anzeigen“ sind im Kampf gesperrt mit Hinweis
 - [ ] PT-AURAS-155 Nach `/reload` funktioniert der Klick weiter
