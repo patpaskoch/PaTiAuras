@@ -149,11 +149,15 @@ Anzeige
   „Waffenhand – Fehlt“-Zeile
   - ✅ VERIFIED 2026-10-04
   - Owner: die Zeile „Waffe des Felsbeißers – Fehlt“ erscheint so. Wunsch: „Fehlt“ rot → PT-AURAS-200
-- [ ] PT-AURAS-200 „Fehlt“ (Waffe, eigene Buffs, Tracking) steht rot statt grau, in allen drei Themes gut lesbar
+- [x] PT-AURAS-200 „Fehlt“ (Waffe, eigene Buffs, Tracking) steht rot statt grau, in allen drei Themes gut lesbar
   - 🔧 FIX IMPLEMENTED 2026-10-04 (Owner-Wunsch: Fehlt rot)
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
+  - ✅ VERIFIED 2026-10-04
+  - Owner: „Fehlt“ in Rot passt.
+- [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
+  - ✅ VERIFIED 2026-10-04
+  - Owner: Tooltip „Waffenhand · Waffenbuff“ steht dort.
 - [ ] PT-AURAS-146 Ein anderer Waffenbuff (z. B. Flammenzunge) zählt nicht als Felsbeißer: Anzeige „Unbekannt“
   (nicht „Aktiv“); `/pa auras` zeigt dessen enchantID
 - [ ] PT-AURAS-147 Höherer Rang von Felsbeißer: bleibt „Aktiv“ oder zeigt „Unbekannt“ — dann enchantID aus
