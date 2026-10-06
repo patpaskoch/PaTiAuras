@@ -412,7 +412,7 @@ describe("Watch.Choices (settings: what to watch)", function()
 end)
 
 describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
-    local function selfKeys(ns, db)
+    local function selfKeys(ns)
         local keys = {}
         for _, entry in ipairs(ns.Watch.entries.personal) do keys[#keys + 1] = entry.key end
         return keys
@@ -422,7 +422,7 @@ describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
         local ns, db = setup("SHAMAN", { [24398] = true, [324] = true })
         db.watch.WATER_SHIELD = false
         ns.Watch.Rebuild(db)
-        assert.same({ "LIGHTNING_SHIELD" }, selfKeys(ns, db))
+        assert.same({ "LIGHTNING_SHIELD" }, selfKeys(ns))
         assert.same({ 324 }, ns.Watch.OwnIDs(db, ns.Watch.ClassProfile()))
     end)
 
@@ -430,7 +430,7 @@ describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
         local ns, db = setup("SHAMAN", { [324] = true })
         db.ownBuffs = ns.Config.OwnSlots({ 588, 0, 324 })
         ns.Watch.Rebuild(db)
-        assert.same({ "OWN:588", "LIGHTNING_SHIELD" }, selfKeys(ns, db))
+        assert.same({ "OWN:588", "LIGHTNING_SHIELD" }, selfKeys(ns))
         local own = ns.Watch.entries.personal[1]
         assert.is_true(own.castable)
         assert.is_nil(own.mine) -- a buff on you counts, whoever cast it
@@ -440,7 +440,7 @@ describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
         local ns, db = setup("SHAMAN", { [24398] = true })
         db.ownBuffs = ns.Config.OwnSlots({ 0, 123456 })
         ns.Watch.Rebuild(db)
-        assert.same({}, selfKeys(ns, db))
+        assert.same({}, selfKeys(ns))
     end)
 
     it("a missing own buff is reported as missing and its line casts it", function()
