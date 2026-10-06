@@ -200,6 +200,10 @@ Anzeige
   Lua-Fehler, kein `ADDON_ACTION_BLOCKED`
   - 🔧 FIX IMPLEMENTED 2026-10-06
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-211 „Meine Auras“: Hilfe oben als kurze Liste mit hervorgehobenen Stichworten (Hinzufügen, Sortieren,
+  Entfernen, Proc, Waffen-Buff, Fehlt); nichts abgeschnitten, gut lesbar in allen drei Themes
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: Liste statt langem Text)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

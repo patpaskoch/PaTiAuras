@@ -203,9 +203,23 @@ local function slotRow(parent, slot)
     return row
 end
 
+-- The help above the list (owner 2026-10-06): short lines, each with its keyword highlighted, instead of a
+-- paragraph. FontStrings have no bold, so the keyword gets the normal text colour on the muted body.
+local HELP = { "ADD", "SORT", "CLEAR", "PROC", "IMBUE", "MISSING" }
+local function helpText()
+    local r, g, b = UI.Color("Text")
+    local color = ("|cff%02x%02x%02x"):format(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255))
+    local lines = {}
+    for _, key in ipairs(HELP) do
+        lines[#lines + 1] = ("• %s%s:|r %s"):format(color, L["OWN_HELP_" .. key .. "_KEY"], L["OWN_HELP_" .. key])
+    end
+    return table.concat(lines, "
+")
+end
+
 local function build()
     modal = UI.CreateModal("PaTiAurasOwnBuffs", "OWN_BUFFS", 440)
-    modal:AddNote("OWN_BUFFS_TITLE", nil, "OWN_BUFFS_TEXT", 4)
+    modal:AddNote("OWN_BUFFS_TITLE", nil, helpText, #HELP + 1)
     modal.cursor = modal.cursor - UI.Spacing.MD -- breathing room between the note and the list (as in PaTiRota)
     for slot = 1, Config.OWN_SLOTS do
         slotRows[slot] = slotRow(modal, slot)
