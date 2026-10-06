@@ -204,6 +204,10 @@ Anzeige
   Entfernen, Proc, Waffen-Buff, Fehlt); nichts abgeschnitten, gut lesbar in allen drei Themes
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: Liste statt langem Text)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-212 Einstellungen und „Meine Auras“ lassen sich an der Titelleiste verschieben; Zauberbuch öffnen lässt
+  beide offen (Zauber hineinziehen geht); ESC und X schließen sie weiter (PaTiShared, gilt für alle Addons)
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner: Modal nicht verschiebbar, verschwindet beim Zauberbuch)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
