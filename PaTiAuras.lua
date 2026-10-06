@@ -219,8 +219,8 @@ local function promptNewAuras()
     newAurasWaiting = false
     local profile, offered = Watch.ClassProfile(), {}
     for _, category in ipairs(Watch.CATEGORIES) do
-        -- Own buffs have their own list (settings): never offered here.
-        for _, def in ipairs(category ~= "personal" and profile and profile[category] or {}) do
+        -- Only group buffs: everything on yourself is in "My auras" (settings), never offered here.
+        for _, def in ipairs(category == "group" and profile and profile[category] or {}) do
             if Watch.IsOffered(def, category) then offered[#offered + 1] = def end
         end
     end
