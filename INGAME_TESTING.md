@@ -170,6 +170,12 @@ Anzeige
   Klick auf fehlendes Aufspüren wirkt es wie vorher; beide Layouts (vertikal/horizontal) ohne Überlappung
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: kürzere Liste)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-204 Eigene Buffs: Einstellungen → Beobachten → „Eigene Buffs (n) …“ öffnet die Liste; vorher beobachtete
+  Schilde stehen schon drin; Zauber eintippen (Name/ID + Enter) oder aus dem Zauberbuch ziehen; Pfeile und Griff ≡
+  sortieren; der Buff erscheint unter „Selbst“ in der Listen-Reihenfolge; fehlend = rot, Linksklick wirkt ihn;
+  leeren entfernt ihn; im Kampf gesperrt mit Hinweis; bleibt nach `/reload`; kein Lua-Fehler
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: eigene Liste statt festem Profil, Schritt 1)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

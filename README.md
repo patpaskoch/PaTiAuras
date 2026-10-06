@@ -8,7 +8,9 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
 > Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
 
 ## Features
-- **Self:** your buffs (e.g. Water Shield, Lightning Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active.
+- **Self:** the buffs on your own list (Settings → Watch → Own buffs: type a name or ID or drag spells from your
+  spellbook, sort with arrows or the ≡ grip) with time and charges; until you edit the list, your class's known self
+  buffs (e.g. Water Shield, Lightning Shield, Inner Fire). Procs (e.g. Tidal Waves) while active.
   Right-click an active buff or proc line to remove it from yourself (one click, never by itself; weapon imbues
   cannot be removed this way in the Forever client)
 - **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo
@@ -67,7 +69,8 @@ Each one is installed on its own and works on its own; none of them is needed by
 - **General:** on/off, language, scale, window lock
 - **Display:** category layout (vertical = stacked, the default; horizontal = one column per category, the
   entries inside a column stay one below the other), timers, charges, missing, expiring
-- **Watch:** one button opens the list of everything your character can watch (self, procs, weapon, tracking, group)
+- **Watch:** "Own buffs (n) …" opens your own buff list; the second button opens everything else your character
+  can watch (procs, weapon, tracking, group)
   — tick what you want to see
 - **Window:** panel opacity (30–100 %)
 
