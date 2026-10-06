@@ -217,46 +217,25 @@ function Auras.MergeRows(frozen, current)
     return out
 end
 
--- Category layout (owner wish 2026-10-02) ---------------------------------------------------------
--- "vertical": everything in one column, exactly the line order of before. "horizontal": every category (GROUP,
--- WEAPON, SELF, TRACKING) is its own column, side by side; the lines inside a column stay vertical.
-Auras.CATEGORY_LAYOUTS = { "vertical", "horizontal" }
-
--- Pure: where each block (one column of lines) goes. blocks = { { key, height } } in order; "vertical" stacks them,
--- "horizontal" puts them side by side (`gap` apart) and starts a new row of columns only when the next one would
--- pass maxWidth. frozen (in combat): { origins = { [key] = { x, y } }, height } of the last layout out of combat —
--- known blocks keep that origin (their secure buttons cannot move), a block that appeared in combat goes below
--- everything. Returns origins { [key] = { x, y } }, width, height (y downwards from the top of the content).
-function Auras.PlaceBlocks(blocks, layout, columnWidth, gap, maxWidth, frozen)
-    local origins, x, y, rowHeight, width, height = {}, 0, 0, 0, 0, 0
-    local below = frozen and frozen.height or 0
-    for _, block in ipairs(blocks) do
-        local origin = frozen and frozen.origins[block.key]
-        if frozen and not origin then
-            origin = { x = 0, y = below }
-            below = below + block.height
-        elseif not frozen then
-            if layout == "horizontal" then
-                if x > 0 and x + columnWidth > maxWidth then x, y, rowHeight = 0, y + rowHeight + gap, 0 end
-                origin = { x = x, y = y }
-                x = x + columnWidth + gap
-                rowHeight = math.max(rowHeight, block.height)
-            else
-                origin = { x = 0, y = y }
-                y = y + block.height
-            end
-        end
-        origins[block.key] = origin
-        width = math.max(width, origin.x + columnWidth)
-        height = math.max(height, origin.y + block.height)
-    end
-    return origins, width, height
+-- Grid (owner wish 2026-10-06) -------------------------------------------------------------------------------
+-- All lines (group buffs first, then the own list) fill a grid of 1–3 columns row by row, without headers.
+-- Pure: the column and row (0-based) of line `index`.
+function Auras.GridCell(index, columns)
+    return (index - 1) % columns, math.floor((index - 1) / columns)
 end
 
--- Pure: one width for all columns — wide enough for the widest line (naturalWidths, px), never below minWidth (the
--- vertical width) and never above maxWidth; long names beyond that end in "…" with the full name in the tooltip.
-function Auras.ColumnWidth(naturalWidths, minWidth, maxWidth)
-    local width = minWidth
-    for _, natural in ipairs(naturalWidths) do width = math.max(width, math.ceil(natural)) end
-    return math.min(width, maxWidth)
+-- Pure: content size of `count` lines in the grid. The window never gets narrower than one column of lines.
+function Auras.GridSize(count, columns, cellWidth, cellHeight, gap)
+    local used = math.max(1, math.min(count, columns))
+    local rows = math.ceil(count / columns)
+    return used * cellWidth + (used - 1) * gap, rows * cellHeight
+end
+
+-- Pure: should an own-list line be shown? settings: showMissing (false = "only active"), onlyMissing ("only
+-- missing"). Expiring always shows (about to be missing); an active proc too (it only exists while you can use it).
+function Auras.ShowOwn(item, settings)
+    local state = item.result.state
+    if state == "MISSING" then return settings.showMissing end
+    if state == "EXPIRING" or item.entry.category == "procs" then return true end
+    return not settings.onlyMissing
 end

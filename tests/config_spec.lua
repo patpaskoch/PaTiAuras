@@ -163,7 +163,8 @@ describe("Own buff list (Config.OwnSlots / SetSlot / MoveTo)", function()
         local Config = load()
         assert.is_nil(Config.Migrate({}).ownBuffs)
         local db = Config.Migrate({ ownBuffs = { 324, "x", 324, 1.5, 588 } })
-        assert.same({ 324, 0, 0, 0, 588, 0, 0, 0, 0, 0 }, db.ownBuffs)
+        assert.same(Config.OwnSlots({ 324, 0, 0, 0, 588 }), db.ownBuffs)
+        assert.equal(Config.OWN_SLOTS, #db.ownBuffs)
         assert.equal(Config.OWN_SLOTS, #Config.Migrate({ ownBuffs = "broken" }).ownBuffs)
     end)
 
@@ -176,7 +177,7 @@ describe("Own buff list (Config.OwnSlots / SetSlot / MoveTo)", function()
         assert.same(Config.OwnSlots({ 2, 1, 3 }), list)
         assert.is_false(Config.MoveTo(list, 1, 1))
         assert.is_false(Config.MoveTo(list, 1, 0)) -- arrow up from slot 1
-        assert.is_false(Config.MoveTo(list, 10, 11)) -- arrow down from the last slot
+        assert.is_false(Config.MoveTo(list, Config.OWN_SLOTS, Config.OWN_SLOTS + 1)) -- arrow down from the last slot
     end)
 
     it("Restore Defaults keeps the own list", function()

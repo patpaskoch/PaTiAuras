@@ -39,7 +39,7 @@ local function setup(class, known)
     local ns = {}
     for _, file in ipairs({ "Shared/Locales/enUS.lua", "Shared/Locale.lua", "Locales/enUS.lua", "Config.lua", "SpellBook.lua",
         "Auras.lua", "AuraScan.lua", "WeaponImbues.lua", "Tracking.lua", "Profiles/Shaman.lua", "Profiles/Priest.lua",
-        "Profiles/Tracking.lua", "Watch.lua" }) do
+        "Profiles/Tracking.lua", "OwnList.lua", "Watch.lua" }) do
         wow.loadAddonFile(file, ns)
     end
     ns.Watch.testMode = false
@@ -383,14 +383,14 @@ describe("Watch.Choices (settings: what to watch)", function()
             for _, def in ipairs(group.defs) do keys[#keys + 1] = def.key end
             groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
         end
-        assert.same({ "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, groups) -- own buffs: their own list
+        assert.same({}, groups) -- since 2026-10-06 only group buffs; everything on you is in the own list
     end)
 
     it("a low-level shaman with Lightning Shield (and no Water Shield yet) gets Lightning Shield", function()
         local ns, db = setup("SHAMAN", { [324] = true, [8017] = true })
         local keys = {}
-        for _, def in ipairs(ns.Watch.OwnDefs(db, ns.Watch.ClassProfile())) do keys[#keys + 1] = def.key end
-        assert.same({ "LIGHTNING_SHIELD" }, keys) -- own list not edited yet: the profile shields you know
+        for _, id in ipairs(ns.Watch.OwnSeed(db, ns.Watch.ClassProfile())) do keys[#keys + 1] = id end
+        assert.same({ 8017, 324, 53390 }, keys) -- not edited yet: imbue, the shield you know, procs (always)
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()
@@ -423,7 +423,7 @@ describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
         db.watch.WATER_SHIELD = false
         ns.Watch.Rebuild(db)
         assert.same({ "LIGHTNING_SHIELD" }, selfKeys(ns))
-        assert.same({ 324 }, ns.Watch.OwnIDs(db, ns.Watch.ClassProfile()))
+        assert.same({ 324, 53390 }, ns.Watch.OwnIDs(db, ns.Watch.ClassProfile())) -- Water Shield switched off
     end)
 
     it("edited: exactly the list, in its order; a profile ID keeps its entry, others get OWN:<id>", function()
@@ -606,11 +606,8 @@ describe("Profession tracking in the watch (owner 2026-10-02)", function()
         local profile = ns.Watch.ClassProfile()
         assert.equal(ns.AuraTracking, profile.tracking)
         assert.equal(ns.AuraTracking, ns.AuraProfiles.PRIEST.tracking)
-        local choices = {}
-        for _, group in ipairs(ns.Watch.Choices(profile)) do
-            if group.category == "tracking" then for _, def in ipairs(group.defs) do choices[#choices + 1] = def.key end end
-        end
-        assert.same({ "FIND_HERBS", "FIND_MINERALS" }, choices) -- treasure not learned: not offered
+        -- Not edited yet: the first learned tracking joins the own list (treasure not learned: never).
+        assert.same({ 53390, 2383 }, ns.Watch.OwnSeed(db, profile)) -- the proc is always offered
         _G.GetTrackingTexture = function() return nil end -- nothing tracked
         ns.Watch.Rebuild(db)
         ns.Watch.RefreshAll()

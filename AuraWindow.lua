@@ -1,6 +1,6 @@
--- PaTiAuras: main window. Calm sections (GROUP, WEAPON, SELF, TRACKING) of text lines with small icons.
--- The group and weapon lines carry secure click-to-buff buttons (see below); everything else is plain frames.
--- Category layout: vertical (one column, default) or horizontal (one column per category), see placeLines.
+-- PaTiAuras: main window. Text lines with small icons in a grid of 1–3 columns, no headers (owner 2026-10-06):
+-- group buffs first, then the own list in its order. Group lines and own-list lines carry secure click buttons
+-- (see below); everything else is plain frames.
 local _, ns = ...
 local UI, L, Auras, Watch, Spells = ns.UI, ns.UI.L, ns.Auras, ns.Watch, ns.Spells
 
@@ -10,8 +10,7 @@ ns.AuraWindow = AuraWindow
 local WIDTH, LINE, ICON = 230, 20, 16
 local PAD = UI.Spacing.MD
 local LINE_WIDTH = WIDTH - 2 * PAD -- one line = one column width (vertical layout: the whole window)
-local COLUMN_GAP, MAX_COLUMN_WIDTH = UI.Spacing.LG, 320 -- horizontal layout: space between columns, widest column
-local SCREEN_SHARE = 0.9 -- horizontal: the columns may use this share of the screen width before they wrap
+local CELL_WIDTH, GRID_GAP = 160, UI.Spacing.LG -- grid of 2–3 columns: width of one line, space between columns
 local VALUE_SPACE = 60 -- right part of an entry line reserved for its value (time, "4 / 5", status)
 local TICK_SECONDS = 0.5 -- timer texts only; state changes come from UNIT_AURA
 
@@ -111,7 +110,7 @@ end
 -- Auras.LineActions: left-click casts a missing weapon imbue, right-click removes an active own buff, proc or imbue.
 -- Armed only out of combat; lines without an action get no button. In combat the buttons keep what they had when
 -- combat started, and the lines keep their order (Auras.MergeRows), so a button never sits over another line.
-local MAX_LINE_BUTTONS = 8
+local MAX_LINE_BUTTONS = 12 -- one per own-list slot (Config.OWN_SLOTS)
 local lineButtons = {}
 for index = 1, MAX_LINE_BUTTONS do
     local button = CreateFrame("Button", "PaTiAurasLine" .. index, window, "SecureActionButtonTemplate")
@@ -240,114 +239,88 @@ local function groupTooltip(item, button)
     return tip
 end
 
--- The WEAPON and SELF lines, rows { header = key } / { key, section, item }. Out of combat: what is watched and shown
--- now (remembered); in combat: the remembered lines in the same order (Auras.MergeRows) — their secure buttons
--- cannot move until combat ends.
+-- The own-list lines in list order, rows { key, item } (Auras.ShowOwn decides what shows). Out of combat: what is
+-- shown now (remembered); in combat: the remembered lines in the same order (Auras.MergeRows) — their secure
+-- buttons cannot move until combat ends.
 local frozenRows
-local function clickRows(db)
+local function ownRows(db)
     local rows = {}
-    local function section(key, list)
-        local shown = {}
-        for _, item in ipairs(list) do
-            if item.result.state ~= "MISSING" or db.showMissing then shown[#shown + 1] = item end
-        end
-        if #shown == 0 then return end
-        rows[#rows + 1] = { header = key }
-        for _, item in ipairs(shown) do
-            rows[#rows + 1] = { key = key .. ":" .. item.entry.key, section = key, item = item }
-        end
+    for _, item in ipairs(Watch.Own(db)) do
+        if Auras.ShowOwn(item, db) then rows[#rows + 1] = { key = item.entry.key, item = item } end
     end
-    section("SECTION_WEAPON", Watch.Weapon(db))
-    -- Tracking (e.g. Find Herbs) is listed under Self, no own header (owner wish 2026-10-06: shorter list).
-    local own = Watch.Self(db)
-    for _, item in ipairs(Watch.Tracking(db)) do own[#own + 1] = item end
-    section("SECTION_SELF", own)
     if InCombatLockdown() and frozenRows then return Auras.MergeRows(frozenRows, rows) end
     frozenRows = rows
     return rows
 end
 
--- Category layout in use. Out of combat it follows db.categoryLayout; in combat the layout of combat start stays
--- (with the column origins in frozenLayout), because the secure buttons over the lines cannot move until combat ends.
-local appliedLayout, frozenLayout, columnWidth = "vertical", nil, LINE_WIDTH
-
--- Width a line would need to show everything without "…": icon, name, value space.
-local function naturalWidth(line)
-    if line.kind == "message" then return 0 end
-    local iconSpace = line.kind == "entry" and ICON + UI.Spacing.SM or 0
-    return iconSpace + UI.TextWidth(line.name) + UI.Spacing.SM + VALUE_SPACE
-end
-
--- The block (column) a row belongs to: its section; a "gone" row of combat keeps the section of its key.
-local function rowBlock(row)
-    return row.header or row.section or (row.key and row.key:match("^(.-):")) or "SECTION_SELF"
-end
-
--- Places lines 1..count by their block: "vertical" = one block in line order (the layout of before), "horizontal"
--- = one column per category (Auras.PlaceBlocks). Sets line.left / line.top. Returns the content width and height.
-local function placeLines(count)
-    local combat = InCombatLockdown()
-    local blocks, byKey, natural = {}, {}, {}
-    for index = 1, count do
-        local line = lines[index]
-        local key = appliedLayout == "horizontal" and line.block or "ALL"
-        local block = byKey[key]
-        if not block then
-            block = { key = key, height = 0 }
-            byKey[key] = block
-            blocks[#blocks + 1] = block
+-- The group buff lines: all, or with "only missing" the incomplete ones. In combat the set of combat start stays
+-- (their secure buttons cannot move), so a line does not vanish when the last member gets the buff.
+local frozenGroup
+local function groupItems(db)
+    local list, keys = {}, {}
+    local combat = InCombatLockdown() and frozenGroup
+    for _, item in ipairs(Watch.Group(db)) do
+        local shown
+        if combat then
+            shown = frozenGroup[item.entry.key]
+        else
+            shown = not db.onlyMissing or #item.summary.missing > 0
         end
-        if line.kind == "message" then line:SetWidth(LINE_WIDTH) end -- a message wraps at the vertical width
-        line.offset = block.height
-        block.height = block.height + lineHeight(line)
-        natural[#natural + 1] = naturalWidth(line)
+        if shown then
+            list[#list + 1] = item
+            keys[item.entry.key] = true
+        end
     end
-    if not combat then
-        columnWidth = appliedLayout == "horizontal" and Auras.ColumnWidth(natural, LINE_WIDTH, MAX_COLUMN_WIDTH)
-            or LINE_WIDTH
-    end
-    local scale = window:GetScale() or 1
-    local maxWidth = (UIParent:GetWidth() or 0) * SCREEN_SHARE / scale - 2 * PAD
-    local origins, width, height = Auras.PlaceBlocks(blocks, appliedLayout, columnWidth, COLUMN_GAP, maxWidth,
-        combat and frozenLayout or nil)
-    if not combat then frozenLayout = { origins = origins, height = height } end
+    if not combat then frozenGroup = keys end
+    return list
+end
+
+-- Columns in use: out of combat db.columns, in combat the ones of combat start (secure buttons cannot move).
+local appliedColumns = 1
+
+-- Places lines 1..count in the grid (Auras.GridCell), group lines first. A lone message spans one column and wraps.
+-- Sets line.left / line.top. Returns the content width and height.
+local function placeLines(count)
     local top = UI.Sizes.HeaderHeight + UI.Spacing.SM
+    local cell = appliedColumns == 1 and LINE_WIDTH or CELL_WIDTH
+    if count == 1 and lines[1].kind == "message" then
+        local line = lines[1]
+        line:SetWidth(LINE_WIDTH)
+        local height = lineHeight(line)
+        line:SetHeight(height)
+        line.left, line.top = 0, top
+        line:ClearAllPoints()
+        line:SetPoint("TOPLEFT", PAD, -top)
+        return LINE_WIDTH, top + height
+    end
     for index = 1, count do
         local line = lines[index]
-        local origin = origins[appliedLayout == "horizontal" and line.block or "ALL"]
-        line.left, line.top = origin.x, top + origin.y + line.offset
-        line:SetSize(line.kind == "message" and LINE_WIDTH or columnWidth, lineHeight(line))
+        local column, row = Auras.GridCell(index, appliedColumns)
+        line.left, line.top = column * (cell + GRID_GAP), top + row * LINE
+        line:SetSize(cell, LINE)
         line:ClearAllPoints()
         line:SetPoint("TOPLEFT", PAD + line.left, -line.top)
     end
+    local width, height = Auras.GridSize(count, appliedColumns, cell, LINE, GRID_GAP)
     return width, top + height
 end
 
 function AuraWindow.Render(db)
-    if not InCombatLockdown() then appliedLayout = db.categoryLayout end
-    local count, timers, block = 0, false, "MESSAGE"
+    if not InCombatLockdown() then appliedColumns = db.columns end
+    local count, timers = 0, false
     local groupList, groupLines, clickLines = {}, {}, {}
     local function add(kind)
         count = count + 1
-        local line = prepare(count, kind)
-        line.block = block
-        return line
-    end
-    local function header(key)
-        add("header").name:SetText(string.upper(L[key]))
+        return prepare(count, kind)
     end
 
     if db.collapsed then
         groupList = {} -- collapsed: header only; applySecure({}) hides the buff buttons (out of combat)
     elseif not db.enabled then
         add("message").name:SetText(L.DISABLED)
-    elseif not Watch.profile then
-        add("message").name:SetText(L.NO_PROFILE)
     else
-        -- GROUP first: in both layouts its lines start at the top left and never move in combat.
-        groupList = Watch.Group(db)
-        block = "SECTION_GROUP"
-        if #groupList > 0 then header("SECTION_GROUP") end
+        -- Group buffs first: their lines start at the top left and never move in combat.
+        groupList = groupItems(db)
         for index, item in ipairs(groupList) do
             local line, summary = add("entry"), item.summary
             local incomplete = #summary.missing > 0
@@ -360,32 +333,28 @@ function AuraWindow.Render(db)
             groupLines[index] = line
         end
 
-        -- WEAPON, SELF and TRACKING after GROUP, as click lines (see clickRows): weapon imbues named by their spell
-        -- (e.g. Rockbiter Weapon) or slot, then your buffs and active procs, then tracking.
-        for _, row in ipairs(clickRows(db)) do
-            block = rowBlock(row)
-            if row.header then
-                header(row.header)
-            else
-                local item = row.item
-                local line, result = add("entry"), item.result
-                line.icon:SetAura(result.icon or item.entry.icon, result.state)
-                line.name:SetText(item.entry.name)
-                line.value:SetText(row.gone and "–" or valueText(item.entry, result, db))
-                line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
-                local missing = result.state == "MISSING" and not row.gone
-                line.alert:SetShown(missing)
-                line.alertBar:SetShown(missing)
-                local button = lineButtons[#clickLines + 1]
-                line.tooltipLines = lineTooltip(item, button)
-                if button then button.tooltipLines = line.tooltipLines end
-                clickLines[#clickLines + 1] = { item = item, line = line, gone = row.gone }
-                timers = timers or result.remaining ~= nil
-            end
+        -- Then the own list in its order (buffs, procs, weapon imbues, tracking), as click lines.
+        for _, row in ipairs(ownRows(db)) do
+            local item = row.item
+            local line, result = add("entry"), item.result
+            line.icon:SetAura(result.icon or item.entry.icon, result.state)
+            line.name:SetText(item.entry.name)
+            line.value:SetText(row.gone and "–" or valueText(item.entry, result, db))
+            line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
+            local missing = result.state == "MISSING" and not row.gone
+            line.alert:SetShown(missing)
+            line.alertBar:SetShown(missing)
+            local button = lineButtons[#clickLines + 1]
+            line.tooltipLines = lineTooltip(item, button)
+            if button then button.tooltipLines = line.tooltipLines end
+            clickLines[#clickLines + 1] = { item = item, line = line, gone = row.gone }
+            timers = timers or result.remaining ~= nil
         end
 
-        block = "MESSAGE"
-        if count == 0 then add("message").name:SetText(L.NOTHING_WATCHED) end
+        if count == 0 then
+            local nothing = #Watch.entries.own == 0 and #Watch.entries.group == 0
+            add("message").name:SetText(nothing and L.NOTHING_WATCHED or L.NOTHING_MISSING)
+        end
     end
 
     for index = count + 1, #lines do lines[index]:Hide() end

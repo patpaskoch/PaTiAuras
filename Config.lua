@@ -19,7 +19,9 @@ Config.DEFAULTS = {
     showCharges = true, -- charges and stacks (both are the aura's application count)
     showMissing = true,
     showExpiring = true,
-    categoryLayout = "vertical", -- "vertical" | "horizontal" (Auras.CATEGORY_LAYOUTS); new key, no schema step
+    onlyMissing = false, -- show only missing/expiring own lines and incomplete group buffs (owner 2026-10-06)
+    columns = 1, -- grid columns 1–3 (owner 2026-10-06); replaces categoryLayout, which stays saved but unused
+    categoryLayout = "vertical", -- before 2026-10-06; only read once to pick the first columns value
 }
 
 -- Schema 1 had one switch per category besides the per-aura watch list; schema 2 has only the watch list.
@@ -34,6 +36,8 @@ Config.OLD_WEAPON_SLOTS = { MAIN_HAND_IMBUE = "MAINHAND", OFF_HAND_IMBUE = "OFFH
 -- watch[key] = false for each of its entries (once), so nothing the player had hidden comes back.
 function Config.Migrate(db, profile)
     if type(db) ~= "table" then db = {} end -- nil or a broken save (string, number …): start fresh
+    -- Columns replace the category layout (2026-10-06): "horizontal" (one column per category) becomes 2 columns.
+    if db.columns == nil and db.categoryLayout == "horizontal" then db.columns = 2 end
     for key, value in pairs(Config.DEFAULTS) do
         if db[key] == nil then db[key] = value end
     end
@@ -42,10 +46,13 @@ function Config.Migrate(db, profile)
     -- Theme: one of the three PaTiShared themes; a typo or an old value falls back to the default look.
     if db.theme ~= "default" and db.theme ~= "woforever" and db.theme ~= "dracula" then db.theme = "default" end
     if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
+    if db.columns ~= 1 and db.columns ~= 2 and db.columns ~= 3 then db.columns = Config.DEFAULTS.columns end
     if type(db.watch) ~= "table" then db.watch = {} end
     if type(db.seen) ~= "table" then db.seen = {} end -- aura keys already offered in the "new auras" dialog
     -- Own buff list (owner 2026-10-06): nil = not edited yet, the class profile's self buffs are used (Watch.OwnDefs).
     if db.ownBuffs ~= nil then db.ownBuffs = Config.OwnSlots(db.ownBuffs) end
+    db.ownProcs = Config.CleanProcs(db.ownProcs)
+    db.imbues = Config.CleanImbues(db.imbues)
     if type(db.schema) ~= "number" then db.schema = nil end -- a broken schema counts as "before schema 2"
     if (db.schema or 1) < 2 then
         for category, setting in pairs(Config.OLD_CATEGORY_SETTINGS) do
@@ -96,7 +103,7 @@ end
 -- Own buff list ---------------------------------------------------------------------------------
 -- The player's list of own buffs to watch (settings → Watch → Own buffs): Config.OWN_SLOTS spell IDs in display
 -- order, 0 = empty. Same list rules as PaTiRota's skill slots (small deliberate copy, addons stay independent).
-Config.OWN_SLOTS = 10
+Config.OWN_SLOTS = 12
 
 local function validID(value)
     return type(value) == "number" and value >= 0 and value == math.floor(value)
@@ -132,4 +139,43 @@ function Config.MoveTo(slots, from, to)
     if from == to or not slots[from] or not slots[to] then return false end
     table.insert(slots, to, table.remove(slots, from))
     return true
+end
+
+-- "Only while active" marks of the own list: { [spellID] = true/false }; anything else is dropped. nil stays nil.
+function Config.CleanProcs(procs)
+    if type(procs) ~= "table" then return nil end
+    local clean = {}
+    for id, value in pairs(procs) do
+        if validID(id) and type(value) == "boolean" then clean[id] = value end
+    end
+    return clean
+end
+
+-- Learned weapon imbues (OwnList.ApplyLearned): { [spellID] = { slot = MAINHAND|OFFHAND, enchantIDs = { n … } } }.
+function Config.CleanImbues(imbues)
+    if type(imbues) ~= "table" then return nil end
+    local clean = {}
+    for id, record in pairs(imbues) do
+        local slot = type(record) == "table" and record.slot
+        if validID(id) and (slot == "MAINHAND" or slot == "OFFHAND") and type(record.enchantIDs) == "table" then
+            local enchantIDs = {}
+            for _, enchantID in ipairs(record.enchantIDs) do
+                if validID(enchantID) then enchantIDs[#enchantIDs + 1] = enchantID end
+            end
+            clean[id] = { slot = slot, enchantIDs = enchantIDs }
+        end
+    end
+    return clean
+end
+
+-- Display mode (settings "Show"): "all", "missing" (only missing/expiring) or "active" (missing hidden).
+Config.MAX_COLUMNS = 3
+function Config.ShowMode(db)
+    if not db.showMissing then return "active" end
+    return db.onlyMissing and "missing" or "all"
+end
+
+function Config.SetShowMode(db, mode)
+    db.showMissing = mode ~= "active"
+    db.onlyMissing = mode == "missing"
 end

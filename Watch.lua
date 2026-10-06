@@ -9,7 +9,7 @@ local Watch = {
     -- No "healing" category since 2026-10-02: your HoTs/shields on members are PaTiHeal's job (owner decision).
     -- Old watch/seen keys of those entries (RIPTIDE, RENEW, …) stay in the saved table and are simply never read.
     CATEGORIES = { "personal", "procs", "group", "weapon", "tracking" },
-    entries = { personal = {}, procs = {}, group = {}, weapon = {}, tracking = {} },
+    entries = { personal = {}, procs = {}, group = {}, weapon = {}, tracking = {}, own = {} },
     info = {},
     testMode = false,
 }
@@ -64,8 +64,8 @@ end
 
 -- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
 -- self, procs, weapon, tracking, group. Returns { { category, defs = { def, … } } } (empty categories left out).
--- Own buffs ("personal") are not in this list: they have their own list (Watch.OwnDefs, owner 2026-10-06).
-Watch.CHOICE_ORDER = { "procs", "weapon", "tracking", "group" }
+-- Only group buffs since 2026-10-06: everything on yourself is in the own list (Watch.OwnIDs, OwnList.lua).
+Watch.CHOICE_ORDER = { "group" }
 function Watch.Choices(profile)
     local list = {}
     for _, category in ipairs(Watch.CHOICE_ORDER) do
@@ -102,41 +102,7 @@ function Watch.SetWatched(db, def, watched, profile)
     end
 end
 
--- Own buffs (owner 2026-10-06): the player's own list (DB.ownBuffs, spell IDs in display order). Until it is edited
--- (nil) the class profile's self buffs you know and did not switch off are used, so nothing changes by itself.
--- An ID of the profile keeps its profile entry (key, flags); any other spell is watched as a buff on you, and a
--- left click on its missing line casts it on you (only if you know the spell, AuraWindow.clickSpell).
-function Watch.OwnSeed(db, profile)
-    local defs = {}
-    for _, def in ipairs(profile and profile.personal or {}) do
-        if isKnown(def) and db.watch[def.key] ~= false then defs[#defs + 1] = def end
-    end
-    return defs
-end
-
-function Watch.OwnDefs(db, profile)
-    if db.ownBuffs == nil then return Watch.OwnSeed(db, profile) end
-    local fromProfile = {}
-    for _, def in ipairs(profile and profile.personal or {}) do fromProfile[def.spellID] = def end
-    local defs = {}
-    for _, id in ipairs(db.ownBuffs) do
-        if id ~= 0 then
-            defs[#defs + 1] = fromProfile[id]
-                or { key = "OWN:" .. id, spellID = id, expiring = true, showCount = true, castable = true }
-        end
-    end
-    return defs
-end
-
--- The spell IDs of the own list as the editor shows them: the saved list, or the seed until it is edited.
-function Watch.OwnIDs(db, profile)
-    if db.ownBuffs ~= nil then return db.ownBuffs end
-    local ids = {}
-    for _, def in ipairs(Watch.OwnSeed(db, profile)) do ids[#ids + 1] = def.spellID end
-    return ids
-end
-
--- Weapon defs in the order Rebuild picks the wanted one per slot: explicitly chosen (watch = true) first, then the
+-- Defs in the order the old watch picked the wanted one per slot: explicitly chosen (watch = true) first, then the
 -- undecided ones (nil = default on), each in profile order.
 local function weaponPickOrder(defs, db)
     local chosen, others = {}, {}
@@ -148,31 +114,89 @@ local function weaponPickOrder(defs, db)
     return chosen
 end
 
--- Recomputes the watched entries (login, spells learned, settings or test mode changed).
+-- The one own list (owner 2026-10-06): DB.ownBuffs = spell IDs in display order (OwnList.lua). Until it is edited
+-- (nil) it is what the old watch showed: your known weapon imbue per hand, self buffs, procs and tracking that are
+-- not switched off — so nothing changes by itself. Returns the spell IDs in that order.
+Watch.SEED_ORDER = { "weapon", "personal", "procs", "tracking" }
+function Watch.OwnSeed(db, profile)
+    local ids = {}
+    for _, category in ipairs(Watch.SEED_ORDER) do
+        local defs, slotTaken = profile and profile[category] or {}, {}
+        if category == "weapon" or category == "tracking" then defs = weaponPickOrder(defs, db) end
+        for _, def in ipairs(defs) do
+            if def.spellID and Watch.IsOffered(def, category) and db.watch[def.key] ~= false
+                and not (def.slot and slotTaken[def.slot]) then
+                ids[#ids + 1] = def.spellID
+                if def.slot then slotTaken[def.slot] = true end
+            end
+        end
+    end
+    return ids
+end
+
+-- The spell IDs of the own list: the saved list, or the seed until it is edited.
+function Watch.OwnIDs(db, profile)
+    if db.ownBuffs ~= nil then return db.ownBuffs end
+    return Watch.OwnSeed(db, profile)
+end
+
+-- Once per character: a list saved before weapon imbues, procs and tracking moved into it gets the ones the old watch
+-- showed (empty slots only). Call only when the spellbook was readable (else "known" is not known yet).
+function Watch.ApplyUnifyOnce(db, profile)
+    if db.ownUnified then return false end
+    db.ownUnified = true
+    if db.ownBuffs == nil then return false end
+    local present = {}
+    for _, id in ipairs(db.ownBuffs) do present[id] = true end
+    for _, id in ipairs(Watch.OwnSeed(db, profile)) do
+        if not present[id] then
+            for slot, value in ipairs(db.ownBuffs) do
+                if value == 0 then db.ownBuffs[slot] = id; present[id] = true; break end
+            end
+        end
+    end
+    return true
+end
+
+-- Test mode: the class profile with fake auras, in the order weapon, self, procs, tracking (one imbue per hand).
+local function testOwn(profile)
+    local list = {}
+    for _, category in ipairs(Watch.SEED_ORDER) do
+        local slotTaken = {}
+        for _, def in ipairs(profile and profile[category] or {}) do
+            if not (def.slot and slotTaken[def.slot]) then
+                list[#list + 1] = { def = def, category = category }
+                if def.slot then slotTaken[def.slot] = true end
+            end
+        end
+    end
+    return list
+end
+
+-- Recomputes the watched entries (login, spells learned, settings or test mode changed). Group buffs come from the
+-- class profile and the Watch popup; everything on yourself from the own list, in its order (Watch.entries.own).
 function Watch.Rebuild(db)
     local test = Watch.testMode
     -- Test mode shows your class profile with fake auras; classes without a profile get the generic test profile.
     local profile = Watch.ClassProfile()
     if test and not profile then profile = AuraScan.TEST_PROFILE end
     Watch.profile = profile
-    for _, category in ipairs(Watch.CATEGORIES) do
-        local list = {}
-        local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
-        local slotTaken = {} -- weapon: the first watched imbue per slot is the wanted one (SetWatched keeps one)
-        local own = category == "personal" and not test -- the own list: shown as the player set it up
-        local defs = shown and (own and Watch.OwnDefs(db, profile) or profile and profile[category]) or {}
-        if category == "weapon" or category == "tracking" then defs = weaponPickOrder(defs, db) end
-        for _, def in ipairs(defs) do
-            local known = test or own or Watch.IsOffered(def, category)
-            if known and (test or own or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
-                local entry = makeEntry(def, category, test)
-                if entry then
-                    list[#list + 1] = entry
-                    if def.slot then slotTaken[def.slot] = true end
-                end
-            end
+    for _, category in ipairs(Watch.CATEGORIES) do Watch.entries[category] = {} end
+    Watch.entries.own = {}
+    if not (test or db.enabled) then return end
+    for _, def in ipairs(profile and profile.group or {}) do
+        if test or (Watch.IsOffered(def, "group") and Auras.IsWatched(db, def)) then
+            local entry = makeEntry(def, "group", test)
+            if entry then table.insert(Watch.entries.group, entry) end
         end
-        Watch.entries[category] = list
+    end
+    local own = test and testOwn(profile) or ns.OwnList.Classify(Watch.OwnIDs(db, profile), db, profile)
+    for _, item in ipairs(own) do
+        local entry = makeEntry(item.def, item.category, test)
+        if entry then
+            table.insert(Watch.entries[item.category], entry)
+            table.insert(Watch.entries.own, entry)
+        end
     end
 end
 
@@ -277,14 +301,16 @@ function Watch.Group(db)
     return list
 end
 
--- Enchant IDs of the profile's other weapon imbues: tells "another imbue is on" from "an unknown enchant".
+-- Enchant IDs of the other weapon imbues (profile and own list, also learned ones): tells "another imbue is on"
+-- from "an unknown enchant".
 local function otherEnchantIDs(entry)
     local ids = {}
-    for _, def in ipairs(Watch.profile and Watch.profile.weapon or {}) do
-        if def.key ~= entry.key then
-            for _, id in ipairs(def.enchantIDs or {}) do ids[#ids + 1] = id end
-        end
+    local function add(def)
+        if def.key == entry.key then return end
+        for _, id in ipairs(def.enchantIDs or {}) do ids[#ids + 1] = id end
     end
+    for _, def in ipairs(Watch.profile and Watch.profile.weapon or {}) do add(def) end
+    for _, other in ipairs(Watch.entries.weapon) do add(other) end
     return ids
 end
 
@@ -309,6 +335,52 @@ function Watch.Tracking(db)
     for _, entry in ipairs(Watch.entries.tracking) do
         local asBuff = not Watch.testMode and Auras.Evaluate(entry, helpful, now, db).state == "ACTIVE"
         list[#list + 1] = { entry = entry, result = Tracking.Evaluate(entry, read, asBuff) }
+    end
+    return list
+end
+
+-- Weapon imbues learn their enchant ID (OwnList.lua): a successful cast of a listed spell is noted with the weapons
+-- as they were; the following weapon reads (events and the 1 s check) decide which hand got it.
+local pendingLearn
+
+local function sameSpell(listedID, castID)
+    local name = Spells.Name(listedID)
+    return name ~= nil and name == Spells.Name(castID)
+end
+
+function Watch.NoteCast(db, castID, now)
+    if Watch.testMode or isSecret(castID) or type(castID) ~= "number" then return end
+    local profile, kinds = Watch.ClassProfile(), {}
+    local ids = Watch.OwnIDs(db, profile)
+    for _, item in ipairs(ns.OwnList.Classify(ids, db, profile)) do kinds[item.def.spellID] = item.category end
+    pendingLearn = ns.OwnList.NoteCast(castID, ids, kinds, sameSpell, Watch.weapons, now) or pendingLearn
+end
+
+function Watch.IsLearning() return pendingLearn ~= nil end
+
+-- After a weapon read: saves what the noted cast put on a hand. Returns true when something new was learned.
+function Watch.ApplyLearnStep(db, now)
+    if not pendingLearn then return false end
+    local slot, result = ns.OwnList.Learn(pendingLearn, Watch.weapons, now)
+    if slot then
+        local id = pendingLearn.id
+        pendingLearn = nil
+        return ns.OwnList.ApplyLearned(db, id, slot, result) -- result = the enchant ID
+    end
+    if result == true then pendingLearn = nil end -- too old: nothing learned
+    return false
+end
+
+-- { { entry, result } } of the own list in its order (owner 2026-10-06): buffs, active procs, imbues of hands that
+-- hold a weapon, tracking — each judged as in Self / Weapon / Tracking.
+function Watch.Own(db)
+    local byEntry = {}
+    for _, item in ipairs(Watch.Self(db)) do byEntry[item.entry] = item end
+    for _, item in ipairs(Watch.Weapon(db)) do byEntry[item.entry] = item end
+    for _, item in ipairs(Watch.Tracking(db)) do byEntry[item.entry] = item end
+    local list = {}
+    for _, entry in ipairs(Watch.entries.own) do
+        if byEntry[entry] then list[#list + 1] = byEntry[entry] end
     end
     return list
 end

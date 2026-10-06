@@ -28,10 +28,7 @@ local function reportAlerts()
     if type(api) ~= "table" or api.version ~= 1 or type(api.Sync) ~= "function" then return end
     local list = {}
     if DB.enabled and not Watch.testMode then
-        local items = {}
-        for _, item in ipairs(Watch.Self(DB)) do items[#items + 1] = item end
-        for _, item in ipairs(Watch.Weapon(DB)) do items[#items + 1] = item end
-        for _, item in ipairs(Watch.Tracking(DB)) do items[#items + 1] = item end
+        local items = Watch.Own(DB) -- buffs, procs, imbues and tracking of the own list
         list = ns.Auras.Alerts(items, { missing = L.STATUS_MISSING, expiring = L.STATUS_EXPIRING,
             imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret)
         local groupAlerts = ns.Auras.GroupAlerts(Watch.Group(DB), { missing = L.STATUS_MISSING,
@@ -54,7 +51,8 @@ local updateWeaponCheck -- defined with the events below
 
 local function rebuild()
     if not DB then return end
-    Spells.Rescan()
+    -- Once: weapon imbues, procs and tracking join an own list saved before 2026-10-06 (needs a readable spellbook).
+    if Spells.Rescan() then Watch.ApplyUnifyOnce(DB, Watch.ClassProfile()) end
     Watch.Rebuild(DB)
     Watch.RefreshAll()
     update()
@@ -157,22 +155,33 @@ local function buildSettings()
     end)
 
     modal:AddSection("DISPLAY")
-    -- Categories stacked or side by side. In combat the secure buttons cannot move: saved now, shown after combat.
-    local layouts = {}
-    for _, layout in ipairs(ns.Auras.CATEGORY_LAYOUTS) do
-        layouts[#layouts + 1] = { value = layout, text = "LAYOUT_" .. layout:upper() }
-    end
-    modal:AddRow("CATEGORY_LAYOUT", UI.CreateDropdown(modal, 170, {
-        items = function() return layouts end,
-        get = function() return DB.categoryLayout end,
-        set = function(layout)
-            DB.categoryLayout = layout
+    -- What to show (owner 2026-10-06): all, only missing (and expiring), or only active. Stored in the two existing
+    -- flags (showMissing, onlyMissing) so PaTiAlerts keeps its meaning. Lines change: out of combat only.
+    local shows = { { value = "all", text = "SHOW_ALL" }, { value = "missing", text = "SHOW_ONLY_MISSING" },
+        { value = "active", text = "SHOW_ONLY_ACTIVE" } }
+    modal:AddRow("SHOW", UI.CreateDropdown(modal, 170, {
+        items = function() return shows end,
+        get = function() return Config.ShowMode(DB) end,
+        set = function(mode)
+            if combatBlocked() then return end
+            Config.SetShowMode(DB, mode)
+            rebuild()
+        end,
+    }))
+    -- Columns of the grid (1–3). In combat the secure buttons cannot move: saved now, shown after combat.
+    local columns = {}
+    for count = 1, Config.MAX_COLUMNS do columns[#columns + 1] = { value = count, text = tostring(count) } end
+    modal:AddRow("COLUMNS", UI.CreateDropdown(modal, 170, {
+        items = function() return columns end,
+        get = function() return DB.columns end,
+        set = function(count)
+            DB.columns = count
             if InCombatLockdown() then say("LAYOUT_AFTER_COMBAT") end
             update()
         end,
     }))
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
-    modal:AddControls(box("SHOW_MISSING", "showMissing"), box("SHOW_EXPIRING", "showExpiring"))
+    modal:AddControls(box("SHOW_EXPIRING", "showExpiring"))
     modal:Finish(function()
         Config.RestoreDefaults(DB)
         window:ApplyTheme() -- Restore Defaults: theme back to default
@@ -416,6 +425,12 @@ for _, event in ipairs({ "PLAYER_SPECIALIZATION_CHANGED", "ACTIVE_TALENT_GROUP_C
     "MINIMAP_UPDATE_TRACKING" }) do
     pcall(events.RegisterEvent, events, event) -- not every client generation has these
 end
+-- Your own successful casts: a listed weapon imbue learns its enchant ID (Watch.NoteCast, OwnList.lua).
+if events.RegisterUnitEvent then
+    pcall(events.RegisterUnitEvent, events, "UNIT_SPELLCAST_SUCCEEDED", "player")
+else
+    pcall(events.RegisterEvent, events, "UNIT_SPELLCAST_SUCCEEDED")
+end
 
 -- Weapon imbues and tracking: no UNIT_AURA. Inventory/equipment/tracking events are the main signal; whether this
 -- client fires them is unconfirmed, so a slow check (every 1 s, only while imbues or tracking are watched) repaints
@@ -429,15 +444,16 @@ weaponCheck:SetScript("OnUpdate", function(_, elapsed)
     if sinceWeaponCheck < WEAPON_CHECK_SECONDS then return end
     sinceWeaponCheck = 0
     local changed = Watch.RefreshWeapons()
+    if Watch.ApplyLearnStep(DB, GetTime()) then rebuild(); return end
     if Watch.RefreshTracking() then changed = true end
     if changed then update() end
 end)
 updateWeaponCheck = function() -- assigns the local declared above rebuild()
     weaponCheck:SetShown(DB ~= nil and DB.enabled and not Watch.testMode
-        and (#Watch.entries.weapon > 0 or #Watch.entries.tracking > 0))
+        and (#Watch.entries.weapon > 0 or #Watch.entries.tracking > 0 or Watch.IsLearning()))
 end
 
-events:SetScript("OnEvent", function(_, event, unit)
+events:SetScript("OnEvent", function(_, event, unit, _, spellID)
     if event == "PLAYER_LOGIN" then
         PaTiAurasDB = Config.Migrate(PaTiAurasDB, Watch.ClassProfile()) -- the profile: once, for schema 1 → 2
         DB = PaTiAurasDB
@@ -460,7 +476,15 @@ events:SetScript("OnEvent", function(_, event, unit)
         end
     elseif event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_EQUIPMENT_CHANGED"
         or event == "WEAPON_ENCHANT_CHANGED" or event == "WEAPON_SLOT_CHANGED" then
-        if (event ~= "UNIT_INVENTORY_CHANGED" or unit == "player") and Watch.RefreshWeapons() then update() end
+        if event ~= "UNIT_INVENTORY_CHANGED" or unit == "player" then
+            local changed = Watch.RefreshWeapons()
+            if Watch.ApplyLearnStep(DB, GetTime()) then rebuild() elseif changed then update() end
+        end
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        if unit == "player" then
+            Watch.NoteCast(DB, spellID, GetTime())
+            updateWeaponCheck() -- the 1 s check also runs while a cast waits to be learned
+        end
     elseif event == "MINIMAP_UPDATE_TRACKING" then
         if Watch.RefreshTracking() then update() end
     elseif event == "PLAYER_REGEN_ENABLED" then

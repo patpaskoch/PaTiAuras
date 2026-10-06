@@ -19,6 +19,7 @@ Tracking.lua
 Profiles\Shaman.lua
 Profiles\Priest.lua
 Profiles\Tracking.lua
+OwnList.lua
 Watch.lua
 AuraWindow.lua
 OwnBuffs.lua
