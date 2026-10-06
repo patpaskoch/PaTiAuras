@@ -392,7 +392,7 @@ describe("Watch.Choices (settings: what to watch)", function()
         for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
             for _, def in ipairs(group.defs) do keys[#keys + 1] = group.category .. ":" .. def.key end
         end
-        assert.same({ "personal:LIGHTNING_SHIELD", "weapon:ROCKBITER_WEAPON" }, keys)
+        assert.same({ "personal:LIGHTNING_SHIELD", "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, keys) -- procs: always
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()
