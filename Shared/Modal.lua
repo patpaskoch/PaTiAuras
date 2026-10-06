@@ -139,6 +139,24 @@ function Modal:Refresh()
     refreshChildren(self)
 end
 
+-- Opening a Blizzard panel (e.g. the spellbook) closes the frames in UISpecialFrames (owner 2026-10-06: the settings
+-- vanished when the spellbook opened — but dragging a spell into a list needs both open). ESC must still close a
+-- modal, so it stays in UISpecialFrames; a modal hidden while ShowUIPanel runs (same frame time) is shown again
+-- right after it. Post-hook only (hooksecurefunc): nothing of Blizzard's panel code is replaced.
+local hiddenAt = {} -- modal → GetTime() of its last hide
+local panelHook = false
+local function watchPanels()
+    if panelHook or not hooksecurefunc or not ShowUIPanel then return end
+    panelHook = true
+    hooksecurefunc("ShowUIPanel", function()
+        local now = GetTime()
+        for modal, at in pairs(hiddenAt) do
+            hiddenAt[modal] = nil
+            if at == now then modal:Show() end
+        end
+    end)
+end
+
 -- name: global name, needed for ESC (e.g. "PaTiHealSettings"); title: see UI.Text.
 function UI.CreateModal(name, title, width)
     local modal = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
@@ -153,7 +171,11 @@ function UI.CreateModal(name, title, width)
     modal:Hide()
     tinsert(UISpecialFrames, name)
     modal:SetScript("OnShow", function(self) self:Refresh() end)
-    modal:SetScript("OnHide", UI.HidePopup)
+    modal:SetScript("OnHide", function(self)
+        UI.HidePopup()
+        if GetTime then hiddenAt[self] = GetTime() end
+    end)
+    watchPanels()
 
     local headerHeight = UI.Sizes.HeaderHeight + UI.Spacing.MD
     local titleText = modal:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
@@ -175,6 +197,18 @@ function UI.CreateModal(name, title, width)
     UI.SetTooltip(close, "CLOSE")
     paintClose(false)
     UI.OnThemeChanged(function() paintClose(close:IsMouseOver()) end)
+
+    -- Drag the modal by its title bar (owner 2026-10-06); not saved, it opens centred again next time.
+    modal:SetMovable(true)
+    if modal.SetDontSavePosition then modal:SetDontSavePosition(true) end
+    local grip = CreateFrame("Frame", nil, modal)
+    grip:SetPoint("TOPLEFT")
+    grip:SetPoint("RIGHT", close, "LEFT", -UI.Spacing.XS, 0)
+    grip:SetHeight(headerHeight)
+    grip:EnableMouse(true)
+    grip:RegisterForDrag("LeftButton")
+    grip:SetScript("OnDragStart", function() modal:StartMoving() end)
+    grip:SetScript("OnDragStop", function() modal:StopMovingOrSizing() end)
 
     local divider = modal:CreateTexture(nil, "BORDER")
     divider:SetPoint("TOPLEFT", 1, -headerHeight)
