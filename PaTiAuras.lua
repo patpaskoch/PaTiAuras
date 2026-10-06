@@ -80,6 +80,8 @@ local function scaleItems()
     return items
 end
 
+local refreshOwnButton = function() end -- set once the settings exist
+
 local function buildSettings()
     modal = UI.CreateModal("PaTiAurasSettings", function() return "PaTiAuras " .. L.SETTINGS end, 400)
     -- "On" and "show missing" change which lines exist; in combat the secure click buttons could not follow.
@@ -112,6 +114,11 @@ local function buildSettings()
 
     -- WATCH: the one list of what to watch (DB.watch), as a multi-select popup of your character's entries.
     modal:AddSection("WATCH")
+    -- Own buffs (owner 2026-10-06): your own list, edited in its own window (OwnBuffs.lua); the popup has the rest.
+    local ownButton = UI.CreateButton(modal, function() return L.OWN_BUFFS_BUTTON:format(ns.OwnBuffs.Count()) end, 240,
+        function() ns.OwnBuffs.Open() end)
+    modal:AddControl(ownButton)
+    refreshOwnButton = function() ownButton.label:SetText(L.OWN_BUFFS_BUTTON:format(ns.OwnBuffs.Count())) end
     local watchButton
     local function watchLabel()
         local on, total = 0, 0
@@ -144,7 +151,10 @@ local function buildSettings()
         UI.ShowPopup(self, watchItems, 240, "LEFT")
     end)
     modal:AddControl(watchButton)
-    modal:HookScript("OnShow", function() watchButton.label:SetText(watchLabel()) end)
+    modal:HookScript("OnShow", function()
+        watchButton.label:SetText(watchLabel())
+        refreshOwnButton()
+    end)
 
     modal:AddSection("DISPLAY")
     -- Categories stacked or side by side. In combat the secure buttons cannot move: saved now, shown after combat.
@@ -174,6 +184,14 @@ local function buildSettings()
     end)
 end
 
+ns.OwnBuffs.Init({
+    db = function() return DB end,
+    profile = function() return Watch.ClassProfile() end,
+    changed = function() rebuild(); refreshOwnButton() end,
+    combatBlocked = function() return combatBlocked() end,
+    say = say,
+})
+
 local function openSettings()
     if not modal then buildSettings() end
     modal:Show()
@@ -192,7 +210,8 @@ local function promptNewAuras()
     newAurasWaiting = false
     local profile, offered = Watch.ClassProfile(), {}
     for _, category in ipairs(Watch.CATEGORIES) do
-        for _, def in ipairs(profile and profile[category] or {}) do
+        -- Own buffs have their own list (settings): never offered here.
+        for _, def in ipairs(category ~= "personal" and profile and profile[category] or {}) do
             if Watch.IsOffered(def, category) then offered[#offered + 1] = def end
         end
     end

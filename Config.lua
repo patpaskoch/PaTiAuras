@@ -44,6 +44,8 @@ function Config.Migrate(db, profile)
     if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
     if type(db.watch) ~= "table" then db.watch = {} end
     if type(db.seen) ~= "table" then db.seen = {} end -- aura keys already offered in the "new auras" dialog
+    -- Own buff list (owner 2026-10-06): nil = not edited yet, the class profile's self buffs are used (Watch.OwnDefs).
+    if db.ownBuffs ~= nil then db.ownBuffs = Config.OwnSlots(db.ownBuffs) end
     if type(db.schema) ~= "number" then db.schema = nil end -- a broken schema counts as "before schema 2"
     if (db.schema or 1) < 2 then
         for category, setting in pairs(Config.OLD_CATEGORY_SETTINGS) do
@@ -89,4 +91,45 @@ function Config.NewDefs(defs, seen)
         if not seen[def.key] then new[#new + 1] = def end
     end
     return new
+end
+
+-- Own buff list ---------------------------------------------------------------------------------
+-- The player's list of own buffs to watch (settings → Watch → Own buffs): Config.OWN_SLOTS spell IDs in display
+-- order, 0 = empty. Same list rules as PaTiRota's skill slots (small deliberate copy, addons stay independent).
+Config.OWN_SLOTS = 10
+
+local function validID(value)
+    return type(value) == "number" and value >= 0 and value == math.floor(value)
+end
+
+-- Any saved value → a clean list: Config.OWN_SLOTS entries, broken ones empty, a spell only in its first slot.
+function Config.OwnSlots(old)
+    old = type(old) == "table" and old or {}
+    local slots, seen = {}, {}
+    for index = 1, Config.OWN_SLOTS do
+        local id = validID(old[index]) and old[index] or 0
+        if id ~= 0 and seen[id] then id = 0 end
+        seen[id] = true
+        slots[index] = id
+    end
+    return slots
+end
+
+-- Puts spell `id` (0 = empty) into slot `index`; if it was in another slot, that slot gets the old value (swap).
+function Config.SetSlot(slots, index, id)
+    if id ~= 0 then
+        for other, value in ipairs(slots) do
+            if value == id and other ~= index then slots[other] = slots[index] end
+        end
+    end
+    slots[index] = id
+    return slots
+end
+
+-- Moves the spell in slot `from` to slot `to` (arrows: to = from ± 1; drag and drop: any slot), the ones in
+-- between shift by one. Returns true if it moved.
+function Config.MoveTo(slots, from, to)
+    if from == to or not slots[from] or not slots[to] then return false end
+    table.insert(slots, to, table.remove(slots, from))
+    return true
 end

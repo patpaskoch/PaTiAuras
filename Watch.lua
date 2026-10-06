@@ -64,7 +64,8 @@ end
 
 -- The settings "Watch" list: per category the entries your character can use and the client knows, in the order
 -- self, procs, weapon, tracking, group. Returns { { category, defs = { def, … } } } (empty categories left out).
-Watch.CHOICE_ORDER = { "personal", "procs", "weapon", "tracking", "group" }
+-- Own buffs ("personal") are not in this list: they have their own list (Watch.OwnDefs, owner 2026-10-06).
+Watch.CHOICE_ORDER = { "procs", "weapon", "tracking", "group" }
 function Watch.Choices(profile)
     local list = {}
     for _, category in ipairs(Watch.CHOICE_ORDER) do
@@ -101,6 +102,40 @@ function Watch.SetWatched(db, def, watched, profile)
     end
 end
 
+-- Own buffs (owner 2026-10-06): the player's own list (DB.ownBuffs, spell IDs in display order). Until it is edited
+-- (nil) the class profile's self buffs you know and did not switch off are used, so nothing changes by itself.
+-- An ID of the profile keeps its profile entry (key, flags); any other spell is watched as a buff on you, and a
+-- left click on its missing line casts it on you (only if you know the spell, AuraWindow.clickSpell).
+function Watch.OwnSeed(db, profile)
+    local defs = {}
+    for _, def in ipairs(profile and profile.personal or {}) do
+        if isKnown(def) and db.watch[def.key] ~= false then defs[#defs + 1] = def end
+    end
+    return defs
+end
+
+function Watch.OwnDefs(db, profile)
+    if db.ownBuffs == nil then return Watch.OwnSeed(db, profile) end
+    local fromProfile = {}
+    for _, def in ipairs(profile and profile.personal or {}) do fromProfile[def.spellID] = def end
+    local defs = {}
+    for _, id in ipairs(db.ownBuffs) do
+        if id ~= 0 then
+            defs[#defs + 1] = fromProfile[id]
+                or { key = "OWN:" .. id, spellID = id, expiring = true, showCount = true, castable = true }
+        end
+    end
+    return defs
+end
+
+-- The spell IDs of the own list as the editor shows them: the saved list, or the seed until it is edited.
+function Watch.OwnIDs(db, profile)
+    if db.ownBuffs ~= nil then return db.ownBuffs end
+    local ids = {}
+    for _, def in ipairs(Watch.OwnSeed(db, profile)) do ids[#ids + 1] = def.spellID end
+    return ids
+end
+
 -- Weapon defs in the order Rebuild picks the wanted one per slot: explicitly chosen (watch = true) first, then the
 -- undecided ones (nil = default on), each in profile order.
 local function weaponPickOrder(defs, db)
@@ -124,11 +159,12 @@ function Watch.Rebuild(db)
         local list = {}
         local shown = test or db.enabled -- what to watch is the watch list alone (settings "Watch")
         local slotTaken = {} -- weapon: the first watched imbue per slot is the wanted one (SetWatched keeps one)
-        local defs = shown and profile and profile[category] or {}
+        local own = category == "personal" and not test -- the own list: shown as the player set it up
+        local defs = shown and (own and Watch.OwnDefs(db, profile) or profile and profile[category]) or {}
         if category == "weapon" or category == "tracking" then defs = weaponPickOrder(defs, db) end
         for _, def in ipairs(defs) do
-            local known = test or Watch.IsOffered(def, category)
-            if known and (test or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
+            local known = test or own or Watch.IsOffered(def, category)
+            if known and (test or own or Auras.IsWatched(db, def)) and not (def.slot and slotTaken[def.slot]) then
                 local entry = makeEntry(def, category, test)
                 if entry then
                     list[#list + 1] = entry

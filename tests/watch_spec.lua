@@ -383,23 +383,21 @@ describe("Watch.Choices (settings: what to watch)", function()
             for _, def in ipairs(group.defs) do keys[#keys + 1] = def.key end
             groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
         end
-        assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, groups)
+        assert.same({ "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, groups) -- own buffs: their own list
     end)
 
     it("a low-level shaman with Lightning Shield (and no Water Shield yet) gets Lightning Shield", function()
-        local ns = setup("SHAMAN", { [324] = true, [8017] = true })
+        local ns, db = setup("SHAMAN", { [324] = true, [8017] = true })
         local keys = {}
-        for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
-            for _, def in ipairs(group.defs) do keys[#keys + 1] = group.category .. ":" .. def.key end
-        end
-        assert.same({ "personal:LIGHTNING_SHIELD", "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, keys) -- procs: always
+        for _, def in ipairs(ns.Watch.OwnDefs(db, ns.Watch.ClassProfile())) do keys[#keys + 1] = def.key end
+        assert.same({ "LIGHTNING_SHIELD" }, keys) -- own list not edited yet: the profile shields you know
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()
-        local ns = setup("PRIEST", { [588] = true }) -- only Inner Fire known
+        local ns = setup("PRIEST", { [1243] = true }) -- only Fortitude known
         local groups = ns.Watch.Choices(ns.Watch.ClassProfile())
         assert.equal(1, #groups)
-        assert.equal("INNER_FIRE", groups[1].defs[1].key)
+        assert.equal("FORTITUDE", groups[1].defs[1].key)
     end)
 
     it("switching one entry off hides exactly that entry", function()
@@ -410,6 +408,50 @@ describe("Watch.Choices (settings: what to watch)", function()
         ns.Watch.Rebuild(db)
         assert.equal(0, ns.Watch.Count().personal)
         assert.equal(1, ns.Watch.Count().procs)
+    end)
+end)
+
+describe("Own buff list (DB.ownBuffs, owner 2026-10-06)", function()
+    local function selfKeys(ns, db)
+        local keys = {}
+        for _, entry in ipairs(ns.Watch.entries.personal) do keys[#keys + 1] = entry.key end
+        return keys
+    end
+
+    it("not edited yet (nil): the known profile buffs not switched off, as before", function()
+        local ns, db = setup("SHAMAN", { [24398] = true, [324] = true })
+        db.watch.WATER_SHIELD = false
+        ns.Watch.Rebuild(db)
+        assert.same({ "LIGHTNING_SHIELD" }, selfKeys(ns, db))
+        assert.same({ 324 }, ns.Watch.OwnIDs(db, ns.Watch.ClassProfile()))
+    end)
+
+    it("edited: exactly the list, in its order; a profile ID keeps its entry, others get OWN:<id>", function()
+        local ns, db = setup("SHAMAN", { [324] = true })
+        db.ownBuffs = ns.Config.OwnSlots({ 588, 0, 324 })
+        ns.Watch.Rebuild(db)
+        assert.same({ "OWN:588", "LIGHTNING_SHIELD" }, selfKeys(ns, db))
+        local own = ns.Watch.entries.personal[1]
+        assert.is_true(own.castable)
+        assert.is_nil(own.mine) -- a buff on you counts, whoever cast it
+    end)
+
+    it("an empty list watches no own buff; an ID the client does not know is skipped", function()
+        local ns, db = setup("SHAMAN", { [24398] = true })
+        db.ownBuffs = ns.Config.OwnSlots({ 0, 123456 })
+        ns.Watch.Rebuild(db)
+        assert.same({}, selfKeys(ns, db))
+    end)
+
+    it("a missing own buff is reported as missing and its line casts it", function()
+        local ns, db = setup("SHAMAN", {})
+        db.ownBuffs = ns.Config.OwnSlots({ 588 })
+        world.units = { player = { name = "Du", auras = {} } }
+        ns.Watch.Rebuild(db)
+        ns.Watch.RefreshAll()
+        local item = ns.Watch.Self(db)[1]
+        assert.equal("MISSING", item.result.state)
+        assert.same({ cast = "Inneres Feuer" }, ns.Auras.LineActions(item, "Inneres Feuer", function() return false end))
     end)
 end)
 

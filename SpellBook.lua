@@ -123,3 +123,35 @@ function Spells.WithIcon(icon)
     table.sort(list, function(a, b) return a.id < b.id end)
     return list
 end
+
+-- What the player typed (a name or an ID) → spell ID; "" → 0 (empty); nil if nothing matches. Same as PaTiRota.
+function Spells.Resolve(text)
+    text = (text or ""):match("^%s*(.-)%s*$")
+    if text == "" then return 0 end
+    local id = tonumber(text)
+    if id then return Spells.Name(id) and id or nil end
+    if C_Spell and C_Spell.GetSpellInfo then
+        local info = C_Spell.GetSpellInfo(text)
+        return info and info.spellID
+    end
+    if GetSpellInfo then return (select(7, GetSpellInfo(text))) end
+    return nil
+end
+
+-- The spell on the mouse cursor (dragged from the spellbook onto a list slot), or nil. Same as PaTiRota.
+function Spells.FromCursor()
+    if not GetCursorInfo then return nil end
+    local kind, index, bookType, spellID = GetCursorInfo()
+    if kind ~= "spell" then return nil end
+    if type(spellID) == "number" then return spellID end -- modern clients: the 4th value
+    if type(index) ~= "number" then return nil end
+    if C_SpellBook and C_SpellBook.GetSpellBookItemInfo and Enum and Enum.SpellBookSpellBank then
+        local item = C_SpellBook.GetSpellBookItemInfo(index, Enum.SpellBookSpellBank.Player)
+        return item and item.spellID
+    end
+    if GetSpellBookItemInfo then
+        local _, id = GetSpellBookItemInfo(index, bookType)
+        return id
+    end
+    return nil
+end

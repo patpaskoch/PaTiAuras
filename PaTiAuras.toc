@@ -21,4 +21,5 @@ Profiles\Priest.lua
 Profiles\Tracking.lua
 Watch.lua
 AuraWindow.lua
+OwnBuffs.lua
 PaTiAuras.lua
