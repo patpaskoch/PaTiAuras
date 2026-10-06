@@ -154,6 +154,10 @@ Anzeige
   - MANUAL RETEST REQUIRED
   - ✅ VERIFIED 2026-10-04
   - Owner: „Fehlt“ in Rot passt.
+- [ ] PT-AURAS-201 Schamane: „Blitzschlagschild“ erscheint unter Selbst (Beobachten zeigt ihn); ohne Schild „Fehlt“,
+  mit Schild Restzeit und Aufladungen; Klick auf die fehlende Zeile wirkt ihn auf dich; `/pa auras` nennt die ID
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner: kein Blitzschlagschild in PaTiAuras)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

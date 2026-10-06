@@ -12,6 +12,10 @@ ns.AuraProfiles.SHAMAN = {
     -- On yourself; a click on the icon casts it on yourself.
     personal = {
         { key = "WATER_SHIELD", spellID = 24398, mine = true, expiring = true, showCount = true, clickable = true },
+        -- Lightning Shield (owner 2026-10-06: missing in the list; it is the shield a low-level shaman has). ID 324 =
+        -- rank 1 from classic data, other ranks by name; not yet confirmed in the Forever client (/pa auras).
+        -- Both shields known: unwatch the one you do not use in Settings → Watch, or it always reads Missing.
+        { key = "LIGHTNING_SHIELD", spellID = 324, mine = true, expiring = true, showCount = true, clickable = true },
     },
     -- Short-lived effects on yourself, shown only while active; never clickable.
     procs = {

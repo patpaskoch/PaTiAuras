@@ -4,6 +4,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Shaman: Lightning Shield in the Self section (owner 2026-10-06: a low-level shaman saw no shield). Rank 1 = ID 324
+  from classic data, other ranks by name; not yet confirmed in the Forever client.
 - Themes (owner wish 2026-10-03): Settings → Window → Theme — Default (the PaTi look as before), WoForever (warm brown, gold/bronze) or Dracula (dark, purple/pink/cyan accents). Colours only; layout, secure buttons and behaviour are unchanged. Saved per character in this addon (`theme`, unknown values → Default); Restore Defaults returns to Default. PaTiSuite can switch all PaTi windows at once.
 - Settings → Display → **Category layout**: Vertical (stacked, default — unchanged for existing installs) or
   Horizontal (GROUP, WEAPON, SELF, TRACKING as columns side by side; the entries inside a column stay vertical).
@@ -132,6 +134,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   choices of the removed entries stay in `PaTiAurasDB` and are simply ignored (no error, no empty section; no
   schema change). Weapon imbues, Rockbiter and click-to-buff are unchanged.
 ### Known Issues
+- Shaman with both Water Shield and Lightning Shield learned: both are watched and one always reads Missing — unwatch
+  the one you do not use (Settings → Watch).
 - Tracking (2026-10-02) is not tested in game: which tracking API the Forever client offers and the spell IDs are
   unconfirmed (`/pa auras`).
 - Right-click remove (2026-10-02) is not tested in game; whether the Forever client's secure `cancelaura` action works

@@ -8,7 +8,7 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
 > Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
 
 ## Features
-- **Self:** your buffs (e.g. Water Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active.
+- **Self:** your buffs (e.g. Water Shield, Lightning Shield, Inner Fire) with time and charges; procs (e.g. Tidal Waves) while active.
   Right-click an active buff or proc line to remove it from yourself (one click, never by itself; weapon imbues
   cannot be removed this way in the Forever client)
 - **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo

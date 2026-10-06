@@ -5,7 +5,7 @@ local wow = require("wow_api")
 local NAMES = {
     [588] = "Inneres Feuer", [1243] = "Machtwort: Seelenstärke", [21562] = "Gebet der Seelenstärke",
     [14752] = "Göttlicher Willen", [27681] = "Gebet der Willenskraft", [976] = "Schattenschutz",
-    [27683] = "Gebet des Schattenschutzes", [24398] = "Wasserschild", [974] = "Erdschild", [61295] = "Springflut",
+    [27683] = "Gebet des Schattenschutzes", [24398] = "Wasserschild", [324] = "Blitzschlagschild", [974] = "Erdschild", [61295] = "Springflut",
     [53390] = "Flutwellen", [8017] = "Waffe des Felsbeißers", [8024] = "Waffe der Flammenzunge",
     [2383] = "Kräutersuche", [2580] = "Mineraliensuche",
 }
@@ -384,6 +384,15 @@ describe("Watch.Choices (settings: what to watch)", function()
             groups[#groups + 1] = group.category .. ":" .. table.concat(keys, ",")
         end
         assert.same({ "personal:WATER_SHIELD", "procs:TIDAL_WAVES", "weapon:ROCKBITER_WEAPON" }, groups)
+    end)
+
+    it("a low-level shaman with Lightning Shield (and no Water Shield yet) gets Lightning Shield", function()
+        local ns = setup("SHAMAN", { [324] = true, [8017] = true })
+        local keys = {}
+        for _, group in ipairs(ns.Watch.Choices(ns.Watch.ClassProfile())) do
+            for _, def in ipairs(group.defs) do keys[#keys + 1] = group.category .. ":" .. def.key end
+        end
+        assert.same({ "personal:LIGHTNING_SHIELD", "weapon:ROCKBITER_WEAPON" }, keys)
     end)
 
     it("leaves out spells you do not know and IDs the client does not know", function()
