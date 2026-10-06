@@ -19,6 +19,8 @@ local window = UI.CreateWindow("PaTiAurasFrame", "PaTiAuras", WIDTH, UI.Sizes.He
 AuraWindow.frame = window
 local lines = {}
 
+local ALERT_ALPHA = 0.18 -- red tint of a missing line: visible, text stays readable
+
 local function newLine(index)
     local line = CreateFrame("Frame", nil, window)
     line:SetSize(LINE_WIDTH, LINE)
@@ -30,6 +32,19 @@ local function newLine(index)
     line.name:SetWordWrap(false)
     line.value = line:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
     line.value:SetPoint("RIGHT")
+    -- A missing buff/imbue line is tinted red with a red bar on the left (owner wish 2026-10-06: see at a glance
+    -- what is missing). Slightly wider than the line, so the bar sits left of the icon.
+    line.alert = line:CreateTexture(nil, "BACKGROUND")
+    line.alert:SetPoint("TOPLEFT", -UI.Spacing.XS, 0)
+    line.alert:SetPoint("BOTTOMRIGHT", UI.Spacing.XS, 0)
+    UI.Paint(line.alert, "SetColorTexture", "Danger", ALERT_ALPHA)
+    line.alertBar = line:CreateTexture(nil, "BORDER")
+    line.alertBar:SetPoint("TOPLEFT", line.alert, "TOPLEFT")
+    line.alertBar:SetPoint("BOTTOMLEFT", line.alert, "BOTTOMLEFT")
+    line.alertBar:SetWidth(2)
+    UI.Paint(line.alertBar, "SetColorTexture", "Danger")
+    line.alert:Hide()
+    line.alertBar:Hide()
     UI.SetTooltip(line, function() return line.tooltipLines end)
     lines[index] = line
     return line
@@ -57,6 +72,8 @@ local function prepare(index, kind)
     line.name:SetFontObject(kind == "header" and UI.Fonts.Label or UI.Fonts.Text)
     line.name:SetTextColor(UI.Color((kind == "header" or message) and "TextMuted" or "Text"))
     line.value:SetText("")
+    line.alert:Hide()
+    line.alertBar:Hide()
     line:Show()
     return line
 end
@@ -354,6 +371,9 @@ function AuraWindow.Render(db)
                 line.name:SetText(item.entry.name)
                 line.value:SetText(row.gone and "–" or valueText(item.entry, result, db))
                 line.value:SetTextColor(UI.Color(STATE_COLOR[result.state]))
+                local missing = result.state == "MISSING" and not row.gone
+                line.alert:SetShown(missing)
+                line.alertBar:SetShown(missing)
                 local button = lineButtons[#clickLines + 1]
                 line.tooltipLines = lineTooltip(item, button)
                 if button then button.tooltipLines = line.tooltipLines end

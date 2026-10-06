@@ -81,6 +81,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
 - "Missing" (weapon imbue, own buffs, tracking lines) is now shown in red instead of grey (owner wish 2026-10-04).
+- A missing line (weapon imbue, own buff, tracking) is tinted red with a red bar on the left, so it stands out at a
+  glance (owner wish 2026-10-06). Display only; the click buttons over the lines are unchanged.
 - Diagnostics (hardening 2026-10-02): errors that are caught so the addon keeps running are no longer silent — the debug command shows the last caught error per source (no chat spam, nothing saved).
 - Weapon imbue watch: 0 or 1 wanted imbue per slot (owner 2026-10-02). Clicking the chosen imbue again deselects
   it: no line, no click button, no PaTiAlerts warning (and no generic one) for that slot. Deselecting also turns

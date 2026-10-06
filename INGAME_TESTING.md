@@ -162,6 +162,10 @@ Anzeige
   - Owner: Blitzschlagschild wird angezeigt, lässt sich aber nicht anklicken (eigene Buffs waren noch nicht klickbar).
   - 🔧 FIX IMPLEMENTED 2026-10-06 (fehlender Schild: Linksklick wirkt ihn auf dich; Profil castable)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-202 Fehlende Zeile (z. B. Blitzschlagschild, Felsbeißer) ist rot hinterlegt mit rotem Strich links; Name
+  und „Fehlt“ gut lesbar (alle drei Themes); aktive Zeilen ohne Rot; Klick und Hover funktionieren wie vorher
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: Fehlendes besser sehen, ganze Zeile rot)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
