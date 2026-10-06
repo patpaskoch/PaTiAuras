@@ -213,8 +213,7 @@ local function helpText()
     for _, key in ipairs(HELP) do
         lines[#lines + 1] = ("• %s%s:|r %s"):format(color, L["OWN_HELP_" .. key .. "_KEY"], L["OWN_HELP_" .. key])
     end
-    return table.concat(lines, "
-")
+    return table.concat(lines, "\n")
 end
 
 local function build()
