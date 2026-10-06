@@ -4,6 +4,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- Shaman: a missing Water Shield or Lightning Shield line is cast on you with a left click (owner 2026-10-06; same
+  secure line button as weapon imbues, one click = one cast, attributes only out of combat).
 - Shaman: Lightning Shield in the Self section (owner 2026-10-06: a low-level shaman saw no shield). Rank 1 = ID 324
   from classic data, other ranks by name; not yet confirmed in the Forever client.
 - Themes (owner wish 2026-10-03): Settings → Window → Theme — Default (the PaTi look as before), WoForever (warm brown, gold/bronze) or Dracula (dark, purple/pink/cyan accents). Colours only; layout, secure buttons and behaviour are unchanged. Saved per character in this addon (`theme`, unknown values → Default); Restore Defaults returns to Default. PaTiSuite can switch all PaTi windows at once.

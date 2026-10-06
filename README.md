@@ -83,7 +83,8 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 - Weapon imbues: only Rockbiter Weapon so far — its enchant ID (29) was observed by the owner in the Forever client;
   its spell ID (8017, classic data) is used only if your client knows it, and is still to be confirmed with
   `/pa auras`. Another rank may have another enchant ID and then shows "unclear" until it is added. Flametongue,
-  Frostbrand and Windfury follow once their IDs are observed. Personal buffs (e.g. Water Shield) are not clickable yet.
+  Frostbrand and Windfury follow once their IDs are observed. A missing own shield (Water Shield,
+  Lightning Shield) is cast on you with a left click; an active one is removed with a right click.
 - In combat a click on a weapon line does what it did when combat started (WoW does not let the button change).
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).

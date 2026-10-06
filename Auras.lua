@@ -162,6 +162,10 @@ function Auras.LineActions(item, castName, isSecret)
     elseif entry.category == "tracking" then
         -- Tracking (owner wish 2026-10-02): a missing one is cast with a left-click; nothing switches it by itself.
         if state == "MISSING" and entry.castable then actions.cast = castName end
+    elseif entry.category == "personal" and state == "MISSING" then
+        -- Own shield missing (owner 2026-10-06: Lightning Shield shown but not clickable): left click casts it on you,
+        -- like a missing imbue. Only entries marked castable; one click = one cast.
+        if entry.castable then actions.cast = castName end
     elseif (entry.category == "personal" or entry.category == "procs") and active
         and not isSecret(entry.name) and type(entry.name) == "string" and entry.name ~= "" then
         actions.cancelSpell = entry.name

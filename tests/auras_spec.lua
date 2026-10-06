@@ -190,6 +190,15 @@ describe("Line clicks: Auras.LineActions / ClickAttributes (right-click removes,
         assert.same({ unit = "player", type2 = "cancelaura", spell2 = "Wasserschild" }, Auras.ClickAttributes(actions))
     end)
 
+    it("missing castable own shield: left click casts it on you (one click = one cast)", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local shield = item("personal", "MISSING", "Blitzschlagschild", { castable = true })
+        local actions = Auras.LineActions(shield, "Blitzschlagschild", isSecret)
+        assert.same({ cast = "Blitzschlagschild" }, actions)
+        assert.same({ unit = "player", type1 = "spell", spell1 = "Blitzschlagschild" }, Auras.ClickAttributes(actions))
+        assert.same({}, Auras.LineActions(shield, nil, isSecret)) -- spell not known: nothing
+    end)
+
     it("missing, unknown or secret-named self lines get no action", function()
         local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
         assert.same({}, Auras.LineActions(item("personal", "MISSING"), "Wasserschild", isSecret))
