@@ -258,8 +258,10 @@ local function clickRows(db)
         end
     end
     section("SECTION_WEAPON", Watch.Weapon(db))
-    section("SECTION_SELF", Watch.Self(db))
-    section("SECTION_TRACKING", Watch.Tracking(db))
+    -- Tracking (e.g. Find Herbs) is listed under Self, no own header (owner wish 2026-10-06: shorter list).
+    local own = Watch.Self(db)
+    for _, item in ipairs(Watch.Tracking(db)) do own[#own + 1] = item end
+    section("SECTION_SELF", own)
     if InCombatLockdown() and frozenRows then return Auras.MergeRows(frozenRows, rows) end
     frozenRows = rows
     return rows

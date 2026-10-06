@@ -81,6 +81,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
 - "Missing" (weapon imbue, own buffs, tracking lines) is now shown in red instead of grey (owner wish 2026-10-04).
+- Tracking (Find Herbs, Find Minerals …) is listed under Self instead of its own "Tracking" header — a shorter
+  window (owner wish 2026-10-06). Settings → Watch still lists it separately.
 - A missing line (weapon imbue, own buff, tracking) is tinted red with a red bar on the left, so it stands out at a
   glance (owner wish 2026-10-06). Display only; the click buttons over the lines are unchanged.
 - Diagnostics (hardening 2026-10-02): errors that are caught so the addon keeps running are no longer silent — the debug command shows the last caught error per source (no chat spam, nothing saved).

@@ -166,6 +166,10 @@ Anzeige
   und „Fehlt“ gut lesbar (alle drei Themes); aktive Zeilen ohne Rot; Klick und Hover funktionieren wie vorher
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: Fehlendes besser sehen, ganze Zeile rot)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-203 Aufspüren (Kräutersuche, Mineraliensuche) steht unter „Selbst“, keine eigene Überschrift „Aufspüren“;
+  Klick auf fehlendes Aufspüren wirkt es wie vorher; beide Layouts (vertikal/horizontal) ohne Überlappung
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: kürzere Liste)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

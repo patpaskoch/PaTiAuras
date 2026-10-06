@@ -18,7 +18,7 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
   line (on your own weapon, never by itself). Click the chosen imbue again in Watch to watch none for that weapon
 - **Tracking:** pick the profession tracking you want (Find Herbs, Find Minerals; Find Treasure for dwarves — only
   what you learned). The line shows whether it is on; a click on a missing one casts it (never switched by itself).
-  Only one tracking can be on, so you choose one or none
+  Only one tracking can be on, so you choose one or none. Shown under Self (no own header) to keep the window short
 - **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
   tooltip). One click, one cast; your target does not change. In combat the member stays fixed until combat ends
 - With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there, and
