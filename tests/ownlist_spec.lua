@@ -75,7 +75,7 @@ describe("Learning a weapon imbue on cast", function()
         assert.same({ nil, true }, { OwnList.Learn(note, {}, 10 + OwnList.LEARN_SECONDS + 1) })
     end)
 
-    it("a refreshed imbue (same ID, later end time) is learned; a secret (nil) ID or two changed hands are not", function()
+    it("a refreshed imbue (same ID, later end time) is learned; a secret ID or two changed hands are not", function()
         local OwnList = load()
         local note = { id = 8024, at = 10, before = { MAINHAND = { enchantID = 5, expiresAt = 100 }, OFFHAND = {} } }
         assert.same({ "MAINHAND", 5 }, { OwnList.Learn(note, { MAINHAND = { enchantID = 5, expiresAt = 400 } }, 11) })

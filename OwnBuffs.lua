@@ -155,7 +155,8 @@ end
 -- One slot row: [icon][spell name or ID ……][proc][^][v][≡]. Enter applies, Escape restores, empty + Enter clears.
 local function slotRow(parent, slot)
     local row = CreateFrame("Frame", nil, parent)
-    local width = ICON + UI.Spacing.SM + EDIT_WIDTH + PROC_WIDTH + 2 * (MOVE_WIDTH + UI.Spacing.XS) + UI.Spacing.XS + GRIP
+    local width = ICON + UI.Spacing.SM + EDIT_WIDTH + PROC_WIDTH + 2 * (MOVE_WIDTH + UI.Spacing.XS)
+        + UI.Spacing.XS + GRIP
     row:SetSize(width, UI.Sizes.ButtonHeight)
     row.drop = row:CreateTexture(nil, "BACKGROUND")
     row.drop:SetPoint("TOPLEFT", -UI.Spacing.XS, UI.Spacing.XS)

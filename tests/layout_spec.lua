@@ -1,4 +1,5 @@
--- PaTiAuras grid (1–3 columns, no headers) and the "Show" setting (owner 2026-10-06). Run via PaTiAdmin/tools/check.sh.
+-- PaTiAuras grid (1–3 columns, no headers) and the "Show" setting (owner 2026-10-06).
+-- Run via PaTiAdmin/tools/check.sh.
 -- The window code (frames, secure buttons) is tested in game; this covers the pure placement it relies on.
 local wow = require("wow_api")
 
@@ -35,7 +36,9 @@ describe("Auras.GridCell / GridSize", function()
 end)
 
 describe("Auras.ShowOwn (Show: all / only missing / only active)", function()
-    local function item(state, category) return { entry = { category = category or "personal" }, result = { state = state } } end
+    local function item(state, category)
+        return { entry = { category = category or "personal" }, result = { state = state } }
+    end
     local ALL = { showMissing = true, onlyMissing = false }
     local MISSING = { showMissing = true, onlyMissing = true }
     local ACTIVE = { showMissing = false, onlyMissing = false }

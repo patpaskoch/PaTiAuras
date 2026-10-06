@@ -4,17 +4,20 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
-- Own buff list (owner wish 2026-10-06): Settings → Watch → "Own buffs (n) …" opens a list of up to 10 spells you
-  want to watch on yourself — type a name or ID or drag from the spellbook, reorder with arrows or the ≡ grip. Until
-  you edit it, your class profile's known self buffs are used (nothing changes by itself). Any buff on you counts,
-  whoever cast it; a missing one is cast on you with a left click. Changes only out of combat. Own buffs are no
-  longer in the Watch popup or the new-auras dialog.
+- **My auras** (owner wish 2026-10-06): one own list for everything on you — buffs, procs, weapon imbues and
+  tracking, up to 12, in your order (Settings → Watch → "My auras (n) …"; type a name or ID or drag from the
+  spellbook, arrows or ≡ grip; a checkbox per slot marks procs, shown only while active). Until you edit it, it
+  holds what the class profile watch showed; a list saved earlier gets imbues, procs and tracking added once.
+  Missing lines are cast with a left click (one click = one cast). Weapon imbues learn their enchant number when
+  you cast them (Flametongue, other ranks — no hand-made ID table any more).
+- Display: a grid of 1–3 columns without headers (Settings → Display → Columns; a saved horizontal layout becomes
+  2 columns) and Show = all / only missing / only active. The Watch popup now only holds group buffs.
 - Shaman: a missing Water Shield or Lightning Shield line is cast on you with a left click (owner 2026-10-06; same
   secure line button as weapon imbues, one click = one cast, attributes only out of combat).
 - Shaman: Lightning Shield in the Self section (owner 2026-10-06: a low-level shaman saw no shield). Rank 1 = ID 324
   from classic data, other ranks by name; not yet confirmed in the Forever client.
 - Themes (owner wish 2026-10-03): Settings → Window → Theme — Default (the PaTi look as before), WoForever (warm brown, gold/bronze) or Dracula (dark, purple/pink/cyan accents). Colours only; layout, secure buttons and behaviour are unchanged. Saved per character in this addon (`theme`, unknown values → Default); Restore Defaults returns to Default. PaTiSuite can switch all PaTi windows at once.
-- Settings → Display → **Category layout**: Vertical (stacked, default — unchanged for existing installs) or
+- (Replaced by Columns 2026-10-06.) Settings → Display → **Category layout**: Vertical (stacked, default — unchanged for existing installs) or
   Horizontal (GROUP, WEAPON, SELF, TRACKING as columns side by side; the entries inside a column stay vertical).
   Columns share one width, wide enough for long names (up to 320 px, then "…"), and wrap into a second row when the
   screen is too narrow. Saved as `PaTiAurasDB.categoryLayout` (new key with default, no schema step).
@@ -86,8 +89,6 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
 - "Missing" (weapon imbue, own buffs, tracking lines) is now shown in red instead of grey (owner wish 2026-10-04).
-- Tracking (Find Herbs, Find Minerals …) is listed under Self instead of its own "Tracking" header — a shorter
-  window (owner wish 2026-10-06). Settings → Watch still lists it separately.
 - A missing line (weapon imbue, own buff, tracking) is tinted red with a red bar on the left, so it stands out at a
   glance (owner wish 2026-10-06). Display only; the click buttons over the lines are unchanged.
 - Diagnostics (hardening 2026-10-02): errors that are caught so the addon keeps running are no longer silent — the debug command shows the last caught error per source (no chat spam, nothing saved).

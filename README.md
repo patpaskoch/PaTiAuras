@@ -8,28 +8,23 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
 > Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
 
 ## Features
-- **Self:** the buffs on your own list (Settings → Watch → Own buffs: type a name or ID or drag spells from your
-  spellbook, sort with arrows or the ≡ grip) with time and charges; until you edit the list, your class's known self
-  buffs (e.g. Water Shield, Lightning Shield, Inner Fire). Procs (e.g. Tidal Waves) while active.
-  Right-click an active buff or proc line to remove it from yourself (one click, never by itself; weapon imbues
-  cannot be removed this way in the Forever client)
-- **Group:** group buff summary like `Fortitude 4 / 5`; the tooltip lists who is missing it; also shown when solo
-- **Weapon (Shaman):** choose the weapon imbue you want under Watch — currently Rockbiter Weapon. The line shows
-  that spell (e.g. `Rockbiter Weapon  Missing`, or its remaining time). Another imbue never counts as Rockbiter;
-  unreadable data shows "unclear". One wanted imbue per weapon. A missing one can be cast with one click on its
-  line (on your own weapon, never by itself). Click the chosen imbue again in Watch to watch none for that weapon
-- **Tracking:** pick the profession tracking you want (Find Herbs, Find Minerals; Find Treasure for dwarves — only
-  what you learned). The line shows whether it is on; a click on a missing one casts it (never switched by itself).
-  Only one tracking can be on, so you choose one or none. Shown under Self (no own header) to keep the window short
-- **Click-to-buff:** click a group buff line to cast the buff on the next member who is missing it (named in the
-  tooltip). One click, one cast; your target does not change. In combat the member stays fixed until combat ends
-- With **PaTiAlerts** installed (optional), missing or expiring buffs and weapon imbues also appear there, and
-  watched group buffs someone lacks (one line per buff: "Missing on 2")
-- Every aura can be switched on or off; a small window asks on first start which ones to watch
-- Profiles: Shaman, Priest. Unknown spells are hidden, never guessed
+- **My auras — one list for everything on you** (Settings → Watch → "My auras (n) …"): buffs, procs, weapon
+  imbues and tracking, up to 12, in your order. Type a spell name or ID or drag spells from your spellbook; sort with
+  the arrows or the ≡ grip. Tick a slot to make it a **proc** (shown only while active). Until you edit the list it
+  holds what your class profile offered (e.g. Lightning Shield, Rockbiter Weapon, Tidal Waves, Find Herbs)
+- **Weapon imbues learn themselves:** WoW names an imbue only by a number that differs per imbue and rank. Put the
+  imbue (e.g. Flametongue Weapon) on the list and cast it once: PaTiAuras remembers the number your cast put on
+  the weapon and recognises it from then on (also a new rank after one cast). Until then it reads Missing
+- Missing = red line; a **left click** casts it on you (or your weapon), one click = one cast. A right click on an
+  active buff or proc removes it. In combat a line keeps what it did when combat started
+- **Group:** group buff summary like `Fortitude 4 / 5` above your list; the tooltip lists who is missing it; also
+  shown when solo. Click it to cast the buff on the next member who is missing it (named in the tooltip); your
+  target does not change. Choose them under Watch → "Group buffs"
+- **Grid:** 1, 2 or 3 columns, no headers. **Show:** all, only missing (and expiring; active procs too), or only active
+- With **PaTiAlerts** installed (optional), missing or expiring auras also appear there, and watched group buffs
+  someone lacks (one line per buff: "Missing on 2")
+- Profiles (seed and group buffs): Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
-- Works on its own. Your HoTs and shields on party members (Earth Shield, Riptide, Renew, Power Word: Shield,
-  Prayer of Mending) are shown by PaTiHeal on its frames — PaTiAuras no longer has a healing category (2026-10-02)
 
 ## PaTiSuite
 
@@ -60,18 +55,15 @@ Each one is installed on its own and works on its own; none of them is needed by
 3. Start WoW and enable PaTiAuras in the AddOns list.
 
 ## First steps
-- On first login choose the auras you want to watch (later: `/pa settings` → Auras)
+- `/pa settings` → Watch → "My auras (n) …": check the list, add what you keep up (buffs, procs, imbues, tracking)
 - `/pa test` shows example data
 - `/pa` shows or hides the window
 
 ## Settings
 `/pa settings` or ••• → Settings:
 - **General:** on/off, language, scale, window lock
-- **Display:** category layout (vertical = stacked, the default; horizontal = one column per category, the
-  entries inside a column stay one below the other), timers, charges, missing, expiring
-- **Watch:** "Own buffs (n) …" opens your own buff list; the second button opens everything else your character
-  can watch (procs, weapon, tracking, group)
-  — tick what you want to see
+- **Display:** Show (all / only missing / only active), Columns (1–3), timers, charges, expiring
+- **Watch:** "My auras (n) …" opens your list; "Group buffs (n / m)" picks the group buffs
 - **Window:** panel opacity (30–100 %)
 
 ## Commands
@@ -82,12 +74,11 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 
 ## Known limitations
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs are not yet — `/pa auras` shows what your client knows.
-- Only your class profile (Shaman, Priest); other classes see no profile yet.
-- Weapon imbues: only Rockbiter Weapon so far — its enchant ID (29) was observed by the owner in the Forever client;
-  its spell ID (8017, classic data) is used only if your client knows it, and is still to be confirmed with
-  `/pa auras`. Another rank may have another enchant ID and then shows "unclear" until it is added. Flametongue,
-  Frostbrand and Windfury follow once their IDs are observed. A missing own shield (Water Shield,
-  Lightning Shield) is cast on you with a left click; an active one is removed with a right click.
+- Class profiles (seed and group buffs) only for Shaman and Priest; other classes start with an empty list.
+- Weapon imbues are recognised by the number your own cast put on the weapon (learned once per imbue and rank).
+  An imbue that was already on before you listed it reads Missing until you cast it once. Only readable numbers
+  are learned (in combat WoW may keep them secret). Rockbiter Weapon (29) is known from the start. A dual-wield
+  imbue on both hands is learned for the hand of the last cast.
 - In combat a click on a weapon line does what it did when combat started (WoW does not let the button change).
 - In-game test status: [`INGAME_TESTING.md`](INGAME_TESTING.md).
 - Party only (no raid).

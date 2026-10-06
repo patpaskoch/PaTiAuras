@@ -166,15 +166,39 @@ Anzeige
   und „Fehlt“ gut lesbar (alle drei Themes); aktive Zeilen ohne Rot; Klick und Hover funktionieren wie vorher
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: Fehlendes besser sehen, ganze Zeile rot)
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-203 Aufspüren (Kräutersuche, Mineraliensuche) steht unter „Selbst“, keine eigene Überschrift „Aufspüren“;
-  Klick auf fehlendes Aufspüren wirkt es wie vorher; beide Layouts (vertikal/horizontal) ohne Überlappung
+- ~~PT-AURAS-203 Aufspüren (Kräutersuche, Mineraliensuche) steht unter „Selbst“, keine eigene Überschrift „Aufspüren“; Klick auf fehlendes Aufspüren wirkt es wie vorher; beide Layouts (vertikal/horizontal) ohne Überlappung~~
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: kürzere Liste)
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-204 Eigene Buffs: Einstellungen → Beobachten → „Eigene Buffs (n) …“ öffnet die Liste; vorher beobachtete
-  Schilde stehen schon drin; Zauber eintippen (Name/ID + Enter) oder aus dem Zauberbuch ziehen; Pfeile und Griff ≡
-  sortieren; der Buff erscheint unter „Selbst“ in der Listen-Reihenfolge; fehlend = rot, Linksklick wirkt ihn;
-  leeren entfernt ihn; im Kampf gesperrt mit Hinweis; bleibt nach `/reload`; kein Lua-Fehler
+  - RETIRED 2026-10-06 – keine Überschriften mehr; Aufspüren steht in „Meine Auras“ (PT-AURAS-205)
+- ~~PT-AURAS-204 Eigene Buffs: Einstellungen → Beobachten → „Eigene Buffs (n) …“ öffnet die Liste; vorher beobachtete Schilde stehen schon drin; Zauber eintippen (Name/ID + Enter) oder aus dem Zauberbuch ziehen; Pfeile und Griff ≡ sortieren; der Buff erscheint unter „Selbst“ in der Listen-Reihenfolge; fehlend = rot, Linksklick wirkt ihn; leeren entfernt ihn; im Kampf gesperrt mit Hinweis; bleibt nach `/reload`; kein Lua-Fehler~~
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: eigene Liste statt festem Profil, Schritt 1)
+  - MANUAL RETEST REQUIRED
+  - RETIRED 2026-10-06 – ersetzt durch die eine Liste „Meine Auras“ (PT-AURAS-205 bis 210)
+- [ ] PT-AURAS-205 „Meine Auras“: Einstellungen → Beobachten → „Meine Auras (n) …“ öffnet die Liste (12 Plätze); vorher
+  Beobachtetes steht drin (z. B. Blitzschlagschild, Felsbeißer, Flutwellen, Kräutersuche); eintippen/ziehen, Pfeile,
+  Griff ≡, leeren; das Fenster zeigt alles in dieser Reihenfolge; bleibt nach `/reload`; kein Lua-Fehler
+  - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: eine Liste für alles auf dir)
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-206 Proc-Häkchen: ein angehakter Platz erscheint nur, solange der Effekt aktiv ist; ohne Häkchen wird
+  er bei Fehlen rot; bei Waffen-Buffs und Aufspüren ist kein Häkchen da
+  - 🔧 FIX IMPLEMENTED 2026-10-06
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-207 Waffen-Buff lernen: Waffe der Flammenzunge in die Liste → „Fehlt“ (rot); Linksklick wirkt sie;
+  nach 1–2 s Restzeit statt „Fehlt“; nach `/reload` weiter erkannt; Felsbeißer (höherer Rang) nach einmal Wirken
+  ebenfalls; `/pa auras` zeigt die gelernte Nummer
+  - 🔧 FIX IMPLEMENTED 2026-10-06
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-208 Spalten 1 / 2 / 3: Raster ohne Überschriften, Gruppenbuffs zuerst; Klick und Hover sitzen genau auf
+  den Zeilen; lange Namen mit „…“, voller Name im Tooltip; Fenstergröße passt
+  - 🔧 FIX IMPLEMENTED 2026-10-06
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-209 Anzeigen: Alle / Nur fehlende (plus bald ablaufende und aktive Procs; „Nichts fehlt.“, wenn
+  alles da ist) / Nur aktive; wirkt sofort; bleibt nach `/reload`
+  - 🔧 FIX IMPLEMENTED 2026-10-06
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-210 Im Kampf: Zeilen und Klicks bleiben an ihrem Platz; Liste und Anzeigen gesperrt mit Hinweis; kein
+  Lua-Fehler, kein `ADDON_ACTION_BLOCKED`
+  - 🔧 FIX IMPLEMENTED 2026-10-06
   - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
