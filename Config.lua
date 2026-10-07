@@ -51,7 +51,6 @@ function Config.Migrate(db, profile)
     if type(db.seen) ~= "table" then db.seen = {} end -- aura keys already offered in the "new auras" dialog
     -- Own buff list (owner 2026-10-06): nil = not edited yet, the class profile's self buffs are used (Watch.OwnDefs).
     if db.ownBuffs ~= nil then db.ownBuffs = Config.OwnSlots(db.ownBuffs) end
-    db.ownProcs = Config.CleanProcs(db.ownProcs)
     db.imbues = Config.CleanImbues(db.imbues)
     if type(db.schema) ~= "number" then db.schema = nil end -- a broken schema counts as "before schema 2"
     if (db.schema or 1) < 2 then
@@ -139,16 +138,6 @@ function Config.MoveTo(slots, from, to)
     if from == to or not slots[from] or not slots[to] then return false end
     table.insert(slots, to, table.remove(slots, from))
     return true
-end
-
--- "Only while active" marks of the own list: { [spellID] = true/false }; anything else is dropped. nil stays nil.
-function Config.CleanProcs(procs)
-    if type(procs) ~= "table" then return nil end
-    local clean = {}
-    for id, value in pairs(procs) do
-        if validID(id) and type(value) == "boolean" then clean[id] = value end
-    end
-    return clean
 end
 
 -- Learned weapon imbues (OwnList.ApplyLearned): { [spellID] = { slot = MAINHAND|OFFHAND, enchantIDs = { n … } } }.

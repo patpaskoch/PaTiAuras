@@ -10,7 +10,7 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
 ## Features
 - **My auras — one list for everything on you** (Settings → Watch → "My auras (n) …"): buffs, procs, weapon
   imbues and tracking, up to 12, in your order. Type a spell name or ID or drag spells from your spellbook; sort with
-  the arrows or the ≡ grip. Tick a slot to make it a **proc** (shown only while active). Until you edit the list it
+  the arrows or the ≡ grip. Procs of your class (e.g. Tidal Waves) show only while active. Until you edit the list it
   holds what your class profile offered (e.g. Lightning Shield, Rockbiter Weapon, Tidal Waves, Find Herbs)
 - **Weapon imbues learn themselves:** WoW names an imbue only by a number that differs per imbue and rank. Put the
   imbue (e.g. Flametongue Weapon) on the list and cast it once: PaTiAuras remembers the number your cast put on

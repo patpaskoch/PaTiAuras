@@ -179,10 +179,10 @@ Anzeige
   Griff ≡, leeren; das Fenster zeigt alles in dieser Reihenfolge; bleibt nach `/reload`; kein Lua-Fehler
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: eine Liste für alles auf dir)
   - MANUAL RETEST REQUIRED
-- [ ] PT-AURAS-206 Proc-Häkchen: ein angehakter Platz erscheint nur, solange der Effekt aktiv ist; ohne Häkchen wird
-  er bei Fehlen rot; bei Waffen-Buffs und Aufspüren ist kein Häkchen da
+- ~~PT-AURAS-206 Proc-Häkchen: ein angehakter Platz erscheint nur, solange der Effekt aktiv ist; ohne Häkchen wird er bei Fehlen rot; bei Waffen-Buffs und Aufspüren ist kein Häkchen da~~
   - 🔧 FIX IMPLEMENTED 2026-10-06
   - MANUAL RETEST REQUIRED
+  - RETIRED 2026-10-07 – Proc-Häkchen entfernt (Owner: „braucht es nicht“); Klassen-Procs erkennt PaTiAuras selbst
 - [ ] PT-AURAS-207 Waffen-Buff lernen: Waffe der Flammenzunge in die Liste → „Fehlt“ (rot); Linksklick wirkt sie;
   nach 1–2 s Restzeit statt „Fehlt“; nach `/reload` weiter erkannt; Felsbeißer (höherer Rang) nach einmal Wirken
   ebenfalls; `/pa auras` zeigt die gelernte Nummer
@@ -208,6 +208,8 @@ Anzeige
   beide offen (Zauber hineinziehen geht); ESC und X schließen sie weiter (PaTiShared, gilt für alle Addons)
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner: Modal nicht verschiebbar, verschwindet beim Zauberbuch)
   - MANUAL RETEST REQUIRED
+  - Owner 2026-10-07: Verschieben geht, das Fenster schließt nicht mehr bei offenem Zauberbuch. Noch offen: ESC und
+    X schließen es weiter.
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

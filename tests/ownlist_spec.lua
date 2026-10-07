@@ -28,12 +28,6 @@ describe("OwnList.Classify", function()
         assert.is_true(list[5].def.castable)
     end)
 
-    it("the proc mark wins over the profile (true = proc, false = buff)", function()
-        local OwnList = load()
-        local list = OwnList.Classify({ 588, 53390 }, { ownProcs = { [588] = true, [53390] = false } }, PROFILE)
-        assert.same({ "OWN:588=procs", "TIDAL_WAVES=personal" }, kinds(list))
-    end)
-
     it("a learned imbue is a weapon entry on its hand; a profile imbue adds the learned IDs to its own", function()
         local OwnList = load()
         local db = { imbues = { [8024] = { slot = "OFFHAND", enchantIDs = { 5 } }, [8017] = { slot = "MAINHAND",

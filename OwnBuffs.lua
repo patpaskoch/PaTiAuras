@@ -14,8 +14,7 @@ function OwnBuffs.Init(callbacks) app = callbacks end
 local modal
 local slotRows = {}
 
-local EDIT_WIDTH, MOVE_WIDTH, ICON = 150, 28, 18
-local PROC_WIDTH = 14 + 8 -- proc checkbox (PaTiShared box) and its gap
+local EDIT_WIDTH, MOVE_WIDTH, ICON = 170, 28, 18
 local CHEVRON = 6 -- arm length of the up/down chevron (same drawing as the PaTiShared dropdown arrow)
 local GRIP, GRIP_LINES, GRIP_GAP = 16, 3, 4 -- drag grip: three short lines, 4 px apart
 
@@ -30,13 +29,6 @@ local function shownSlots()
     return Config.OwnSlots(ns.Watch.OwnIDs(app.db(), app.profile()))
 end
 
--- What a slot's spell is (OwnList.Classify): "personal", "procs", "weapon" or "tracking"; nil for an empty slot.
-local function kindOf(id)
-    if id == 0 then return nil end
-    local item = ns.OwnList.Classify({ id }, app.db(), app.profile())[1]
-    return item and item.category
-end
-
 local function refreshSlots()
     local list = shownSlots()
     for slot, row in ipairs(slotRows) do
@@ -45,10 +37,6 @@ local function refreshSlots()
         row.icon:SetTexture(id ~= 0 and Spells.Icon(id) or nil)
         row.up:SetEnabled(slot > 1)
         row.down:SetEnabled(slot < Config.OWN_SLOTS)
-        -- The proc mark only for buffs and procs; imbues and tracking are recognised on their own.
-        local kind = kindOf(id)
-        row.proc:SetShown(kind == "personal" or kind == "procs")
-        row.proc:Refresh()
     end
 end
 
@@ -61,13 +49,6 @@ end
 
 local function setSlot(slot, id) change(function(list) Config.SetSlot(list, slot, id) end) end
 local function moveTo(from, to) change(function(list) return Config.MoveTo(list, from, to) end) end
-local function setProc(slot, on)
-    change(function(list)
-        local db = app.db()
-        if type(db.ownProcs) ~= "table" then db.ownProcs = {} end
-        db.ownProcs[list[slot]] = on
-    end)
-end
 
 local function receiveDrag(slot)
     local id = Spells.FromCursor()
@@ -152,10 +133,10 @@ local function gripButton(row, slot)
     return makeDraggable(grip, row, slot)
 end
 
--- One slot row: [icon][spell name or ID ……][proc][^][v][≡]. Enter applies, Escape restores, empty + Enter clears.
+-- One slot row: [icon][spell name or ID ……][^][v][≡]. Enter applies, Escape restores, empty + Enter clears.
 local function slotRow(parent, slot)
     local row = CreateFrame("Frame", nil, parent)
-    local width = ICON + UI.Spacing.SM + EDIT_WIDTH + PROC_WIDTH + 2 * (MOVE_WIDTH + UI.Spacing.XS)
+    local width = ICON + UI.Spacing.SM + EDIT_WIDTH + 2 * (MOVE_WIDTH + UI.Spacing.XS)
         + UI.Spacing.XS + GRIP
     row:SetSize(width, UI.Sizes.ButtonHeight)
     row.drop = row:CreateTexture(nil, "BACKGROUND")
@@ -193,19 +174,13 @@ local function slotRow(parent, slot)
     row.down:SetPoint("RIGHT", row.grip, "LEFT", -UI.Spacing.XS, 0)
     row.up = moveButton(row, "MOVE_UP", true, function() moveTo(slot, slot - 1) end)
     row.up:SetPoint("RIGHT", row.down, "LEFT", -UI.Spacing.XS, 0)
-    row.proc = UI.CreateCheckbox(row, "", {
-        get = function() return kindOf(shownSlots()[slot]) == "procs" end,
-        set = function(on) setProc(slot, on) end,
-    })
-    row.proc:SetPoint("RIGHT", row.up, "LEFT", -UI.Spacing.SM, 0)
-    UI.SetTooltip(row.proc, "OWN_PROC_TIP")
     UI.SetTooltip(edit, function() return { L.OWN_SLOT:format(slot), L.OWN_SLOT_TIP } end)
     return row
 end
 
 -- The help above the list (owner 2026-10-06): short lines, each with its keyword highlighted, instead of a
 -- paragraph. FontStrings have no bold, so the keyword gets the normal text colour on the muted body.
-local HELP = { "ADD", "SORT", "CLEAR", "PROC", "IMBUE", "MISSING" }
+local HELP = { "ADD", "SORT", "CLEAR", "IMBUE", "MISSING" }
 local function helpText()
     local r, g, b = UI.Color("Text")
     local color = ("|cff%02x%02x%02x"):format(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255))

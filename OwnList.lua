@@ -32,11 +32,11 @@ end
 --   weapon   — a profile imbue (e.g. Rockbiter) or a spell whose imbue was learned (db.imbues[id]); its enchant IDs
 --              are the profile's plus the learned ones, its hand the learned one (else the profile's).
 --   tracking — a profile tracking spell (Find Herbs …).
---   procs    — marked "only while active" (db.ownProcs[id] = true), or a profile proc not marked false.
+--   procs    — a profile proc (e.g. Tidal Waves): shown only while active.
 --   personal — everything else: a buff on you. A not yet learned imbue also starts here (missing until cast).
 function OwnList.Classify(ids, db, profile)
     local index, list = profileIndex(profile), {}
-    local imbues, procs = db.imbues or {}, db.ownProcs or {}
+    local imbues = db.imbues or {}
     for _, id in ipairs(ids) do
         if id ~= 0 then
             local known, learned = index[id], imbues[id]
@@ -53,10 +53,6 @@ function OwnList.Classify(ids, db, profile)
                 def = setmetatable({ enchantIDs = enchantIDs, slot = slot, castable = true },
                     { __index = def })
                 category = "weapon"
-            elseif category ~= "tracking" then
-                local proc = procs[id]
-                if proc == nil then proc = category == "procs" end
-                category = proc and "procs" or "personal"
             end
             list[#list + 1] = { def = def, category = category }
         end

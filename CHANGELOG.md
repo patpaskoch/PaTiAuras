@@ -6,7 +6,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 ### Added
 - **My auras** (owner wish 2026-10-06): one own list for everything on you — buffs, procs, weapon imbues and
   tracking, up to 12, in your order (Settings → Watch → "My auras (n) …"; type a name or ID or drag from the
-  spellbook, arrows or ≡ grip; a checkbox per slot marks procs, shown only while active). Until you edit it, it
+  spellbook, arrows or ≡ grip; class procs such as Tidal Waves show only while active). Until you edit it, it
   holds what the class profile watch showed; a list saved earlier gets imbues, procs and tracking added once.
   Missing lines are cast with a left click (one click = one cast). Weapon imbues learn their enchant number when
   you cast them (Flametongue, other ranks — no hand-made ID table any more).
