@@ -113,9 +113,15 @@ function UI.CreateWindow(name, title, width, height)
     header:SetPoint("TOPRIGHT")
     header:SetHeight(UI.Sizes.HeaderHeight)
     header:EnableMouse(true)
-    -- Own opaque background: the header stays readable when the body is made more transparent.
+    -- Own opaque background: the header stays readable when the body is made more transparent. Two pieces, so the
+    -- window's rounded top corners stay free (UI.ApplyBackdrop): a one-pixel band inside the border and the rest.
+    local headerBand = header:CreateTexture(nil, "BACKGROUND")
+    headerBand:SetPoint("TOPLEFT", 2, -UI.Sizes.Border)
+    headerBand:SetPoint("TOPRIGHT", -2, -UI.Sizes.Border)
+    headerBand:SetHeight(1)
+    UI.Paint(headerBand, "SetColorTexture", "Background")
     local headerBackground = header:CreateTexture(nil, "BACKGROUND")
-    headerBackground:SetPoint("TOPLEFT", UI.Sizes.Border, -UI.Sizes.Border)
+    headerBackground:SetPoint("TOPLEFT", UI.Sizes.Border, -2)
     headerBackground:SetPoint("BOTTOMRIGHT", -UI.Sizes.Border, 0)
     UI.Paint(headerBackground, "SetColorTexture", "Background")
     header:RegisterForDrag("LeftButton")

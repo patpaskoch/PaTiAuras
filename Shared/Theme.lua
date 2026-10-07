@@ -148,9 +148,73 @@ function UI.SetTheme(id)
     return resolved
 end
 
--- Flat background with a 1px border (follows the theme).
+-- Flat background with a 1px border and softly rounded corners (owner wish 2026-10-06), following the theme.
+-- Blizzard's backdrop only knows square corners, so the shape is drawn from plain colour textures: the border
+-- pixel in each corner moves one step inwards (diagonal), its two neighbours get half alpha (soft edge), and the
+-- background leaves that corner free. Same size and insets as before; nothing else moves. The frame keeps the
+-- backdrop API its callers use: SetBackdropColor / SetBackdropBorderColor now paint these textures.
+local SOFT = 0.5 -- alpha share of the two soft corner pixels
+local CORNER_SIGNS = { TOPLEFT = { 1, -1 }, TOPRIGHT = { -1, -1 }, BOTTOMLEFT = { 1, 1 }, BOTTOMRIGHT = { -1, 1 } }
+
+local function newPiece(frame, layer)
+    return frame:CreateTexture(nil, layer)
+end
+
+local function buildShape(frame)
+    local fill, line, soft = {}, {}, {}
+    local function add(list, layer) local piece = newPiece(frame, layer); list[#list + 1] = piece; return piece end
+    -- Background: everything inside the border except the four corner pixels.
+    local middle = add(fill, "BACKGROUND")
+    middle:SetPoint("TOPLEFT", 1, -2)
+    middle:SetPoint("BOTTOMRIGHT", -1, 2)
+    for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT", -1 }, { "BOTTOMLEFT", "BOTTOMRIGHT", 1 } }) do
+        local band = add(fill, "BACKGROUND")
+        band:SetPoint(side[1], 2, side[3])
+        band:SetPoint(side[2], -2, side[3])
+        band:SetHeight(1)
+    end
+    -- Border: four straight lines that stop two pixels before each corner …
+    for _, edge in ipairs({ { "TOPLEFT", "TOPRIGHT", 2, 0, true }, { "BOTTOMLEFT", "BOTTOMRIGHT", 2, 0, true },
+        { "TOPLEFT", "BOTTOMLEFT", 0, -2, false }, { "TOPRIGHT", "BOTTOMRIGHT", 0, -2, false } }) do
+        local piece = add(line, "BORDER")
+        local from, to, dx, dy, horizontal = edge[1], edge[2], edge[3], edge[4], edge[5]
+        if horizontal then
+            piece:SetPoint(from, dx, 0)
+            piece:SetPoint(to, -dx, 0)
+            piece:SetHeight(1)
+        else
+            piece:SetPoint(from, 0, dy)
+            piece:SetPoint(to, 0, -dy)
+            piece:SetWidth(1)
+        end
+    end
+    -- … and per corner one diagonal pixel plus two soft ones.
+    for point, sign in pairs(CORNER_SIGNS) do
+        local sx, sy = sign[1], sign[2]
+        for _, spot in ipairs({ { sx, sy, line }, { sx, 0, soft }, { 0, sy, soft } }) do
+            local piece = add(spot[3], "BORDER")
+            piece:SetSize(1, 1)
+            piece:SetPoint(point, spot[1], spot[2])
+        end
+    end
+    return { fill = fill, line = line, soft = soft }
+end
+
+local function paintPieces(pieces, r, g, b, a)
+    for _, piece in ipairs(pieces) do piece:SetColorTexture(r, g, b, a) end
+end
+
 function UI.ApplyBackdrop(frame, background, border)
-    frame:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = UI.Sizes.Border })
+    if not frame.patiShape then
+        if frame.SetBackdrop then frame:SetBackdrop(nil) end -- no square Blizzard backdrop underneath
+        local shape = buildShape(frame)
+        frame.patiShape = shape
+        frame.SetBackdropColor = function(_, r, g, b, a) paintPieces(shape.fill, r, g, b, a or 1) end
+        frame.SetBackdropBorderColor = function(_, r, g, b, a)
+            paintPieces(shape.line, r, g, b, a or 1)
+            paintPieces(shape.soft, r, g, b, (a or 1) * SOFT)
+        end
+    end
     UI.Paint(frame, "SetBackdropColor", background or "Background")
     UI.Paint(frame, "SetBackdropBorderColor", border or "Border")
 end

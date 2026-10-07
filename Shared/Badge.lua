@@ -8,7 +8,7 @@ function UI.CreateBadge(parent, text, colorName)
     local badge = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     badge:SetHeight(14)
     local color = colorName or "Warning"
-    badge:SetBackdrop({ bgFile = UI.WHITE, edgeFile = UI.WHITE, edgeSize = UI.Sizes.Border })
+    UI.ApplyBackdrop(badge, color, color) -- rounded like everything else; the tinted alphas follow
     UI.Paint(badge, "SetBackdropColor", color, 0.15)
     UI.Paint(badge, "SetBackdropBorderColor", color, 0.6)
 
