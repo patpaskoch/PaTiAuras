@@ -46,6 +46,8 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-016 Collapse/Expand über •••, Zustand bleibt nach `/reload`
 - [ ] PT-AURAS-017 Test Mode `/pa test` zeigt das eigene Klassenprofil mit Beispieldaten (inkl. Waffe: Waffenhand aktiv,
   Schildhand fehlt); erneut `/pa test` beendet ihn
+  - Owner 2026-10-07 (Hexenmeister, ohne Klassenprofil): `/pa test` zeigt die Beispieldaten mit Gruppenbuff-Zeile
+    und Tooltip. Noch offen: Waffe (Waffenhand aktiv, Schildhand fehlt) und Beenden mit erneutem `/pa test`.
 - [ ] PT-AURAS-018 Panel-Deckkraft 30–100 %: nur der Hintergrund ändert sich
 - [ ] PT-AURAS-019 Keine Einrast-Einstellung mehr, Fenster frei verschiebbar
 - [ ] PT-AURAS-020 `/pa reset` setzt die Position zurück
@@ -179,6 +181,8 @@ Anzeige
   Griff ≡, leeren; das Fenster zeigt alles in dieser Reihenfolge; bleibt nach `/reload`; kein Lua-Fehler
   - 🔧 FIX IMPLEMENTED 2026-10-06 (Owner-Wunsch: eine Liste für alles auf dir)
   - MANUAL RETEST REQUIRED
+  - Owner 2026-10-07 (Hexenmeister): Dämonenhaut eingetragen → erscheint, fehlt = rot, Linksklick wirkt, danach
+    Restzeit (PT-AURAS-213). Noch offen: Sortieren, Leeren, `/reload`, vorher Beobachtetes beim Schamanen.
 - ~~PT-AURAS-206 Proc-Häkchen: ein angehakter Platz erscheint nur, solange der Effekt aktiv ist; ohne Häkchen wird er bei Fehlen rot; bei Waffen-Buffs und Aufspüren ist kein Häkchen da~~
   - 🔧 FIX IMPLEMENTED 2026-10-06
   - MANUAL RETEST REQUIRED
@@ -210,6 +214,14 @@ Anzeige
   - MANUAL RETEST REQUIRED
   - Owner 2026-10-07: Verschieben geht, das Fenster schließt nicht mehr bei offenem Zauberbuch. Noch offen: ESC und
     X schließen es weiter.
+- [x] PT-AURAS-213 Klasse ohne Profil (Hexenmeister): „Meine Auras“ startet leer; Dämonenhaut eintragen; sie erscheint,
+  fehlt = rote Zeile, Linksklick wirkt sie, danach Restzeit
+  - ✅ VERIFIED 2026-10-07
+  - Owner: „ja das hat alles funktioniert“ (Hexenmeister Stufe 1, Dämonenhaut).
+- [x] PT-AURAS-214 Testmodus ohne Klassenprofil (`/pa test`): Gruppenbuff-Zeile „x / 5“ mit Tooltip (wer hat ihn, wem
+  fehlt er) ist sichtbar
+  - ✅ VERIFIED 2026-10-07
+  - Owner: „ja das hat alles funktioniert“ (Hexenmeister, Gruppenanzeige im Testmodus).
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
