@@ -198,3 +198,13 @@ function Spells.Learned(keep, general)
     for index, entry in ipairs(list) do ids[index] = entry.id end
     return ids
 end
+
+-- For the own list (owner 2026-10-07): a passive spell, or one from the spellbook's general line (Attack, racials,
+-- professions …)? Spells not in your spellbook (e.g. a proc you type in) are neither.
+function Spells.IsPassive(id) return isPassive(id) end
+
+function Spells.IsGeneral(id)
+    local name = Spells.Name(id)
+    local family = name and families[name]
+    return family ~= nil and family.general == true
+end

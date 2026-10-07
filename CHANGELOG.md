@@ -89,7 +89,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
 - "My auras": a small arrow inside the name field opens a list of your learned spells — no attack, passive or general
-  spells such as Attack, tracking stays (owner 2026-10-07).
+  spells such as Attack, tracking stays (owner 2026-10-07). Typing or dragging such a spell is refused the same way.
 - "My auras" uses PaTiShared's slot list (owner 2026-10-07: same list, help and handling as PaTiRota). Attack
   spells (e.g. Shadow Bolt) are refused with a note — they never put a buff on you.
 - "Missing" (weapon imbue, own buffs, tracking lines) is now shown in red instead of grey (owner wish 2026-10-04).

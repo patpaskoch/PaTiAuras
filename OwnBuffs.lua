@@ -30,15 +30,6 @@ local function change(apply)
     if apply(slots()) ~= false then app.changed() end
 end
 
--- An attack spell cannot be a buff on you: refused with a note instead of a line that is always "missing".
-local function acceptable(id)
-    if id and id ~= 0 and Spells.IsHarmful(id) then
-        app.say("OWN_HARMFUL", Spells.Name(id) or tostring(id))
-        return false
-    end
-    return true
-end
-
 -- Tracking spells (Find Herbs …) sit in the spellbook's general line, which the pick list otherwise leaves out.
 local function isTracking(id)
     local name = Spells.Name(id)
@@ -46,6 +37,22 @@ local function isTracking(id)
         if name and name == Spells.Name(def.spellID) then return true end
     end
     return false
+end
+
+-- What the pick list leaves out is refused when typed or dragged too (owner 2026-10-07: same rules everywhere):
+-- attack spells, passive spells and the spellbook's general line (Attack, racials …) except tracking. A spell
+-- outside your spellbook (e.g. a proc) stays allowed.
+local function acceptable(id)
+    if not id or id == 0 then return true end
+    if Spells.IsHarmful(id) then
+        app.say("OWN_HARMFUL", Spells.Name(id) or tostring(id))
+        return false
+    end
+    if Spells.IsPassive(id) or (Spells.IsGeneral(id) and not isTracking(id)) then
+        app.say("OWN_NOT_KEPT_UP", Spells.Name(id) or tostring(id))
+        return false
+    end
+    return true
 end
 
 local function build()

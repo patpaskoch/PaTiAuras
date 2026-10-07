@@ -232,6 +232,10 @@ Anzeige
 - [ ] PT-AURAS-216 „Meine Auras“: Pfeil-Knopf neben dem Namen öffnet eine Liste deiner gelernten Zauber ohne Angriffs- und passive Zauber, scrollt mit dem Mausrad; Klick trägt ein
   - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner-Wunsch: Auswahl zusätzlich zu Eintippen/Ziehen, überall gleich)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-217 „Meine Auras“: Überlebenswille (oder Angreifen) eintippen + Enter → Chat-Hinweis „… passiv oder eine
+  allgemeine Fähigkeit … nicht übernommen“, Platz bleibt leer; Aufspüren (Kräutersuche) wird weiter angenommen
+  - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner: Überlebenswille wurde beim Eintippen angenommen)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
