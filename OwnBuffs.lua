@@ -3,7 +3,7 @@
 -- arrows and grip to sort — the same in every addon). The list changes lines with secure click buttons: changes
 -- only out of combat. Attack spells (e.g. Shadow Bolt) are refused: they never put a buff on you (owner 2026-10-07).
 local _, ns = ...
-local UI, L, Config, Spells = ns.UI, ns.UI.L, ns.Config, ns.Spells
+local UI, Config, Spells = ns.UI, ns.Config, ns.Spells
 
 local OwnBuffs = {}
 ns.OwnBuffs = OwnBuffs
