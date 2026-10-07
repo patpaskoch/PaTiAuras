@@ -88,6 +88,8 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
   tooltip). Active buffs, unwatched or unknown spells, offline/dead members and unreadable (Unknown) data never alert;
   the warning disappears once everyone has the buff. Follows "show missing" like the personal buffs.
 ### Changed
+- Test mode shows three group buffs in different states (missing on one member, only on you) also for classes
+  without group buffs, e.g. Shaman or Warlock (owner 2026-10-07: see how the group lines look).
 - "My auras": a small arrow inside the name field opens a list of your learned spells — no attack, passive or general
   spells such as Attack, tracking stays (owner 2026-10-07). Typing or dragging such a spell is refused the same way.
 - "My auras" uses PaTiShared's slot list (owner 2026-10-07: same list, help and handling as PaTiRota). Attack

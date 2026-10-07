@@ -66,7 +66,11 @@ AuraScan.TEST_PROFILE = {
     name = "Test",
     personal = { { key = "WATER_SHIELD", spellID = 24398, expiring = true, showCount = true, clickable = true } },
     procs = { { key = "TIDAL_WAVES", spellID = 53390, showCount = true } },
-    group = { { key = "FORTITUDE", spellID = 1243, nameKey = "TEST_GROUP_BUFF", expiring = true } },
+    -- Three group buffs in different states (owner 2026-10-07: see how the group lines look): two each missing on one
+    -- member, one only on you. Also shown in test mode for classes whose profile has no group buffs.
+    group = { { key = "FORTITUDE", spellID = 1243, nameKey = "TEST_GROUP_BUFF", expiring = true },
+        { key = "DIVINE_SPIRIT", spellID = 14752, nameKey = "TEST_GROUP_BUFF_2", expiring = true },
+        { key = "SHADOW_PROTECTION", spellID = 976, nameKey = "TEST_GROUP_BUFF_3", expiring = true } },
     weapon = { { key = "MAIN_HAND_IMBUE", slot = "MAINHAND", nameKey = "MAIN_HAND", expiring = true },
         { key = "OFF_HAND_IMBUE", slot = "OFFHAND", nameKey = "OFF_HAND", expiring = true } },
 }

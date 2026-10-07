@@ -236,6 +236,10 @@ Anzeige
   allgemeine Fähigkeit … nicht übernommen“, Platz bleibt leer; Aufspüren (Kräutersuche) wird weiter angenommen
   - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner: Überlebenswille wurde beim Eintippen angenommen)
   - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-218 `/pa test` (auch Schamane/Hexenmeister): oben drei Gruppenbuffs – zwei fehlen je einem, einer nur bei
+  dir; Tooltip nennt, wem er fehlt und wer offline ist; im Raster mit 1/2/3 Spalten lesbar
+  - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner-Wunsch: Gruppenbuffs im Test sehen)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

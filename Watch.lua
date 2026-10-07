@@ -184,7 +184,10 @@ function Watch.Rebuild(db)
     for _, category in ipairs(Watch.CATEGORIES) do Watch.entries[category] = {} end
     Watch.entries.own = {}
     if not (test or db.enabled) then return end
-    for _, def in ipairs(profile and profile.group or {}) do
+    -- Test mode: a class without group buffs (Shaman, Warlock …) shows the test group buffs, to see how they look.
+    local groupDefs = profile and profile.group or {}
+    if test and #groupDefs == 0 then groupDefs = AuraScan.TEST_PROFILE.group end
+    for _, def in ipairs(groupDefs) do
         if test or (Watch.IsOffered(def, "group") and Auras.IsWatched(db, def)) then
             local entry = makeEntry(def, "group", test)
             if entry then table.insert(Watch.entries.group, entry) end
