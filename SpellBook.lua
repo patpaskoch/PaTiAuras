@@ -155,3 +155,17 @@ function Spells.FromCursor()
     end
     return nil
 end
+
+-- An attack spell (Shadow Bolt …)? true only when the client says so; unknown or missing API → false. Never errors.
+function Spells.IsHarmful(id)
+    if C_Spell and C_Spell.IsSpellHarmful then
+        local ok, harmful = pcall(C_Spell.IsSpellHarmful, id)
+        if ok then return harmful == true end
+    end
+    local name = Spells.Name(id)
+    if IsHarmfulSpell and name then
+        local ok, harmful = pcall(IsHarmfulSpell, name)
+        if ok then return harmful == true or harmful == 1 end
+    end
+    return false
+end

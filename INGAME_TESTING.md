@@ -222,6 +222,11 @@ Anzeige
   fehlt er) ist sichtbar
   - ✅ VERIFIED 2026-10-07
   - Owner: „ja das hat alles funktioniert“ (Hexenmeister, Gruppenanzeige im Testmodus).
+- [ ] PT-AURAS-215 „Meine Auras“: Angriffszauber (z. B. Schattenblitz) eintippen oder hineinziehen → Chat-Hinweis „… ist ein
+  Angriffszauber …“, Platz bleibt leer; Hilfe und Liste sehen aus wie in PaTiRota (Hinzufügen, Sortieren, Entfernen,
+  Waffen-Buff, Fehlt)
+  - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner: Schattenblitz wurde angenommen; Liste in allen Addons gleich)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
