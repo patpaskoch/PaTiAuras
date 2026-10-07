@@ -229,6 +229,9 @@ Anzeige
   - MANUAL RETEST REQUIRED
   - Owner 2026-10-07: Schattenblitz → Hinweis „Angriffszauber“, er wird nicht übernommen (keine rote Zeile).
     Noch offen: Liste und Hilfe sehen aus wie in PaTiRota.
+- [ ] PT-AURAS-216 „Meine Auras“: Pfeil-Knopf neben dem Namen öffnet eine Liste deiner gelernten Zauber ohne Angriffs- und passive Zauber, scrollt mit dem Mausrad; Klick trägt ein
+  - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner-Wunsch: Auswahl zusätzlich zu Eintippen/Ziehen, überall gleich)
+  - MANUAL RETEST REQUIRED
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04

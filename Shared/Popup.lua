@@ -24,6 +24,12 @@ local function createPopup()
     -- Close on any click outside; a click on the anchor itself toggles via ShowPopup.
     popup:SetScript("OnShow", function(self) pcall(self.RegisterEvent, self, "GLOBAL_MOUSE_DOWN") end)
     popup:SetScript("OnHide", function(self) self:UnregisterAllEvents(); self.anchor = nil end)
+    popup:EnableMouseWheel(true)
+    popup:SetScript("OnMouseWheel", function(self, delta)
+        if not self.maxOffset or self.maxOffset == 0 or not self.render then return end
+        self.offset = math.max(0, math.min((self.offset or 0) - delta, self.maxOffset))
+        self.render()
+    end)
     popup:SetScript("OnEvent", function(self)
         if not self:IsMouseOver() and not (self.anchor and self.anchor:IsMouseOver()) then self:Hide() end
     end)
@@ -83,22 +89,49 @@ UI.OnThemeChanged(function()
     if popup and popup:IsShown() and popup.render then popup.render() end
 end)
 
+-- Long lists (e.g. a whole spellbook, owner 2026-10-07) show MAX_ROWS rows at a time and scroll with the mouse
+-- wheel; a thin bar on the right shows where you are.
+local MAX_ROWS = 14
+local SCROLLBAR = 3
+
 local render
 function UI.ShowPopup(anchor, items, minWidth, align)
     if not popup then createPopup() end
     if popup:IsShown() and popup.anchor == anchor then popup:Hide(); return end
+    popup.offset = 0
     popup.render = function() render(anchor, type(items) == "function" and items() or items, minWidth, align) end
     popup.render()
 end
 
-render = function(anchor, items, minWidth, align)
+local function scrollbar()
+    if popup.scrollbar then return popup.scrollbar end
+    local bar = popup:CreateTexture(nil, "OVERLAY")
+    bar:SetWidth(SCROLLBAR)
+    UI.Paint(bar, "SetColorTexture", "TextMuted", 0.6)
+    popup.scrollbar = bar
+    return bar
+end
 
+render = function(anchor, items, minWidth, align)
     local pad, height = UI.Spacing.SM, UI.Sizes.MenuRowHeight
     local textLeft = UI.Spacing.MD + UI.Sizes.IconMedium + UI.Spacing.MD
+    local visible = math.min(#items, MAX_ROWS)
+    local maxOffset = #items - visible
+    popup.offset = math.max(0, math.min(popup.offset or 0, maxOffset))
+    popup.maxOffset = maxOffset
 
-    -- First pass: content and natural width (label anchored on one side only).
+    -- First pass: content and natural width (label anchored on one side only). The width follows every item, so it
+    -- does not jump while scrolling.
     local width = (minWidth or 0) - 2 * pad
-    for index, item in ipairs(items) do
+    local measure = getRow(MAX_ROWS + 1)
+    measure:Hide()
+    for _, item in ipairs(items) do
+        measure.label:SetFontObject(item.header and UI.Fonts.Label or UI.Fonts.Text)
+        measure.label:SetText(UI.Text(item.text) or "")
+        width = math.max(width, math.ceil(UI.TextWidth(measure.label)) + textLeft + UI.Spacing.LG)
+    end
+    for index = 1, visible do
+        local item = items[popup.offset + index]
         local row = getRow(index)
         row.item = item
         row.label:ClearAllPoints()
@@ -117,10 +150,10 @@ render = function(anchor, items, minWidth, align)
         row.boxFill:SetShown(item.checked == true)
         row:SetEnabled(not item.disabled and not item.header)
         row.patiTooltip = item.tooltip
-        width = math.max(width, math.ceil(UI.TextWidth(row.label)) + textLeft + UI.Spacing.LG)
+        if row:IsMouseOver() and row:IsEnabled() then row.hover:Show() else row.hover:Hide() end
     end
     -- Second pass: fixed width, truncate long labels.
-    for index = 1, #items do
+    for index = 1, visible do
         local row = rows[index]
         row:ClearAllPoints()
         row:SetPoint("TOPLEFT", pad, -pad - (index - 1) * height)
@@ -128,9 +161,18 @@ render = function(anchor, items, minWidth, align)
         row.label:SetPoint("RIGHT", -UI.Spacing.MD, 0)
         row:Show()
     end
-    for index = #items + 1, #rows do rows[index]:Hide() end
+    for index = visible + 1, #rows do rows[index]:Hide() end
 
-    popup:SetSize(width + 2 * pad, #items * height + 2 * pad)
+    local bar = scrollbar()
+    bar:SetShown(maxOffset > 0)
+    if maxOffset > 0 then
+        local track = visible * height
+        bar:SetHeight(math.max(height, track * visible / #items))
+        bar:ClearAllPoints()
+        bar:SetPoint("TOPRIGHT", -1, -pad - (track - bar:GetHeight()) * popup.offset / maxOffset)
+    end
+
+    popup:SetSize(width + 2 * pad, visible * height + 2 * pad)
     popup:ClearAllPoints()
     if align == "LEFT" then
         popup:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.XS)

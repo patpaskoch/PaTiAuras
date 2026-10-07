@@ -18,5 +18,6 @@
     <Script file="Modal.lua"/>
     <Script file="Dropdown.lua"/>
     <Script file="Checkbox.lua"/>
+    <Script file="SpellField.lua"/>
     <Script file="SlotList.lua"/>
 </Ui>

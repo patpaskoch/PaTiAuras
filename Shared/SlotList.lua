@@ -1,17 +1,18 @@
 -- PaTiShared: an ordered list of spell slots in a settings modal — the one way PaTi addons let the player fill and
 -- sort spells (owner 2026-10-07: same look, help and handling everywhere; used by PaTiRota and PaTiAuras).
--- Row: [icon][spell name or ID ……][^][v][≡]. Type a name or ID + Enter, or drag a spell from the spellbook onto a
--- slot; empty + Enter clears it; the arrows or dragging the grip ≡ (or the icon) onto another slot reorder.
+-- Row: [icon][spell name or ID ……][▾][^][v][≡]. Type a name or ID + Enter, pick from ▾, or drag a spell from the
+-- spellbook onto a slot; empty + Enter clears it; the arrows or dragging the grip ≡ (or the icon) reorder.
 -- Above the rows a help note lists this as short lines with highlighted keywords. The addon owns the data and
 -- decides what a change does (e.g. only out of combat); this file only draws and reports.
 local _, ns = ...
 local UI = ns.UI or {}
 ns.UI = UI
 
-local EDIT_WIDTH, MOVE_WIDTH, ICON = 170, 28, 18
+local EDIT_WIDTH, MOVE_WIDTH, ICON, PICK = 150, 28, 18, 22 -- PICK: the ▾ of UI.CreateSpellField
 local CHEVRON = 6 -- arm length of the up/down chevron (same drawing as the dropdown arrow)
 local GRIP, GRIP_LINES, GRIP_GAP = 16, 3, 4 -- drag grip: three short lines, 4 px apart
-local SHARED_HELP = { { "SLOT_HELP_ADD_KEY", "SLOT_HELP_ADD" }, { "SLOT_HELP_SORT_KEY", "SLOT_HELP_SORT" },
+local SHARED_HELP = { { "SLOT_HELP_ADD_KEY", "SLOT_HELP_ADD" }, { "SLOT_HELP_PICK_KEY", "SLOT_HELP_PICK" },
+    { "SLOT_HELP_SORT_KEY", "SLOT_HELP_SORT" },
     { "SLOT_HELP_CLEAR_KEY", "SLOT_HELP_CLEAR" } }
 
 -- Help lines "• Keyword: text" — FontStrings have no bold, so the keyword gets the normal text colour on the muted
@@ -52,6 +53,7 @@ end
 --   set(slot, id)         put `id` (0 = clear) into `slot`
 --   moveTo(from, to)      move one slot (arrows: to = from ± 1; dragging: any slot)
 --   name(id), icon(id)    display of a spell
+--   choices()             → spell IDs the ▾ of each row offers (UI.CreateSpellField)
 --   resolve(text)         → spell ID, 0 for empty text, nil if nothing matches
 --   fromCursor()          → the spell ID on the mouse cursor, or nil
 --   notFound(text)        typed text matched nothing (the addon tells the player)
@@ -64,7 +66,7 @@ function UI.AddSlotList(modal, options)
         local ids = options.get()
         for slot, row in ipairs(rows) do
             local id = ids[slot] or 0
-            if not row.edit:HasFocus() then row.edit:SetText(id ~= 0 and (options.name(id) or tostring(id)) or "") end
+            row.field:Refresh()
             row.icon:SetTexture(id ~= 0 and options.icon(id) or nil)
             row.up:SetEnabled(slot > 1)
             row.down:SetEnabled(slot < options.count)
@@ -76,13 +78,6 @@ function UI.AddSlotList(modal, options)
     local function moveTo(from, to)
         if to >= 1 and to <= options.count and to ~= from then options.moveTo(from, to) end
         refresh()
-    end
-
-    local function receiveDrag(slot)
-        local id = options.fromCursor()
-        if not id then return end
-        if ClearCursor then ClearCursor() end
-        setSlot(slot, id)
     end
 
     -- Reorder by dragging (grip or icon) onto another slot; the row under the mouse is lit while dragging.
@@ -140,7 +135,7 @@ function UI.AddSlotList(modal, options)
 
     local function slotRow(slot)
         local row = CreateFrame("Frame", nil, modal)
-        row:SetSize(ICON + UI.Spacing.SM + EDIT_WIDTH + 3 * UI.Spacing.XS + 2 * MOVE_WIDTH + GRIP,
+        row:SetSize(ICON + UI.Spacing.SM + EDIT_WIDTH + 4 * UI.Spacing.XS + PICK + 2 * MOVE_WIDTH + GRIP,
             UI.Sizes.ButtonHeight)
         row.drop = row:CreateTexture(nil, "BACKGROUND")
         row.drop:SetPoint("TOPLEFT", -UI.Spacing.XS, UI.Spacing.XS)
@@ -153,26 +148,19 @@ function UI.AddSlotList(modal, options)
         makeDraggable(row.handle, row, slot)
         row.icon = row.handle:CreateTexture(nil, "ARTWORK")
         row.icon:SetAllPoints()
-        local edit = CreateFrame("EditBox", nil, row, "BackdropTemplate")
-        edit:SetSize(EDIT_WIDTH, UI.Sizes.ButtonHeight)
-        edit:SetPoint("LEFT", row.handle, "RIGHT", UI.Spacing.SM, 0)
-        edit:SetAutoFocus(false)
-        edit:SetFontObject(UI.Fonts.Text)
-        edit:SetTextInsets(UI.Spacing.SM + 2, UI.Spacing.SM, 0, 0)
-        UI.ApplyBackdrop(edit, "Panel", "Border")
-        edit:SetScript("OnEnterPressed", function(self)
-            local text = self:GetText()
-            local id = options.resolve(text)
-            self:ClearFocus()
-            if id then setSlot(slot, id) else options.notFound(text); refresh() end
-        end)
-        edit:SetScript("OnEscapePressed", function(self) self:ClearFocus(); refresh() end)
-        edit:SetScript("OnReceiveDrag", function() receiveDrag(slot) end)
-        edit:SetScript("OnMouseDown", function()
-            if GetCursorInfo and GetCursorInfo() == "spell" then receiveDrag(slot) end
-        end)
-        UI.SetTooltip(edit, function() return { UI.L.SLOT:format(slot), UI.L.SLOT_TIP } end)
-        row.edit = edit
+        row.field = UI.CreateSpellField(row, {
+            width = EDIT_WIDTH,
+            get = function() return options.get()[slot] or 0 end,
+            set = function(id) setSlot(slot, id) end,
+            choices = options.choices,
+            name = options.name,
+            icon = options.icon,
+            resolve = options.resolve,
+            fromCursor = options.fromCursor,
+            notFound = function(text) options.notFound(text); refresh() end,
+            tooltip = function() return { UI.L.SLOT:format(slot), UI.L.SLOT_TIP } end,
+        })
+        row.field:SetPoint("LEFT", row.handle, "RIGHT", UI.Spacing.SM, 0)
         row.grip = gripButton(row, slot)
         row.grip:SetPoint("RIGHT")
         row.down = moveButton(row, "MOVE_DOWN", false, function() moveTo(slot, slot + 1) end)

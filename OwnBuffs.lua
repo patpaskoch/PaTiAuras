@@ -54,6 +54,7 @@ local function build()
             local id = Spells.Resolve(text)
             return (id == nil or acceptable(id)) and id or nil
         end,
+        choices = function() return Spells.Learned(function(id) return not Spells.IsHarmful(id) end) end,
         fromCursor = function()
             local id = Spells.FromCursor()
             if not acceptable(id) then

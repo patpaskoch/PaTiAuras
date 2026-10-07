@@ -169,3 +169,26 @@ function Spells.IsHarmful(id)
     end
     return false
 end
+
+local function isPassive(id)
+    local fn = (C_Spell and C_Spell.IsSpellPassive) or IsPassiveSpell
+    if not fn then return false end
+    local ok, passive = pcall(fn, id)
+    return ok and (passive == true or passive == 1)
+end
+
+-- Your learned spells for a pick list (owner 2026-10-07): one ID per spell (its highest rank), passive ones left
+-- out, keep(id) filters further (optional); sorted by name.
+function Spells.Learned(keep)
+    local list = {}
+    for name, family in pairs(families) do
+        local top = family.ranks[#family.ranks]
+        if top and not isPassive(top.id) and (not keep or keep(top.id)) then
+            list[#list + 1] = { id = top.id, name = name }
+        end
+    end
+    table.sort(list, function(a, b) return a.name < b.name end)
+    local ids = {}
+    for index, entry in ipairs(list) do ids[index] = entry.id end
+    return ids
+end
