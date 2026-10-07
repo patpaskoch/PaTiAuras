@@ -42,7 +42,7 @@ L.SLOT_HELP_SORT = "arrows, or drag the grip (three lines, right) or the icon on
 L.SLOT_HELP_CLEAR_KEY = "Remove"
 L.SLOT_HELP_CLEAR = "empty the field + Enter"
 L.SLOT_HELP_PICK_KEY = "Pick"
-L.SLOT_HELP_PICK = "the small arrow button next to the name opens a list of your spells"
+L.SLOT_HELP_PICK = "the small arrow at the right of the name field opens a list of your spells"
 -- Spell field (UI.CreateSpellField)
 L.SPELL_NONE = "— none —"
 L.SPELL_PICK_TIP = "Pick one of your spells"

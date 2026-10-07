@@ -1,4 +1,4 @@
--- PaTiShared: one spell input (owner 2026-10-07: the same in every addon) — [spell name or ID ……][▾][rank ▾].
+-- PaTiShared: one spell input (owner 2026-10-07: the same in every addon) — [spell name or ID …… ▾][rank ▾].
 -- Three ways in: type a name or ID + Enter (empty + Enter clears), drag a spell from the spellbook onto the field,
 -- or pick from ▾ (the addon's list of your spells, e.g. the learned buffs). The rank dropdown is optional (PaTiHeal):
 -- "highest" by default, active only when the spell has several known ranks. The addon owns the data.
@@ -26,15 +26,15 @@ local CHEVRON = 6
 function UI.CreateSpellField(parent, options)
     local field = CreateFrame("Frame", nil, parent)
     local hasRanks = options.ranks ~= nil
-    field:SetSize(options.width + UI.Spacing.XS + PICK + (hasRanks and UI.Spacing.SM + RANK_WIDTH or 0),
+    field:SetSize(options.width + PICK + (hasRanks and UI.Spacing.SM + RANK_WIDTH or 0),
         UI.Sizes.ButtonHeight)
 
     local edit = CreateFrame("EditBox", nil, field, "BackdropTemplate")
-    edit:SetSize(options.width, UI.Sizes.ButtonHeight)
+    edit:SetSize(options.width + PICK, UI.Sizes.ButtonHeight) -- the pick arrow sits inside, on the right
     edit:SetPoint("LEFT")
     edit:SetAutoFocus(false)
     edit:SetFontObject(UI.Fonts.Text)
-    edit:SetTextInsets(UI.Spacing.SM + 2, UI.Spacing.SM, 0, 0)
+    edit:SetTextInsets(UI.Spacing.SM + 2, PICK + UI.Spacing.XS, 0, 0)
     UI.ApplyBackdrop(edit, "Panel", "Border")
     field.edit = edit
 
@@ -71,15 +71,35 @@ function UI.CreateSpellField(parent, options)
     end)
     if options.tooltip then UI.SetTooltip(edit, options.tooltip) end
 
-    -- ▾: pick one of your spells.
-    local pick = UI.CreateButton(field, nil, PICK)
-    pick:SetPoint("LEFT", edit, "RIGHT", UI.Spacing.XS, 0)
+    -- The pick arrow lives inside the name field, on its right edge behind a thin divider — it reads like the
+    -- arrow of a dropdown, not like the separate up/down buttons of a slot list (owner 2026-10-07).
+    local pick = CreateFrame("Button", nil, edit)
+    pick:SetPoint("TOPRIGHT", -1, -1)
+    pick:SetPoint("BOTTOMRIGHT", -1, 1)
+    pick:SetWidth(PICK - 1)
+    pick:SetFrameLevel(edit:GetFrameLevel() + 2)
+    local divider = pick:CreateTexture(nil, "ARTWORK")
+    divider:SetPoint("TOPLEFT", 0, -UI.Spacing.XS)
+    divider:SetPoint("BOTTOMLEFT", 0, UI.Spacing.XS)
+    divider:SetWidth(1)
+    UI.Paint(divider, "SetColorTexture", "Border")
+    local hover = pick:CreateTexture(nil, "BACKGROUND")
+    hover:SetPoint("TOPLEFT", 1, 0)
+    hover:SetPoint("BOTTOMRIGHT")
+    UI.Paint(hover, "SetColorTexture", "PanelHover")
+    hover:Hide()
     local arrow = CreateFrame("Frame", nil, pick)
     arrow:SetSize(12, 12)
-    arrow:SetPoint("CENTER")
-    for _, line in ipairs({ UI.Line(arrow, CHEVRON, -45, -2, 0), UI.Line(arrow, CHEVRON, 45, 2, 0) }) do
-        UI.Paint(line, "SetColorTexture", "TextMuted")
+    arrow:SetPoint("CENTER", 1, 0)
+    local chevron = { UI.Line(arrow, CHEVRON, -45, -2, 0), UI.Line(arrow, CHEVRON, 45, 2, 0) }
+    local function paintArrow(hovered)
+        for _, line in ipairs(chevron) do line:SetColorTexture(UI.Color(hovered and "Text" or "TextMuted")) end
+        hover:SetShown(hovered)
     end
+    pick:SetScript("OnEnter", function() paintArrow(true) end)
+    pick:SetScript("OnLeave", function() paintArrow(false) end)
+    UI.OnThemeChanged(function() paintArrow(pick:IsMouseOver()) end)
+    paintArrow(false)
     UI.SetTooltip(pick, "SPELL_PICK_TIP")
     pick:SetScript("OnClick", function(self)
         local items = { { text = "SPELL_NONE", onClick = function() set(0) end } }

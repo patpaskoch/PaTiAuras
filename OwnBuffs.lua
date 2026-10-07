@@ -39,6 +39,15 @@ local function acceptable(id)
     return true
 end
 
+-- Tracking spells (Find Herbs …) sit in the spellbook's general line, which the pick list otherwise leaves out.
+local function isTracking(id)
+    local name = Spells.Name(id)
+    for _, def in ipairs(ns.AuraTracking or {}) do
+        if name and name == Spells.Name(def.spellID) then return true end
+    end
+    return false
+end
+
 local function build()
     modal = UI.CreateModal("PaTiAurasOwnBuffs", "OWN_BUFFS", 440)
     UI.AddSlotList(modal, {
@@ -54,7 +63,7 @@ local function build()
             local id = Spells.Resolve(text)
             return (id == nil or acceptable(id)) and id or nil
         end,
-        choices = function() return Spells.Learned(function(id) return not Spells.IsHarmful(id) end) end,
+        choices = function() return Spells.Learned(function(id) return not Spells.IsHarmful(id) end, isTracking) end,
         fromCursor = function()
             local id = Spells.FromCursor()
             if not acceptable(id) then

@@ -40,6 +40,7 @@ function Spells.BuildFamilies(entries)
         result[entry.name] = family
         local rank = entry.subtext and tonumber(entry.subtext:match("%d+"))
         family.ranks[#family.ranks + 1] = { id = entry.id, rank = rank, subtext = entry.subtext }
+        if entry.general then family.general = true end
     end
     for _, family in pairs(result) do
         table.sort(family.ranks, function(a, b) return (a.rank or 0) < (b.rank or 0) end)
@@ -59,7 +60,8 @@ local function spellbookEntries()
             for index = info.itemIndexOffset + 1, info.itemIndexOffset + info.numSpellBookItems do
                 local item = book.GetSpellBookItemInfo(index, Enum.SpellBookSpellBank.Player)
                 if item and item.spellID and item.name and (not spellType or item.itemType == spellType) then
-                    entries[#entries + 1] = { name = item.name, subtext = item.subName, id = item.spellID }
+                    entries[#entries + 1] = { name = item.name, subtext = item.subName, id = item.spellID,
+                        general = line == 1 }
                 end
             end
         end
@@ -69,7 +71,9 @@ local function spellbookEntries()
             for index = offset + 1, offset + count do
                 local kind, id = GetSpellBookItemInfo(index, "spell")
                 local name, subtext = GetSpellBookItemName(index, "spell")
-                if kind == "SPELL" and id and name then entries[#entries + 1] = { name = name, subtext = subtext, id = id } end
+                if kind == "SPELL" and id and name then
+                    entries[#entries + 1] = { name = name, subtext = subtext, id = id, general = tab == 1 }
+                end
             end
         end
     end
@@ -178,12 +182,14 @@ local function isPassive(id)
 end
 
 -- Your learned spells for a pick list (owner 2026-10-07): one ID per spell (its highest rank), passive ones left
--- out, keep(id) filters further (optional); sorted by name.
-function Spells.Learned(keep)
+-- out, keep(id) filters further (optional). Spells of the first spellbook line ("General": Attack, professions …)
+-- only when general(id) allows them (e.g. tracking). Sorted by name.
+function Spells.Learned(keep, general)
     local list = {}
     for name, family in pairs(families) do
         local top = family.ranks[#family.ranks]
-        if top and not isPassive(top.id) and (not keep or keep(top.id)) then
+        local allowed = top and (not family.general or (general and general(top.id)))
+        if allowed and not isPassive(top.id) and (not keep or keep(top.id)) then
             list[#list + 1] = { id = top.id, name = name }
         end
     end

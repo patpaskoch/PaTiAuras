@@ -42,7 +42,7 @@ L.SLOT_HELP_SORT = "Pfeile, oder den Griff (drei Striche, rechts) oder das Icon 
 L.SLOT_HELP_CLEAR_KEY = "Entfernen"
 L.SLOT_HELP_CLEAR = "Feld leeren + Enter"
 L.SLOT_HELP_PICK_KEY = "Auswählen"
-L.SLOT_HELP_PICK = "der kleine Pfeil-Knopf neben dem Namen öffnet eine Liste deiner Zauber"
+L.SLOT_HELP_PICK = "der kleine Pfeil rechts im Namensfeld öffnet eine Liste deiner Zauber"
 -- Zauber-Feld (UI.CreateSpellField)
 L.SPELL_NONE = "— keiner —"
 L.SPELL_PICK_TIP = "Einen deiner Zauber auswählen"

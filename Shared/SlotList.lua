@@ -8,7 +8,7 @@ local _, ns = ...
 local UI = ns.UI or {}
 ns.UI = UI
 
-local EDIT_WIDTH, MOVE_WIDTH, ICON, PICK = 150, 28, 18, 22 -- PICK: the ▾ of UI.CreateSpellField
+local EDIT_WIDTH, MOVE_WIDTH, ICON, PICK = 150, 28, 18, 22 -- PICK: the arrow inside UI.CreateSpellField
 local CHEVRON = 6 -- arm length of the up/down chevron (same drawing as the dropdown arrow)
 local GRIP, GRIP_LINES, GRIP_GAP = 16, 3, 4 -- drag grip: three short lines, 4 px apart
 local SHARED_HELP = { { "SLOT_HELP_ADD_KEY", "SLOT_HELP_ADD" }, { "SLOT_HELP_PICK_KEY", "SLOT_HELP_PICK" },
@@ -135,7 +135,7 @@ function UI.AddSlotList(modal, options)
 
     local function slotRow(slot)
         local row = CreateFrame("Frame", nil, modal)
-        row:SetSize(ICON + UI.Spacing.SM + EDIT_WIDTH + 4 * UI.Spacing.XS + PICK + 2 * MOVE_WIDTH + GRIP,
+        row:SetSize(ICON + UI.Spacing.SM + EDIT_WIDTH + 3 * UI.Spacing.XS + PICK + 2 * MOVE_WIDTH + GRIP,
             UI.Sizes.ButtonHeight)
         row.drop = row:CreateTexture(nil, "BACKGROUND")
         row.drop:SetPoint("TOPLEFT", -UI.Spacing.XS, UI.Spacing.XS)
