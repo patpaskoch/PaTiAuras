@@ -91,11 +91,17 @@ function Modal:AddNote(title, highlight, text, minLines)
     UI.Paint(accent, "SetColorTexture", "Accent")
 
     local left = 2 + UI.Spacing.MD
-    local heading = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
-    heading:SetPoint("TOPLEFT", left, -UI.Spacing.MD)
-    UI.Paint(heading, "SetTextColor", "Text")
-    UI.BindText(heading, title)
-    local anchor, height = heading, UI.Spacing.MD + 14
+    -- title nil: no heading line (e.g. the commands list, whose section title already says it).
+    local anchor, height
+    if title then
+        anchor = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
+        anchor:SetPoint("TOPLEFT", left, -UI.Spacing.MD)
+        UI.Paint(anchor, "SetTextColor", "Text")
+        UI.BindText(anchor, title)
+        height = UI.Spacing.MD + 14
+    else
+        height = UI.Spacing.MD - UI.Spacing.SM -- the body below adds SM: MD above the first line
+    end
     if highlight then
         local path = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Title)
         path:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
@@ -106,7 +112,11 @@ function Modal:AddNote(title, highlight, text, minLines)
         anchor, height = path, height + UI.Spacing.SM + 14
     end
     local body = note:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
-    body:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
+    if anchor then
+        body:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.Spacing.SM)
+    else
+        body:SetPoint("TOPLEFT", left, -UI.Spacing.MD)
+    end
     body:SetWidth(inner)
     body:SetJustifyH("LEFT")
     body:SetWordWrap(true)
@@ -120,7 +130,30 @@ function Modal:AddNote(title, highlight, text, minLines)
 end
 
 -- onDefaults nil = no "Restore Defaults" button.
+-- Commands section (owner 2026-10-07): the addon's slash commands, read from its HELP text ("/pa show, hide, …"),
+-- each with a short meaning (shared CMD_<NAME> keys). Added by Finish for windows set up with AddWindowSettings.
+local function commandLines()
+    local help = UI.L.HELP
+    local slash, rest = tostring(help):match("^(/%S+)%s+(.+)$")
+    if not slash then return nil end
+    local r, g, b = UI.Color("Text")
+    local color = ("|cff%02x%02x%02x"):format(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255))
+    local lines = { ("• %s%s|r: %s"):format(color, slash, UI.L.CMD_TOGGLE_WINDOW) }
+    for name in rest:gmatch("[^,%s]+") do
+        local meaning = UI.L["CMD_" .. name:upper()]
+        if meaning ~= "CMD_" .. name:upper() then
+            lines[#lines + 1] = ("• %s%s %s|r: %s"):format(color, slash, name, meaning)
+        end
+    end
+    return lines
+end
+
 function Modal:Finish(onDefaults)
+    local lines = self.patiWindow and commandLines()
+    if lines then
+        self:AddSection("COMMANDS")
+        self:AddNote(nil, nil, function() return table.concat(commandLines() or {}, "\n") end, #lines)
+    end
     self.cursor = self.cursor - UI.Spacing.MD
     local divider = self:CreateTexture(nil, "BORDER")
     divider:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
@@ -214,6 +247,7 @@ function UI.CreateModal(name, title, width)
     local grip = CreateFrame("Frame", nil, modal)
     grip:SetPoint("TOPLEFT")
     grip:SetPoint("RIGHT", close, "LEFT", -UI.Spacing.XS, 0)
+    modal.headerClose, modal.headerGrip = close, grip
     grip:SetHeight(headerHeight)
     grip:EnableMouse(true)
     grip:RegisterForDrag("LeftButton")
@@ -234,7 +268,34 @@ end
 -- The window settings every PaTi addon offers: theme (db.theme) and panel opacity (db.opacity).
 -- window: a UI.CreateWindow window after Attach (uses window.db). Call inside the settings modal build.
 -- onThemeChosen(id) (optional): called after the player picked a theme here (PaTiSuite passes it on to all windows).
+-- The window's "Test Mode" menu entry (if it has one): { checked, onClick } as the addon builds it, or nil.
+local function testMenuEntry(window)
+    for _, item in ipairs(window.getMenuItems and window.getMenuItems() or {}) do
+        if item.text == "TEST_MODE" then return item end
+    end
+    return nil
+end
+
+-- Test mode switch top right in the settings, next to the close button (owner 2026-10-07). It runs the window's
+-- own "Test Mode" menu entry, so the addon's rules (e.g. not in combat) stay exactly the same.
+local function addTestSwitch(modal, window)
+    if not testMenuEntry(window) or not modal.headerClose then return end
+    local switch = UI.CreateCheckbox(modal, "TEST_MODE", {
+        get = function() local entry = testMenuEntry(window); return entry ~= nil and entry.checked == true end,
+        set = function()
+            local entry = testMenuEntry(window)
+            if entry and entry.onClick then entry.onClick(entry) end
+        end,
+    })
+    switch:SetPoint("RIGHT", modal.headerClose, "LEFT", -UI.Spacing.MD, 0)
+    switch:SetFrameLevel(modal.headerGrip:GetFrameLevel() + 2) -- above the drag area of the title bar
+    modal.headerGrip:SetPoint("RIGHT", switch, "LEFT", -UI.Spacing.XS, 0)
+    modal:HookScript("OnShow", function() switch:Refresh() end)
+end
+
 function UI.AddWindowSettings(modal, window, width, onThemeChosen)
+    modal.patiWindow = window -- Finish adds the commands section
+    addTestSwitch(modal, window)
     modal:AddSection("WINDOW")
     local themes = {}
     for _, id in ipairs(UI.THEME_ORDER) do themes[#themes + 1] = { value = id, text = "THEME_" .. id:upper() } end
