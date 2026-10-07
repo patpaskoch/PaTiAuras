@@ -227,6 +227,8 @@ Anzeige
   Waffen-Buff, Fehlt)
   - 🔧 FIX IMPLEMENTED 2026-10-07 (Owner: Schattenblitz wurde angenommen; Liste in allen Addons gleich)
   - MANUAL RETEST REQUIRED
+  - Owner 2026-10-07: Schattenblitz → Hinweis „Angriffszauber“, er wird nicht übernommen (keine rote Zeile).
+    Noch offen: Liste und Hilfe sehen aus wie in PaTiRota.
 - [x] PT-AURAS-145 Felsbeißer aktiv: „Waffe des Felsbeißers“ mit Restzeit, Tooltip „Waffenhand · Waffenbuff“
   - Owner 2026-10-04: Restzeit steht, Icon farbig. Noch offen: Tooltip „Waffenhand · Waffenbuff“.
   - ✅ VERIFIED 2026-10-04
