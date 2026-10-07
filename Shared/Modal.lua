@@ -7,14 +7,24 @@ ns.UI = UI
 local Modal = {}
 local SECTION_HEIGHT = 14
 
+-- Sections are clearly apart (owner 2026-10-07): from the second one on, a gap, a thin divider line and another
+-- gap come first; the title is in the accent colour so it reads as a heading, not as a muted label.
 function Modal:AddSection(text)
-    if self.sections > 0 then self.cursor = self.cursor - UI.Spacing.MD end
+    if self.sections > 0 then
+        self.cursor = self.cursor - UI.Spacing.LG
+        local divider = self:CreateTexture(nil, "BORDER")
+        divider:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
+        divider:SetPoint("TOPRIGHT", -UI.Spacing.LG, self.cursor)
+        divider:SetHeight(1)
+        UI.Paint(divider, "SetColorTexture", "Border")
+        self.cursor = self.cursor - 1 - UI.Spacing.LG
+    end
     self.sections = self.sections + 1
     local label = self:CreateFontString(nil, "OVERLAY", UI.Fonts.Label)
     label:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
-    UI.Paint(label, "SetTextColor", "TextMuted")
+    UI.Paint(label, "SetTextColor", "Accent")
     UI.BindText(label, function() return string.upper(UI.Text(text) or "") end)
-    self.cursor = self.cursor - SECTION_HEIGHT - UI.Spacing.SM
+    self.cursor = self.cursor - SECTION_HEIGHT - UI.Spacing.MD
     return label
 end
 
