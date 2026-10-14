@@ -21,7 +21,7 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
   shown when solo. Click it to cast the buff on the next member who is missing it (named in the tooltip); your
   target does not change. Choose them under Watch → "Group buffs"
 - **Grid:** 1, 2 or 3 columns, no headers. **Show:** all, only missing (and expiring; active procs too), or only active
-- With **PaTiAlerts** installed (optional), missing or expiring auras also appear there, and watched group buffs
+- With **PaTiAlerts** installed (optional), missing or expiring auras also appear there (clickable there out of combat, like the line here), and watched group buffs
   someone lacks (one line per buff: "Missing on 2")
 - Profiles (seed and group buffs): Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
