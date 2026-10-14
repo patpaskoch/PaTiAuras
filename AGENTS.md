@@ -36,7 +36,7 @@ Addon facts: `../../PaTiAdmin/docs/ARCHITECTURE.md` · open issues: `../../PaTiA
   recast. Reason: leaving the radius is not "the buff is missing"; it would only make false alerts. Group buffs cast
   directly on players (e.g. Priest Fortitude, Divine Spirit, Shadow Protection) stay. A totem feature, if ever, tracks
   the totem itself, not the group's auras (PaTiAdmin/docs/FOLLOW_UPS.md F27).
-- Independence: no dependency on PaTiHeal/PaTiTank and no runtime API between them (owner decision 2026-09-28).
+- Independence: no dependency on PaTiHeal/PaTiAggro (formerly PaTiTank) and no runtime API between them (owner decision 2026-09-28).
   PaTiHeal shows healer auras on its own frames with its own small profile data; duplicated spell data is accepted.
 - Slash: `/pa`, `/patiauras`.
 
