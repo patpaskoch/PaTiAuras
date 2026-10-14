@@ -62,11 +62,19 @@ function Auras.NextTarget(members)
     return nil
 end
 
+-- A click command for PaTiAlerts: a plain cast name and a unit token, else nil.
+local function castCommand(spell, unit)
+    if type(spell) ~= "string" or spell == "" or type(unit) ~= "string" then return nil end
+    return { spell = spell, unit = unit }
+end
+
 -- Alerts for PaTiAlerts (optional). items: { { entry, result } } of your watched personal buffs and weapon slots.
 -- MISSING (only if showMissing) and EXPIRING are sent as WARNING; ACTIVE sends nothing (so the alert disappears) and
 -- UNKNOWN never becomes a "missing" alert. Procs are left out (they only exist while active). texts = { missing,
 -- expiring, imbueMissing, imbueExpiring }: plain strings. A name that is not a plain string is not sent.
-function Auras.Alerts(items, texts, showMissing, isSecret)
+-- castOf(item) (optional, owner 2026-10-14): the cast name a click may use, or nil. With one, the alert carries
+-- `cast = { spell, unit = "player" }` so PaTiAlerts can make its row clickable out of combat (same action as the line).
+function Auras.Alerts(items, texts, showMissing, isSecret, castOf)
     local list = {}
     for _, item in ipairs(items) do
         local entry, state = item.entry, item.result.state
@@ -86,6 +94,7 @@ function Auras.Alerts(items, texts, showMissing, isSecret)
                 text = name,
                 detail = slotOnly and (missing and texts.imbueMissing or texts.imbueExpiring)
                     or (missing and texts.missing or texts.expiring),
+                cast = castOf and castCommand(castOf(item), "player") or nil,
             }
         end
     end
@@ -117,8 +126,9 @@ end
 -- Alerts for PaTiAlerts from your watched group buffs. groups: Watch.Group result { { entry, summary } }.
 -- One WARNING per buff while at least one living, online member surely lacks it (Summarize leaves offline/dead out
 -- and counts UNKNOWN apart, so neither ever makes an alert); no list of names (those stay in the tooltip).
--- Solo: "Missing"; in a group: "Missing on N". texts = { missing, missingOn (format with %d) }.
-function Auras.GroupAlerts(groups, texts, showMissing, isSecret)
+-- Solo: "Missing"; in a group: "Missing on N". texts = { missing, missingOn (format with %d) }. castOf(group)
+-- (optional): the cast name for a click; the click goes to group.target, the member chosen out of combat.
+function Auras.GroupAlerts(groups, texts, showMissing, isSecret, castOf)
     local list = {}
     if not showMissing then return list end
     for _, group in ipairs(groups) do
@@ -133,6 +143,7 @@ function Auras.GroupAlerts(groups, texts, showMissing, isSecret)
                 kind = "GROUP_AURA_MISSING",
                 text = name,
                 detail = summary.total > 1 and texts.missingOn:format(missing) or texts.missing,
+                cast = castOf and group.target and castCommand(castOf(group), group.target.unit) or nil,
             }
         end
     end

@@ -4,6 +4,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 
 ## [Unreleased] — 0.1.0
 ### Added
+- PaTiAlerts (optional): alerts for a missing castable buff, weapon imbue, tracking or group buff now carry the click
+  (`cast`: the spell, on you or on the member chosen for the group buff), so the row in PaTiAlerts can be clicked out
+  of combat — the same action as the line here (owner 2026-10-14).
 - **My auras** (owner wish 2026-10-06): one own list for everything on you — buffs, procs, weapon imbues and
   tracking, up to 12, in your order (Settings → Watch → "My auras (n) …"; type a name or ID or drag from the
   spellbook, arrows or ≡ grip; class procs such as Tidal Waves show only while active). Until you edit it, it

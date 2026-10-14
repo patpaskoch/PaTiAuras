@@ -23,6 +23,19 @@ local alertsError -- last error PaTiAlerts raised in Sync (diagnostics only)
 -- Sent: your watched personal buffs and weapon imbues that are missing or expiring (Auras.Alerts) and your watched
 -- group buffs that a living, online member lacks (Auras.GroupAlerts, one line per buff); pcall so a problem
 -- in PaTiAlerts never breaks PaTiAuras. Test mode and "disabled" send an empty list (their alerts disappear).
+-- What a click on the alert's row in PaTiAlerts may cast — the same as a click on the line here (owner 2026-10-14).
+-- Own list: Auras.LineActions (missing castable buff, imbue or tracking on you). Group buff: the spell, cast on the
+-- member chosen out of combat (Watch.Group target). Unknown spells: nothing.
+local function ownCast(item)
+    if not item.entry.castable or not Spells.IsKnown(item.entry.spellID) then return nil end
+    return ns.Auras.LineActions(item, Spells.CastName(item.entry.spellID), isSecret).cast
+end
+
+local function groupCast(group)
+    if not Spells.IsKnown(group.entry.spellID) then return nil end
+    return Spells.CastName(group.entry.spellID)
+end
+
 local function reportAlerts()
     local api = _G.PaTiAlertsAPI
     if type(api) ~= "table" or api.version ~= 1 or type(api.Sync) ~= "function" then return end
@@ -30,9 +43,10 @@ local function reportAlerts()
     if DB.enabled and not Watch.testMode then
         local items = Watch.Own(DB) -- buffs, procs, imbues and tracking of the own list
         list = ns.Auras.Alerts(items, { missing = L.STATUS_MISSING, expiring = L.STATUS_EXPIRING,
-            imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret)
+            imbueMissing = L.ALERT_IMBUE_MISSING, imbueExpiring = L.ALERT_IMBUE_EXPIRING }, DB.showMissing, isSecret,
+            ownCast)
         local groupAlerts = ns.Auras.GroupAlerts(Watch.Group(DB), { missing = L.STATUS_MISSING,
-            missingOn = L.ALERT_GROUP_MISSING }, DB.showMissing, isSecret)
+            missingOn = L.ALERT_GROUP_MISSING }, DB.showMissing, isSecret, groupCast)
         for _, alert in ipairs(groupAlerts) do list[#list + 1] = alert end
     end
     local ok, err = pcall(api.Sync, "PaTiAuras", list)

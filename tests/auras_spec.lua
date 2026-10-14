@@ -154,6 +154,15 @@ describe("Auras.Alerts (for the optional PaTiAlerts)", function()
         assert.same({}, Auras.Alerts({ item("A", "personal", "MISSING") }, TEXTS, false, isSecret))
         assert.same({}, Auras.Alerts({ item("A", "personal", "MISSING", SECRET) }, TEXTS, true, isSecret))
     end)
+
+    it("carries the click command for PaTiAlerts when castOf names a spell (owner 2026-10-14)", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local function castOf(it) return it.entry.key == "LIGHTNING_SHIELD" and "Blitzschlagschild" or nil end
+        local alerts = Auras.Alerts({ item("LIGHTNING_SHIELD", "personal", "MISSING"), item("X", "personal", "MISSING") },
+            TEXTS, true, isSecret, castOf)
+        assert.same({ spell = "Blitzschlagschild", unit = "player" }, alerts[1].cast)
+        assert.is_nil(alerts[2].cast)
+    end)
 end)
 
 describe("Auras.GroupAlerts (pure)", function()
@@ -169,6 +178,16 @@ describe("Auras.GroupAlerts (pure)", function()
         assert.same({}, Auras.GroupAlerts({ group(SECRET, { "A" }, 2), group("", { "A" }, 2) }, TEXTS, true, isSecret))
         assert.same({}, Auras.GroupAlerts({ group("Fort", {}, 3) }, TEXTS, true, isSecret))
         assert.equal("Missing on 1", Auras.GroupAlerts({ group("Fort", { "A" }, 3) }, TEXTS, true, isSecret)[1].detail)
+    end)
+
+    it("clicks go to the member chosen out of combat, and only with a target", function()
+        local Auras = wow.loadAddonFile("Auras.lua", {}).Auras
+        local function castOf() return "Seelenstärke" end
+        local withTarget = group("Fort", { "A" }, 3)
+        withTarget.target = { unit = "party2", name = "A" }
+        assert.same({ spell = "Seelenstärke", unit = "party2" },
+            Auras.GroupAlerts({ withTarget }, TEXTS, true, isSecret, castOf)[1].cast)
+        assert.is_nil(Auras.GroupAlerts({ group("Fort", { "A" }, 3) }, TEXTS, true, isSecret, castOf)[1].cast)
     end)
 end)
 
