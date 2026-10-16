@@ -6,22 +6,30 @@ ns.UI = UI
 
 local Modal = {}
 local SECTION_HEIGHT = 14
+local FOOTER = UI.Spacing.LG + UI.Sizes.ButtonHeight + UI.Spacing.LG -- Close / Restore Defaults below the content
+local SCREEN_MARGIN = 40 -- a modal taller than the screen minus this scrolls (owner 2026-10-16)
+local SCROLL_STEP = 40 -- px per mouse-wheel notch
+
+-- Rows live on the scrolling content frame; controls the addon created on the modal itself move there.
+local function adopt(modal, control)
+    if control:GetParent() == modal then control:SetParent(modal.content) end
+end
 
 -- Sections are clearly apart (owner 2026-10-07): from the second one on, a gap, a thin divider line and another
 -- gap come first; the title is in the accent colour so it reads as a heading, not as a muted label.
 function Modal:AddSection(text)
     if self.sections > 0 then
         self.cursor = self.cursor - UI.Spacing.LG
-        local divider = self:CreateTexture(nil, "BORDER")
-        divider:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
-        divider:SetPoint("TOPRIGHT", -UI.Spacing.LG, self.cursor)
+        local divider = self.content:CreateTexture(nil, "BORDER")
+        divider:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor)
+        divider:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", -UI.Spacing.LG, self.cursor)
         divider:SetHeight(1)
         UI.Paint(divider, "SetColorTexture", "Border")
         self.cursor = self.cursor - 1 - UI.Spacing.LG
     end
     self.sections = self.sections + 1
-    local label = self:CreateFontString(nil, "OVERLAY", UI.Fonts.Label)
-    label:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
+    local label = self.content:CreateFontString(nil, "OVERLAY", UI.Fonts.Label)
+    label:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor)
     UI.Paint(label, "SetTextColor", "Accent")
     UI.BindText(label, function() return string.upper(UI.Text(text) or "") end)
     self.cursor = self.cursor - SECTION_HEIGHT - UI.Spacing.MD
@@ -31,9 +39,10 @@ end
 -- Label left, control right-aligned on the same line.
 function Modal:AddRow(text, control)
     local height = control:GetHeight()
-    control:SetPoint("TOPRIGHT", self, "TOPRIGHT", -UI.Spacing.LG, self.cursor)
-    local label = self:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
-    label:SetPoint("LEFT", self, "TOPLEFT", UI.Spacing.LG, self.cursor - height / 2)
+    adopt(self, control)
+    control:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", -UI.Spacing.LG, self.cursor)
+    local label = self.content:CreateFontString(nil, "OVERLAY", UI.Fonts.Text)
+    label:SetPoint("LEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor - height / 2)
     label:SetPoint("RIGHT", control, "LEFT", -UI.Spacing.MD, 0)
     label:SetJustifyH("LEFT")
     label:SetWordWrap(false)
@@ -45,17 +54,20 @@ end
 
 -- Full-width control, e.g. a checkbox.
 function Modal:AddControl(control)
-    control:SetPoint("TOPLEFT", self, "TOPLEFT", UI.Spacing.LG, self.cursor)
+    adopt(self, control)
+    control:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor)
     self.cursor = self.cursor - control:GetHeight() - UI.Spacing.SM
     return control
 end
 
 -- Two short controls side by side (e.g. checkboxes); right may be nil.
 function Modal:AddControls(left, right)
-    left:SetPoint("TOPLEFT", self, "TOPLEFT", UI.Spacing.LG, self.cursor)
+    adopt(self, left)
+    left:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor)
     local height = left:GetHeight()
     if right then
-        right:SetPoint("TOPLEFT", self, "TOPLEFT", self:GetWidth() / 2, self.cursor)
+        adopt(self, right)
+        right:SetPoint("TOPLEFT", self.content, "TOPLEFT", self:GetWidth() / 2, self.cursor)
         height = math.max(height, right:GetHeight())
     end
     self.cursor = self.cursor - height - UI.Spacing.SM
@@ -63,8 +75,8 @@ end
 
 -- A small muted label that groups the following controls inside a section.
 function Modal:AddLabel(text)
-    local label = self:CreateFontString(nil, "OVERLAY", UI.Fonts.Muted)
-    label:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor - UI.Spacing.XS)
+    local label = self.content:CreateFontString(nil, "OVERLAY", UI.Fonts.Muted)
+    label:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor - UI.Spacing.XS)
     UI.BindText(label, text)
     self.cursor = self.cursor - SECTION_HEIGHT - UI.Spacing.XS
     return label
@@ -78,8 +90,8 @@ local NOTE_LINE = 13
 function Modal:AddNote(title, highlight, text, minLines)
     local width = self:GetWidth() - 2 * UI.Spacing.LG
     local inner = width - 2 * UI.Spacing.MD - 2
-    local note = CreateFrame("Frame", nil, self)
-    note:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
+    local note = CreateFrame("Frame", nil, self.content)
+    note:SetPoint("TOPLEFT", self.content, "TOPLEFT", UI.Spacing.LG, self.cursor)
     note:SetWidth(width)
     local background = note:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints()
@@ -148,16 +160,55 @@ local function commandLines()
     return lines
 end
 
+-- Modal height: the whole content, at most the screen height minus a margin; the rest scrolls.
+function Modal:FitHeight()
+    local full = self.headerHeight + 1 + self.contentHeight + FOOTER
+    local screen = UIParent:GetHeight()
+    local limit = screen and screen > 0 and screen - 2 * SCREEN_MARGIN or full
+    self.content:SetHeight(self.contentHeight)
+    self:SetHeight(math.min(full, limit))
+end
+
+-- Commands section folded (owner 2026-10-16: the modal got too tall): the section title is a toggle "+" / "-"; it is
+-- the last content, so unfolding only adds its height. Opens folded each time (nothing saved).
+local function addCommands(modal, count)
+    local title = modal:AddSection("COMMANDS")
+    local top = modal.cursor
+    local note = modal:AddNote(nil, nil, function() return table.concat(commandLines() or {}, "\n") end, count)
+    local unfolded = top - modal.cursor
+    modal.cursor = top
+    note:Hide()
+    local sign = modal.content:CreateFontString(nil, "OVERLAY", UI.Fonts.Label)
+    sign:SetPoint("LEFT", title, "RIGHT", UI.Spacing.SM, 0)
+    UI.Paint(sign, "SetTextColor", "Accent")
+    local toggle = CreateFrame("Button", nil, modal.content)
+    toggle:SetPoint("TOPLEFT", title, "TOPLEFT", -UI.Spacing.XS, UI.Spacing.XS)
+    toggle:SetPoint("BOTTOMRIGHT", sign, "BOTTOMRIGHT", UI.Spacing.XS, -UI.Spacing.XS)
+    local folded
+    local function setFolded(value)
+        folded = value
+        note:SetShown(not folded)
+        sign:SetText(folded and "+" or "-")
+        modal.contentHeight = modal.foldedHeight + (folded and 0 or unfolded)
+        modal:FitHeight()
+    end
+    toggle:SetScript("OnClick", function() setFolded(not folded) end)
+    toggle:SetScript("OnEnter", function() title:SetAlpha(0.8); sign:SetAlpha(0.8) end)
+    toggle:SetScript("OnLeave", function() title:SetAlpha(1); sign:SetAlpha(1) end)
+    modal:HookScript("OnShow", function() setFolded(true) end)
+    sign:SetText("+")
+    modal.setCommandsFolded = setFolded
+end
+
 function Modal:Finish(onDefaults)
     local lines = self.patiWindow and commandLines()
-    if lines then
-        self:AddSection("COMMANDS")
-        self:AddNote(nil, nil, function() return table.concat(commandLines() or {}, "\n") end, #lines)
-    end
+    if lines then addCommands(self, #lines) end
     self.cursor = self.cursor - UI.Spacing.MD
+    self.foldedHeight = -self.cursor
+    self.contentHeight = self.foldedHeight
     local divider = self:CreateTexture(nil, "BORDER")
-    divider:SetPoint("TOPLEFT", UI.Spacing.LG, self.cursor)
-    divider:SetPoint("TOPRIGHT", -UI.Spacing.LG, self.cursor)
+    divider:SetPoint("BOTTOMLEFT", UI.Spacing.LG, FOOTER)
+    divider:SetPoint("BOTTOMRIGHT", -UI.Spacing.LG, FOOTER)
     divider:SetHeight(1)
     UI.Paint(divider, "SetColorTexture", "Border")
 
@@ -167,7 +218,8 @@ function Modal:Finish(onDefaults)
         local defaults = UI.CreateButton(self, "RESTORE_DEFAULTS", nil, function() onDefaults(); self:Refresh() end)
         defaults:SetPoint("BOTTOMLEFT", UI.Spacing.LG, UI.Spacing.LG)
     end
-    self:SetHeight(-self.cursor + UI.Spacing.LG + UI.Sizes.ButtonHeight + UI.Spacing.LG)
+    self:FitHeight()
+    self:HookScript("OnShow", function(modal) modal:FitHeight() end) -- the screen size may have changed
 end
 
 -- Controls with a Refresh method (dropdowns, checkboxes) re-read their value when the modal opens.
@@ -260,8 +312,44 @@ function UI.CreateModal(name, title, width)
     divider:SetHeight(1)
     UI.Paint(divider, "SetColorTexture", "Border")
 
+    -- Content scrolls (owner 2026-10-16: the PaTiHeal settings reached past the screen). Title bar and footer stay;
+    -- the mouse wheel scrolls, a thin bar on the right shows where you are. Open popups close when it scrolls.
+    local scroll = CreateFrame("ScrollFrame", nil, modal)
+    scroll:SetPoint("TOPLEFT", 0, -headerHeight - 1)
+    scroll:SetPoint("BOTTOMRIGHT", 0, FOOTER + 1)
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetSize(modal:GetWidth(), 1)
+    scroll:SetScrollChild(content)
+    local thumb = modal:CreateTexture(nil, "OVERLAY")
+    thumb:SetWidth(3)
+    UI.Paint(thumb, "SetColorTexture", "BorderStrong")
+    thumb:Hide()
+    local function paintThumb()
+        local range, view = scroll:GetVerticalScrollRange() or 0, scroll:GetHeight() or 0
+        if range <= 0 or view <= 0 then thumb:Hide(); return end
+        local height = math.max(20, view * view / (view + range))
+        thumb:ClearAllPoints()
+        thumb:SetPoint("TOPRIGHT", scroll, "TOPRIGHT", -3, -(view - height) * scroll:GetVerticalScroll() / range)
+        thumb:SetHeight(height)
+        thumb:Show()
+    end
+    local function scrollTo(value)
+        local range = scroll:GetVerticalScrollRange() or 0
+        scroll:SetVerticalScroll(math.max(0, math.min(range, value)))
+        paintThumb()
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(_, delta)
+        UI.HidePopup()
+        scrollTo(scroll:GetVerticalScroll() - delta * SCROLL_STEP)
+    end)
+    scroll:SetScript("OnScrollRangeChanged", function() scrollTo(scroll:GetVerticalScroll()) end)
+    scroll:SetScript("OnSizeChanged", paintThumb)
+    modal:HookScript("OnShow", function() scrollTo(0) end) -- opens at the top
+
+    modal.headerHeight, modal.scroll, modal.content = headerHeight, scroll, content
     modal.sections = 0
-    modal.cursor = -headerHeight - UI.Spacing.LG
+    modal.cursor = -UI.Spacing.LG -- from the content top
     return modal
 end
 
