@@ -43,8 +43,9 @@ function Config.Migrate(db, profile)
     end
     -- A broken scale would make SetScale fail on login: only a sane number is kept (saved values elsewhere stay).
     if type(db.scale) ~= "number" or db.scale < 0.5 or db.scale > 2 then db.scale = Config.DEFAULTS.scale end
-    -- Theme: one of the three PaTiShared themes; a typo or an old value falls back to the default look.
-    if db.theme ~= "default" and db.theme ~= "woforever" and db.theme ~= "dracula" then db.theme = "default" end
+    -- The PaTiShared themes (Soft Fantasy since 2026-10-19); a typo or an old value falls back to the default look.
+    local knownTheme = { default = true, woforever = true, dracula = true, softfantasy = true }
+    if not knownTheme[db.theme] then db.theme = "default" end
     if db.categoryLayout ~= "vertical" and db.categoryLayout ~= "horizontal" then db.categoryLayout = "vertical" end
     if db.columns ~= 1 and db.columns ~= 2 and db.columns ~= 3 then db.columns = Config.DEFAULTS.columns end
     if type(db.watch) ~= "table" then db.watch = {} end

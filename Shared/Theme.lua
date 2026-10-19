@@ -3,7 +3,7 @@ local _, ns = ...
 local UI = ns.UI or {}
 ns.UI = UI
 
--- Themes (owner wish 2026-10-03): the same semantic colour tokens in three looks. A theme changes colours only —
+-- Themes (owner wish 2026-10-03; Soft Fantasy 2026-10-19): the same semantic colour tokens in four looks. A theme changes colours only —
 -- never layout, sizes, fonts, secure frames or behaviour. {r, g, b, a}. Every theme defines every token
 -- (tests/theme_spec.lua checks completeness and text contrast).
 UI.THEMES = {
@@ -55,8 +55,25 @@ UI.THEMES = {
         Health       = {0.26, 0.78, 0.40, 1.00},
         Mana         = {0.545, 0.914, 0.992, 1.00}, -- #8be9fd (cyan)
     },
+    -- Soft Fantasy (owner wish 2026-10-19): calm slate blue, grey and violet, a muted lavender accent, barely visible
+    -- lines, gentle signal colours. Colours only like every theme — the roomier layout comes from the addons.
+    softfantasy = {
+        Background   = {0.13, 0.14, 0.19, 0.96},
+        Panel        = {0.17, 0.18, 0.24, 1.00},
+        PanelHover   = {0.21, 0.22, 0.30, 1.00},
+        Border       = {0.62, 0.66, 0.82, 0.14},
+        BorderStrong = {0.62, 0.66, 0.82, 0.30},
+        Accent       = {0.70, 0.64, 0.92, 1.00}, -- muted lavender
+        Text         = {0.91, 0.92, 0.96, 1.00},
+        TextMuted    = {0.64, 0.67, 0.78, 1.00},
+        Warning      = {0.92, 0.76, 0.48, 1.00},
+        Danger       = {0.88, 0.47, 0.52, 1.00},
+        Success      = {0.52, 0.80, 0.66, 1.00},
+        Health       = {0.45, 0.76, 0.55, 1.00},
+        Mana         = {0.50, 0.66, 0.95, 1.00},
+    },
 }
-UI.THEME_ORDER = { "default", "woforever", "dracula" }
+UI.THEME_ORDER = { "default", "woforever", "dracula", "softfantasy" }
 
 -- The active colour set. Kept as UI.Colors so code that reads it directly still works.
 UI.Colors = UI.THEMES.default
