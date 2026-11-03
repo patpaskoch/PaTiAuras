@@ -90,5 +90,11 @@ Hide, collapse, test mode and reset are blocked in combat (the window has secure
 
 Architecture, tests and engineering rules of the suite: [PaTiAdmin](https://github.com/patpaskoch/PaTiAdmin). PaTiAdmin is not a WoW addon — players do not install it. The shared UI code (PaTiShared) is already embedded in this addon's `Shared/` folder; there is nothing extra to install.
 
+## Support
+
+PaTiAuras is free and open source, and it stays that way. If it makes your runs a bit better, you can buy me a coffee:
+[ko-fi.com/patiaddons](https://ko-fi.com/patiaddons). Bug reports and ideas are just as welcome:
+[Issues](https://github.com/patpaskoch/PaTiAuras/issues).
+
 ## License
 MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Patrick Koch.
