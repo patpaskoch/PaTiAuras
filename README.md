@@ -4,10 +4,12 @@
 
 ## What is PaTiAuras?
 
+> **Installation-test beta available:** [Download the current ZIP from Releases](https://github.com/patpaskoch/PaTiAuras/releases). This is an unverified preview for testing the installation, not a stable release.
+
 A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, tracking, group buffs and
 weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and shields on party members: PaTiHeal.)
 
-> Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
+> Status: 0.1.0, in development, not yet stable. Not yet fully tested in game (see Known limitations).
 
 ## Features
 
