@@ -2,7 +2,12 @@
 
 Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed, Removed, Known Issues.
 
-## [Unreleased] — 0.1.0
+## [Unreleased]
+
+## [0.1.0-beta.1] - 2026-11-06
+
+**Installation-test pre-release:** Not yet validated in the live WoW Forever client. Intended for the owner's fresh-install test only; report bugs on GitHub.
+
 ### Added
 - Theme **Soft Fantasy** (PaTiShared, owner wish 2026-10-19): calm slate blue, grey and violet with a muted
   lavender accent — the fourth choice in the settings and in PaTiSuite.
