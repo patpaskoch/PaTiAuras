@@ -2,34 +2,26 @@
 
 <img src="assets/icon-128.png" width="96" alt="PaTiAuras icon">
 
+## Install
+
+**📥 [Download PaTiAuras Beta](https://github.com/patpaskoch/PaTiAuras/releases/download/v0.1.0-beta.1/PaTiAuras-0.1.0-beta.1.zip)** · [Installation guide](#installation)
+
+*Installation-test preview — not yet a stable release.*
+
 ## What is PaTiAuras?
 
-> **Installation-test beta available:** [Download the current ZIP from Releases](https://github.com/patpaskoch/PaTiAuras/releases). This is an unverified preview for testing the installation, not a stable release.
+**Never miss an important buff again.**
 
-A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, tracking, group buffs and
-weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and shields on party members: PaTiHeal.)
-
-> Status: 0.1.0, in development, not yet stable. Not yet fully tested in game (see Known limitations).
+Between procs, weapon buffs and group buffs, it's easy to lose track. PaTiAuras brings the effects you care about into one clear view, so you can spot what's missing, see what's running out and get back into the fight. **Less searching. More playing.**
 
 ## Features
 
-- **My auras — one list for everything on you** (Settings → Watch → "My auras (n) …"): buffs, procs, weapon
-  imbues and tracking, up to 12, in your order. Type a spell name or ID or drag spells from your spellbook; sort with
-  the arrows or the ≡ grip. Procs of your class (e.g. Tidal Waves) show only while active. Until you edit the list it
-  holds what your class profile offered (e.g. Lightning Shield, Rockbiter Weapon, Tidal Waves, Find Herbs)
-- **Weapon imbues learn themselves:** WoW names an imbue only by a number that differs per imbue and rank. Put the
-  imbue (e.g. Flametongue Weapon) on the list and cast it once: PaTiAuras remembers the number your cast put on
-  the weapon and recognises it from then on (also a new rank after one cast). Until then it reads Missing
-- Missing = red line; a **left click** casts it on you (or your weapon), one click = one cast. A right click on an
-  active buff or proc removes it. In combat a line keeps what it did when combat started
-- **Group:** group buff summary like `Fortitude 4 / 5` above your list; the tooltip lists who is missing it; also
-  shown when solo. Click it to cast the buff on the next member who is missing it (named in the tooltip); your
-  target does not change. Choose them under Watch → "Group buffs"
-- **Grid:** 1, 2 or 3 columns, no headers. **Show:** all, only missing (and expiring; active procs too), or only active
-- With **PaTiAlerts** installed (optional), missing or expiring auras also appear there (clickable there out of combat, like the line here), and watched group buffs
-  someone lacks (one line per buff: "Missing on 2")
-- Profiles (seed and group buffs): Shaman, Priest. Unknown spells are hidden, never guessed
-- ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
+- **Your buffs, your list:** Watch the spells, procs, tracking and weapon imbues you care about.
+- **Spot what is missing:** Clear active, missing and expiring states.
+- **One-click rebuffing:** Cast a missing personal buff or help a group member with a click.
+- **Group buff overview:** See who still needs a buff at a glance.
+- **Make it yours:** Arrange your watch list, filter the view and choose a compact grid.
+- **Optional alerts:** Share missing or expiring buffs with PaTiAlerts.
 
 ## Installation
 
@@ -52,6 +44,32 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
 - **Display:** Show (all / only missing / only active), Columns (1–3), timers, charges, expiring
 - **Watch:** "My auras (n) …" opens your list; "Group buffs (n / m)" picks the group buffs
 - **Window:** panel opacity (30–100 %)
+
+## Important notes
+
+> **Installation-test beta available:** [Download the current ZIP from Releases](https://github.com/patpaskoch/PaTiAuras/releases). This is an unverified preview for testing the installation, not a stable release.
+
+> Status: 0.1.0, in development, not yet stable. Not yet fully tested in game (see Known limitations).
+
+## In detail
+
+- **My auras — one list for everything on you** (Settings → Watch → "My auras (n) …"): buffs, procs, weapon
+  imbues and tracking, up to 12, in your order. Type a spell name or ID or drag spells from your spellbook; sort with
+  the arrows or the ≡ grip. Procs of your class (e.g. Tidal Waves) show only while active. Until you edit the list it
+  holds what your class profile offered (e.g. Lightning Shield, Rockbiter Weapon, Tidal Waves, Find Herbs)
+- **Weapon imbues learn themselves:** WoW names an imbue only by a number that differs per imbue and rank. Put the
+  imbue (e.g. Flametongue Weapon) on the list and cast it once: PaTiAuras remembers the number your cast put on
+  the weapon and recognises it from then on (also a new rank after one cast). Until then it reads Missing
+- Missing = red line; a **left click** casts it on you (or your weapon), one click = one cast. A right click on an
+  active buff or proc removes it. In combat a line keeps what it did when combat started
+- **Group:** group buff summary like `Fortitude 4 / 5` above your list; the tooltip lists who is missing it; also
+  shown when solo. Click it to cast the buff on the next member who is missing it (named in the tooltip); your
+  target does not change. Choose them under Watch → "Group buffs"
+- **Grid:** 1, 2 or 3 columns, no headers. **Show:** all, only missing (and expiring; active procs too), or only active
+- With **PaTiAlerts** installed (optional), missing or expiring auras also appear there (clickable there out of combat, like the line here), and watched group buffs
+  someone lacks (one line per buff: "Missing on 2")
+- Profiles (seed and group buffs): Shaman, Priest. Unknown spells are hidden, never guessed
+- ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
 
 ## PaTiSuite
 
