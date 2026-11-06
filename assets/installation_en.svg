@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2460" height="810" viewBox="0 0 2460 810" role="img" aria-labelledby="title desc">
+<title id="title">PaTiAuras: installation in three steps</title><desc id="desc">Download the release ZIP on GitHub, extract and copy the addon folder to the World of Warcraft AddOns directory, and enable it in-game.</desc>
+<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#051328"/><stop offset="1" stop-color="#0e223b"/></linearGradient><linearGradient id="card" x2="0" y2="1"><stop stop-color="#081a2c"/><stop offset="1" stop-color="#031223"/></linearGradient><style>text{font-family:Arial,Helvetica,sans-serif;fill:#f5f9ff}.muted{fill:#c2d0e1}.bold{font-weight:700}.mini{font-size:23px}.sm{font-size:26px}.md{font-size:29px}.lg{font-size:37px}.xl{font-size:45px}</style></defs>
+<rect width="2460" height="810" fill="url(#bg)"/>
+<rect x="12" y="126" width="794" height="650" rx="32" fill="url(#card)" stroke="#188cff" stroke-width="5"/>
+<rect x="835" y="126" width="793" height="650" rx="32" fill="url(#card)" stroke="#188cff" stroke-width="5"/>
+<rect x="1658" y="126" width="790" height="650" rx="32" fill="url(#card)" stroke="#188cff" stroke-width="5"/>
+<g fill="#1689fb"><circle cx="341" cy="58" r="39"/><circle cx="1164" cy="58" r="39"/><circle cx="1987" cy="58" r="39"/></g>
+<g font-size="44" text-anchor="middle" font-weight="700"><text x="341" y="73">1</text><text x="1164" y="73">2</text><text x="1987" y="73">3</text></g>
+<g fill="none" stroke="#f7faff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+<path d="M413 27v42m-17-17 17 17 17-17m-38 22v12h42V74"/>
+<path d="M1220 31h28l12 12h40v47h-80z"/>
+<rect x="2041" y="23" width="47" height="53" rx="5"/><path d="m2052 49 12 11 25-29"/>
+</g>
+<path d="m814 406 18 22-18 22m823-44 18 22-18 22" fill="none" stroke="#188cff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Step 1: desktop-browser-style releases page -->
+<rect x="34" y="165" width="750" height="574" rx="18" fill="#08121f" stroke="#446079" stroke-width="2"/>
+<path d="M52 165h714a18 18 0 0 1 18 18v52H34v-52a18 18 0 0 1 18-18z" fill="#1f3040"/>
+<circle cx="59" cy="193" r="8" fill="#fa746c"/><circle cx="84" cy="193" r="8" fill="#f6c95c"/><circle cx="109" cy="193" r="8" fill="#59cc8b"/>
+<rect x="137" y="174" width="630" height="41" rx="20" fill="#304459"/>
+<text x="155" y="203" class="mini">github.com/patpaskoch/PaTiAuras/releases</text>
+<circle cx="90" cy="284" r="29" fill="#f6f9ff"/><text x="90" y="293" font-size="22" text-anchor="middle" fill="#192738" font-weight="700" style="fill:#192738">GH</text>
+<text x="63" y="378" class="sm muted">Code</text><text x="185" y="378" class="sm muted">Issues</text><text x="330" y="378" class="sm muted">Pull requests</text><text x="573" y="378" class="sm bold">Releases</text>
+<path d="M558 394h186" stroke="#188cff" stroke-width="5"/><path d="M52 405h710" stroke="#364d61" stroke-width="2"/>
+<text x="70" y="465" class="lg bold">Releases</text>
+<rect x="78" y="497" width="665" height="200" rx="17" fill="#13253a" stroke="#3d5c7a" stroke-width="2"/>
+<text x="103" y="548" class="sm bold">Latest release</text><rect x="296" y="523" width="104" height="33" rx="15" fill="#0b4439" stroke="#33cb8a" stroke-width="2"/><text x="315" y="547" class="mini" style="fill:#6aefb8">Latest</text>
+<path d="M95 570h628" stroke="#3b526a" stroke-width="2"/>
+<text x="105" y="609" class="sm bold">⌄ Assets</text><rect x="101" y="624" width="621" height="58" rx="9" fill="#183a59" stroke="#1689fb" stroke-width="4"/>
+<path d="M122 643h20v26h-20zm12 0v7h8" fill="none" stroke="#e2edf7" stroke-width="2"/>
+<text x="158" y="660" class="sm bold">PaTiAuras-x.y.z.zip</text>
+<!-- Step 2: Windows extraction mock -->
+<rect x="865" y="289" width="302" height="424" rx="17" fill="#132437" stroke="#54718a" stroke-width="2"/>
+<path d="M987 323h32l11 9h42v46h-85z" fill="#ffc549" stroke="#ffdd89" stroke-width="3"/>
+<rect x="881" y="409" width="269" height="54" rx="8" fill="#16456f" stroke="#168cff" stroke-width="3"/>
+<text x="901" y="444" class="mini bold">PaTiAuras-x.y.z.zip</text>
+<rect x="881" y="481" width="268" height="207" rx="10" fill="#1d3041" stroke="#5c7389" stroke-width="2"/>
+<text x="905" y="523" class="md">Open</text><rect x="893" y="541" width="244" height="54" rx="8" fill="#1173d0"/><text x="912" y="577" class="md bold">Extract All...</text><text x="905" y="653" class="md muted">Copy</text>
+<path d="M1178 545h48m-13-14 18 14-18 14" fill="none" stroke="#168cff" stroke-width="7"/>
+<rect x="1245" y="251" width="352" height="461" rx="15" fill="#0d2032" stroke="#52708d" stroke-width="2"/>
+<path d="M1260 251h322a15 15 0 0 1 15 15v48h-352v-48a15 15 0 0 1 15-15z" fill="#203345"/>
+<circle cx="1271" cy="282" r="6" fill="#8495a4"/><circle cx="1294" cy="282" r="6" fill="#8495a4"/><circle cx="1317" cy="282" r="6" fill="#8495a4"/>
+<rect x="1327" y="324" width="256" height="48" rx="8" fill="#2b4054"/><text x="1340" y="356" class="sm">World of Warcraft</text>
+<g class="mini"><text x="1284" y="420">📁 World of Warcraft</text><text x="1303" y="472">📁 WoW Forever</text><text x="1323" y="524">📁 Interface</text><text x="1343" y="576">📁 AddOns</text></g>
+<rect x="1350" y="615" width="230" height="52" rx="8" fill="#185d9d" stroke="#168cff" stroke-width="2"/><text x="1367" y="650" class="sm bold">PaTiAuras</text>
+<!-- Step 3: WoW addon selection mock -->
+<rect x="1672" y="143" width="760" height="613" rx="22" fill="#15283e"/>
+<path d="m1672 610 115-220 120 158 139-230 156 220 230-220v438h-760z" fill="#1b3850" opacity=".74"/>
+<text x="2048" y="206" text-anchor="middle" font-size="28" font-weight="700" style="fill:#f1bf4f">WORLD OF</text><text x="2048" y="249" text-anchor="middle" font-size="52" font-weight="700" style="fill:#efc051">WARCRAFT</text><text x="2048" y="277" text-anchor="middle" font-size="26" style="fill:#efc051">FOREVER</text>
+<rect x="1731" y="315" width="630" height="400" rx="18" fill="#11161e" stroke="#ad8b5d" stroke-width="4"/>
+<text x="2046" y="370" text-anchor="middle" font-size="38" font-weight="700" style="fill:#ffd161">AddOns</text>
+<path d="M1760 399h570" stroke="#755a3c" stroke-width="2"/>
+<rect x="1765" y="426" width="564" height="78" rx="8" fill="#504124" stroke="#a27c37" stroke-width="2"/>
+<rect x="1791" y="446" width="49" height="47" rx="5" fill="#171d20" stroke="#ffdb71" stroke-width="3"/>
+<path d="m1802 465 12 13 18-22" fill="none" stroke="#ffdd70" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1860" y="479" class="lg bold">PaTiAuras</text>
+<rect x="1958" y="630" width="215" height="64" rx="9" fill="#771d16" stroke="#c7803f" stroke-width="3"/><text x="2067" y="675" text-anchor="middle" font-size="32" font-weight="700" style="fill:#ffe264">OK</text>
+</svg>
