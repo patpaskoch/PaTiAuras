@@ -3,7 +3,7 @@
 ## Notes: Watches your buffs, procs, tracking, group buffs and weapon imbues
 ## Notes-deDE: Überwacht deine Buffs, Procs, Suchen, Gruppenbuffs und Waffenverzauberungen
 ## Author: PaTi
-## Version: 0.1.0
+## Version: 0.1.0-beta.1
 ## IconTexture: Interface\AddOns\PaTiAuras\Media\icon
 ## SavedVariablesPerCharacter: PaTiAurasDB
 
