@@ -1,0 +1,71 @@
+# Installation-test preview: intentionally separate from the gated stable release workflow.
+# Runs only on install-test branches; publishes a visible *pre-release*, never a stable release.
+name: Installation test beta
+
+on:
+  push:
+    branches:
+      - 'install-test/**'
+
+permissions:
+  contents: write
+
+jobs:
+  installation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: PaTiAddons/${{ github.event.repository.name }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: patpaskoch/PaTiAdmin
+          path: PaTiAdmin
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+      - run: luarocks install luacheck
+
+      - name: Validate source and package
+        run: bash PaTiAdmin/tools/check.sh "PaTiAddons/${{ github.event.repository.name }}"
+
+      - name: Read and validate beta version
+        id: version
+        env:
+          ADDON: ${{ github.event.repository.name }}
+        run: |
+          v="$(sed -n 's/^## Version:[[:space:]]*//p' "PaTiAddons/$ADDON/$ADDON.toc" | tr -d '\r' | head -1)"
+          [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] || { echo "::error::Not a beta version: $v"; exit 1; }
+          [[ "$GITHUB_REF_NAME" == "install-test/v$v" ]] || { echo "::error::Branch must match install-test/v$v"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Build installable ZIP
+        env:
+          ADDON: ${{ github.event.repository.name }}
+        run: |
+          PATI_DIST="$PWD/dist" bash PaTiAdmin/tools/package.sh "PaTiAddons/$ADDON"
+          unzip -Z1 "dist/$ADDON-${{ steps.version.outputs.version }}.zip" | grep -qx "$ADDON/$ADDON.toc"
+
+      - name: Extract beta notes
+        env:
+          ADDON: ${{ github.event.repository.name }}
+        run: (cd "PaTiAddons/$ADDON" && lua ../../PaTiAdmin/tools/lua/run.lua notes "${{ steps.version.outputs.version }}") > notes.md
+
+      - name: Publish unverified installation-test pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ADDON: ${{ github.event.repository.name }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag="v$VERSION"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $tag already exists; refusing to overwrite it."
+            exit 1
+          fi
+          gh release create "$tag" "dist/$ADDON-$VERSION.zip" \
+            --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "$ADDON $VERSION — INSTALLATION TEST (UNVERIFIED)" \
+            --notes-file notes.md -R "$GITHUB_REPOSITORY"
