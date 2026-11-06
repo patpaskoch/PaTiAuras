@@ -2,12 +2,15 @@
 
 <img src="assets/icon-128.png" width="96" alt="PaTiAuras icon">
 
+## What is PaTiAuras?
+
 A small aura and buff watcher for World of Warcraft: Forever (Interface 16001): your buffs, procs, tracking, group buffs and
 weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and shields on party members: PaTiHeal.)
 
 > Status: 0.1.0, in development, not yet released. Not yet fully tested in game (see Known limitations).
 
 ## Features
+
 - **My auras — one list for everything on you** (Settings → Watch → "My auras (n) …"): buffs, procs, weapon
   imbues and tracking, up to 12, in your order. Type a spell name or ID or drag spells from your spellbook; sort with
   the arrows or the ≡ grip. Procs of your class (e.g. Tidal Waves) show only while active. Until you edit the list it
@@ -25,6 +28,28 @@ weapon imbues — active, missing or expiring. It shows; you decide. (HoTs and s
   someone lacks (one line per buff: "Missing on 2")
 - Profiles (seed and group buffs): Shaman, Priest. Unknown spells are hidden, never guessed
 - ••• menu: Settings, Lock, Collapse, Test Mode, Hide. Languages: English, Deutsch (others fall back to English)
+
+## Installation
+
+![PaTiAuras – three-step installation guide](assets/installation_en.svg)
+
+1. 📥 **Download** – Open [GitHub Releases](https://github.com/patpaskoch/PaTiAuras/releases) and download the `PaTiAuras-<version>.zip` file under **Assets** (not **Source code (zip)**).
+2. 📂 **Extract & Copy** – Right-click the ZIP, select **Extract All**, then copy the extracted `PaTiAuras` folder into the WoW Forever client's `Interface/AddOns/` folder. No renaming is needed.
+3. ☑️ **Enable in Game** – Start WoW, open the **AddOns** menu at character selection, tick **PaTiAuras**, and click **OK**.
+
+## Getting Started
+
+- `/pa settings` → Watch → "My auras (n) …": check the list, add what you keep up (buffs, procs, imbues, tracking)
+- `/pa test` shows example data
+- `/pa` shows or hides the window
+
+## Settings
+
+`/pa settings` or ••• → Settings:
+- **General:** on/off, language, scale, window lock
+- **Display:** Show (all / only missing / only active), Columns (1–3), timers, charges, expiring
+- **Watch:** "My auras (n) …" opens your list; "Group buffs (n / m)" picks the group buffs
+- **Window:** panel opacity (30–100 %)
 
 ## PaTiSuite
 
@@ -49,33 +74,15 @@ Each one is installed on its own and works on its own; none of them is needed by
 - [PaTiAlerts](https://github.com/patpaskoch/PaTiAlerts) – receives your watched buffs, weapon imbues and group buffs that are missing or expiring
 - [PaTiSuite](https://github.com/patpaskoch/PaTiSuite) – shows and hides this window together with the other PaTi windows
 
-## Installation
-
-![PaTiAuras – three-step installation guide](assets/installation_en.svg)
-
-1. 📥 **Download** – Open [GitHub Releases](https://github.com/patpaskoch/PaTiAuras/releases) and download the `PaTiAuras-<version>.zip` file under **Assets** (not **Source code (zip)**).
-2. 📂 **Extract & Copy** – Right-click the ZIP, select **Extract All**, then copy the extracted `PaTiAuras` folder into the WoW Forever client's `Interface/AddOns/` folder. No renaming is needed.
-3. ☑️ **Enable in Game** – Start WoW, open the **AddOns** menu at character selection, tick **PaTiAuras**, and click **OK**.
-
-## First steps
-- `/pa settings` → Watch → "My auras (n) …": check the list, add what you keep up (buffs, procs, imbues, tracking)
-- `/pa test` shows example data
-- `/pa` shows or hides the window
-
-## Settings
-`/pa settings` or ••• → Settings:
-- **General:** on/off, language, scale, window lock
-- **Display:** Show (all / only missing / only active), Columns (1–3), timers, charges, expiring
-- **Watch:** "My auras (n) …" opens your list; "Group buffs (n / m)" picks the group buffs
-- **Window:** panel opacity (30–100 %)
-
 ## Commands
+
 `/pa` or `/patiauras` — alone: show/hide · `settings` · `test` · `show` · `hide` · `lock` · `unlock` · `reset` (position) ·
 `auras` (which profile spells your client knows) · `debug` · `version` · `about` · `changelog`
 
 Hide, collapse, test mode and reset are blocked in combat (the window has secure buff buttons).
 
 ## Known limitations
+
 - Priest group and self buff IDs are confirmed in the Forever client; Shaman IDs are not yet — `/pa auras` shows what your client knows.
 - Class profiles (seed and group buffs) only for Shaman and Priest; other classes start with an empty list.
 - Weapon imbues are recognised by the number your own cast put on the weapon (learned once per imbue and rank).
@@ -100,4 +107,5 @@ PaTiAuras is free and open source, and it stays that way. If it makes your runs 
 [Issues](https://github.com/patpaskoch/PaTiAuras/issues).
 
 ## License
+
 MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Patrick Koch.
