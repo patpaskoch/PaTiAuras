@@ -67,6 +67,11 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-041 Sprache enUS in den Einstellungen: nach `/reload` englisch
 - [ ] PT-AURAS-042 zhCN/zhTW/koKR: Englisch als Rückfall, keine Schlüsselnamen oder Kästchen
 - [ ] PT-AURAS-043 Keine abgeschnittenen wichtigen Texte (deDE), Hinweise brechen um
+- [ ] PT-AURAS-219 Ohne beobachtete Auras: der Hinweis zeigt „Einstellungen > Beobachten > Meine Auras“ ohne leere
+  Kästchen (Deutsch und Englisch)
+  - Owner 2026-11-07 (Screenshot): statt der Pfeile „→“ leere Kästchen
+  - 🔧 FIX IMPLEMENTED 2026-11-07
+  - MANUAL RETEST REQUIRED
 
 ## Weapon Imbues (Schamane)
 
