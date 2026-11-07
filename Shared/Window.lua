@@ -70,9 +70,17 @@ function Window:IsLocked()
     return self.db and self.db.locked or false
 end
 
+-- Owner 2026-11-07: locking or unlocking answers with a chat line, so the player knows it worked (the ••• menu
+-- closes at once and a locked window looks the same). Only on a real change: loading the saved state stays quiet.
+function UI.LockMessage(title, locked)
+    return ("|cff68caff%s:|r %s"):format(title, locked and UI.L.WINDOW_LOCKED or UI.L.WINDOW_UNLOCKED)
+end
+
 function Window:SetLocked(locked)
+    local changed = self.db ~= nil and (self.db.locked == true) ~= (locked == true)
     if self.db then self.db.locked = locked end
     self:PaintMenuButton()
+    if changed then print(UI.LockMessage(self.title:GetText() or "", locked)) end
 end
 
 -- getItems() returns popup items (see UI.ShowPopup); it runs on every open, so texts and states are current.
