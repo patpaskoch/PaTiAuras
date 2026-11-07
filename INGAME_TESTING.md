@@ -404,6 +404,8 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 - [ ] PT-AURAS-103 Abgewählter Effekt verschwindet aus dem Fenster; Auswahl bleibt nach `/reload`
 - [ ] PT-AURAS-104 Kein zweiter Aura-Einstellungsblock und keine Kategorie-Schalter mehr
 - [ ] PT-AURAS-105 Neu gelernter Zauber: Dialog „Neue Auren“ erscheint (nicht im Kampf), danach in der Liste
+  - Owner 2026-11-07 (Teilbefund): Machtwort: Seelenstärke gelernt → Dialog „Neue Auren“ erschien sofort und
+    fragte, ob es beobachtet werden soll; „danach in der Liste“ noch offen.
 - [ ] PT-AURAS-106 Erster Start: Dialog „Neue Auren“ bietet die Effekte an, Schließen markiert sie als gesehen
 - [ ] PT-AURAS-107 Anzeige-Schalter (Timer, Aufladungen, Fehlende, Auslaufende) wirken
 - [x] PT-AURAS-108 Priester: ein einzelner Effekt (Machtwort: Seelenstärke) lässt sich im zentralen Beobachten-Menü
