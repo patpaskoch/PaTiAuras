@@ -82,3 +82,17 @@ describe("Theme setting (db.theme)", function()
         assert.equal("default", M.RestoreDefaults(migrate(M, { schema = M.SCHEMA, theme = "dracula" })).theme)
     end)
 end)
+
+-- Owner 2026-11-07 (screenshot): "→" showed as an empty box — the WoW fonts have no glyph for it. Menu paths use ">"
+-- like PaTiLead and PaTiRota. Comments may keep the arrow; visible strings may not.
+describe("Locales: only glyphs the WoW font draws", function()
+    for _, code in ipairs({ "enUS", "deDE" }) do
+        it(code .. " has no arrow in visible text", function()
+            local file = assert(io.open("Locales/" .. code .. ".lua", "r"))
+            for line in file:lines() do
+                if not line:match("^%s*%-%-") then assert.is_nil(line:find("\226\134\146", 1, true), line) end
+            end
+            file:close()
+        end)
+    end
+end)

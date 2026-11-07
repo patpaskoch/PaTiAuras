@@ -67,6 +67,12 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-041 Sprache enUS in den Einstellungen: nach `/reload` englisch
 - [ ] PT-AURAS-042 zhCN/zhTW/koKR: Englisch als Rückfall, keine Schlüsselnamen oder Kästchen
 - [ ] PT-AURAS-043 Keine abgeschnittenen wichtigen Texte (deDE), Hinweise brechen um
+- [x] PT-AURAS-219 Ohne beobachtete Auras: der Hinweis zeigt „Einstellungen > Beobachten > Meine Auras“ ohne leere
+  Kästchen (Deutsch und Englisch)
+  - Owner 2026-11-07 (Screenshot): statt der Pfeile „→“ leere Kästchen
+  - 🔧 FIX IMPLEMENTED 2026-11-07
+  - ✅ VERIFIED 2026-11-07
+  - Owner: „passt alles“ — Hinweis ohne Kästchen.
 
 ## Weapon Imbues (Schamane)
 
@@ -399,6 +405,8 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 - [ ] PT-AURAS-103 Abgewählter Effekt verschwindet aus dem Fenster; Auswahl bleibt nach `/reload`
 - [ ] PT-AURAS-104 Kein zweiter Aura-Einstellungsblock und keine Kategorie-Schalter mehr
 - [ ] PT-AURAS-105 Neu gelernter Zauber: Dialog „Neue Auren“ erscheint (nicht im Kampf), danach in der Liste
+  - Owner 2026-11-07 (Teilbefund): Machtwort: Seelenstärke gelernt → Dialog „Neue Auren“ erschien sofort und
+    fragte, ob es beobachtet werden soll; „danach in der Liste“ noch offen.
 - [ ] PT-AURAS-106 Erster Start: Dialog „Neue Auren“ bietet die Effekte an, Schließen markiert sie als gesehen
 - [ ] PT-AURAS-107 Anzeige-Schalter (Timer, Aufladungen, Fehlende, Auslaufende) wirken
 - [x] PT-AURAS-108 Priester: ein einzelner Effekt (Machtwort: Seelenstärke) lässt sich im zentralen Beobachten-Menü
