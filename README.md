@@ -31,6 +31,8 @@ Between procs, weapon buffs and group buffs, it's easy to lose track. PaTiAuras 
 2. 📂 **Extract & Copy** – Right-click the ZIP, select **Extract All**, then copy the extracted `PaTiAuras` folder into the WoW Forever client's `Interface/AddOns/` folder. No renaming is needed.
 3. ☑️ **Enable in Game** – Start WoW, open the **AddOns** menu at character selection, tick **PaTiAuras**, and click **OK**.
 
+💡 **Tip – Find your AddOns folder:** In the Battle.net launcher, select the WoW version you play, click the **gear icon next to Play → Show in Explorer** (*Im Explorer anzeigen*), then open that client's `Interface/AddOns/` folder. If Battle.net opens the main World of Warcraft folder instead, open the appropriate version folder first. On Mac, use **Show in Finder**.
+
 ## Getting Started
 
 - `/pa settings` → Watch → "My auras (n) …": check the list, add what you keep up (buffs, procs, imbues, tracking)
