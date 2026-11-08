@@ -197,6 +197,7 @@ local function buildSettings()
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
     modal:AddControls(box("SHOW_EXPIRING", "showExpiring"))
     modal:Finish(function()
+        if combatBlocked() then return end -- the defaults move secure buttons (scale, layout, watch list)
         Config.RestoreDefaults(DB)
         window:ApplyTheme() -- Restore Defaults: theme back to default
         window:ApplyOpacity()
