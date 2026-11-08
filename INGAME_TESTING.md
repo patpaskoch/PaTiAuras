@@ -27,8 +27,12 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [x] PT-AURAS-003 Icon in der AddOn-Liste korrekt, keine weiße oder fehlende Textur
   - ✅ VERIFIED 2026-10-02
   - Owner: die Icons erscheinen im Spiel in der AddOn-Liste korrekt.
-- [ ] PT-AURAS-004 Login ohne Lua-Fehler
-- [ ] PT-AURAS-005 `/reload` ohne Lua-Fehler
+- [x] PT-AURAS-004 Login ohne Lua-Fehler
+  - ✅ VERIFIED 2026-11-08
+  - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
+- [x] PT-AURAS-005 `/reload` ohne Lua-Fehler
+  - ✅ VERIFIED 2026-11-08
+  - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
 - [x] PT-AURAS-006 `/pa debug` zeigt die Aura-API: `C_UnitAuras` und `issecretvalue` vorhanden
   - ✅ VERIFIED 2026-09-28
 - [ ] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
@@ -39,7 +43,9 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 - [ ] PT-AURAS-010 `/pa` bzw. `/patiauras` blendet das Fenster ein und aus; `/pa show`, `/pa hide`
 - [ ] PT-AURAS-011 Fenster am Header verschieben (entsperrt)
-- [ ] PT-AURAS-012 Position bleibt nach `/reload`
+- [x] PT-AURAS-012 Position bleibt nach `/reload`
+  - ✅ VERIFIED 2026-11-08
+  - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
 - [ ] PT-AURAS-013 Lock/Unlock (••• und `/pa lock` / `unlock`): gesperrt nicht verschiebbar
 - [ ] PT-AURAS-014 Größe (Scale) in den Einstellungen wirkt
 - [ ] PT-AURAS-015 Einstellungen öffnen (`/pa settings` und •••) und speichern
@@ -453,5 +459,7 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 ## Combined
 
 - [ ] PT-AURAS-130 Zusammen mit allen PaTi-Addons geladen: kein Lua-Fehler
-- [ ] PT-AURAS-131 Keine Slash-Command-Kollision: `/pa` und `/patiauras` antworten nur PaTiAuras
+- [x] PT-AURAS-131 Keine Slash-Command-Kollision: `/pa` und `/patiauras` antworten nur PaTiAuras
+  - ✅ VERIFIED 2026-11-08
+  - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
 - [ ] PT-AURAS-132 Eigene Einstellungen speichern nur PaTiAuras-Werte; Fenster erscheint in PaTiSuite
