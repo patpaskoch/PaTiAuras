@@ -448,6 +448,7 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 - [ ] PT-AURAS-121 Keine `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN` (auch Klick-Buff im Kampf)
 - [ ] PT-AURAS-122 `taint.log` (`/console taintLog 1`) ohne PaTiAuras-Eintrag
 - [ ] PT-AURAS-123 Im Kampf gesperrt mit Hinweis: Ausblenden, Collapse, Test Mode, Größe, Position zurücksetzen
+- [ ] PT-AURAS-124 Im Kampf: „Standardwerte wiederherstellen“ in den Einstellungen tut nichts und zeigt den Kampf-Hinweis; nach dem Kampf funktioniert es (Fix 2026-11-08)
 
 ## Combined
 

@@ -197,6 +197,8 @@ local function buildSettings()
     modal:AddControls(box("SHOW_TIMERS", "showTimers"), box("SHOW_CHARGES", "showCharges"))
     modal:AddControls(box("SHOW_EXPIRING", "showExpiring"))
     modal:Finish(function()
+        -- rebuild() moves the secure buff/line buttons and SetScale touches the protected window: not in combat.
+        if combatBlocked() then return end
         Config.RestoreDefaults(DB)
         window:ApplyTheme() -- Restore Defaults: theme back to default
         window:ApplyOpacity()
