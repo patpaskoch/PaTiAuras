@@ -62,7 +62,9 @@ UNKNOWN darf nie als MISSING erscheinen.
 ## SavedVariables
 
 - [ ] PT-AURAS-030 Einstellungen und Beobachten-Auswahl bleiben nach `/reload`
-- [ ] PT-AURAS-031 Einstellungen bleiben nach Relog
+- [x] PT-AURAS-031 Einstellungen bleiben nach Relog
+  - ✅ VERIFIED 2026-11-10
+  - Owner: 5 Spielsitzungen mit wiederholtem Einloggen, keine Auffälligkeiten
 - [ ] PT-AURAS-032 Update mit alten Einstellungen: eine vorher abgeschaltete Kategorie (z. B. Procs) bleibt nach dem
   Update abgewählt (Schema-2-Migration), Position/Sprache/Größe bleiben
 - [ ] PT-AURAS-033 „Standard wiederherstellen“: alles wieder beobachtet, Position bleibt
@@ -450,7 +452,9 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 
 ## Combat / Sicherheit
 
-- [ ] PT-AURAS-120 Kein Lua-Fehler im Kampf
+- [x] PT-AURAS-120 Kein Lua-Fehler im Kampf
+  - ✅ VERIFIED 2026-11-10
+  - Owner: 3 Stunden gespielt inkl. Kampf, kein Lua-Fehler (PaTiTest sessionErrors 2026-11-10 19:40–23:01 leer)
 - [ ] PT-AURAS-121 Keine `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN` (auch Klick-Buff im Kampf)
 - [ ] PT-AURAS-122 `taint.log` (`/console taintLog 1`) ohne PaTiAuras-Eintrag
 - [ ] PT-AURAS-123 Im Kampf gesperrt mit Hinweis: Ausblenden, Collapse, Test Mode, Größe, Position zurücksetzen
