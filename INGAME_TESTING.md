@@ -22,8 +22,12 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 ## Installation / Laden
 
-- [ ] PT-AURAS-001 Fresh Install aus dem Release-ZIP: genau ein Ordner `PaTiAuras/`, Addon lädt allein
-- [ ] PT-AURAS-002 PaTiAuras erscheint in der AddOn-Liste mit Beschreibung
+- [x] PT-AURAS-001 Fresh Install aus dem Release-ZIP: genau ein Ordner `PaTiAuras/`, Addon lädt allein
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-002 PaTiAuras erscheint in der AddOn-Liste mit Beschreibung
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 - [x] PT-AURAS-003 Icon in der AddOn-Liste korrekt, keine weiße oder fehlende Textur
   - ✅ VERIFIED 2026-10-02
   - Owner: die Icons erscheinen im Spiel in der AddOn-Liste korrekt.
@@ -41,40 +45,74 @@ UNKNOWN darf nie als MISSING erscheinen.
 
 ## Fenster
 
-- [ ] PT-AURAS-010 `/pa` bzw. `/patiauras` blendet das Fenster ein und aus; `/pa show`, `/pa hide`
-- [ ] PT-AURAS-011 Fenster am Header verschieben (entsperrt)
+- [x] PT-AURAS-010 `/pa` bzw. `/patiauras` blendet das Fenster ein und aus; `/pa show`, `/pa hide`
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-011 Fenster am Header verschieben (entsperrt)
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 - [x] PT-AURAS-012 Position bleibt nach `/reload`
   - ✅ VERIFIED 2026-11-08
   - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
-- [ ] PT-AURAS-013 Lock/Unlock (••• und `/pa lock` / `unlock`): gesperrt nicht verschiebbar
-- [ ] PT-AURAS-014 Größe (Scale) in den Einstellungen wirkt
-- [ ] PT-AURAS-015 Einstellungen öffnen (`/pa settings` und •••) und speichern
-- [ ] PT-AURAS-016 Collapse/Expand über •••, Zustand bleibt nach `/reload`
-- [ ] PT-AURAS-017 Test Mode `/pa test` zeigt das eigene Klassenprofil mit Beispieldaten (inkl. Waffe: Waffenhand aktiv,
+- [x] PT-AURAS-013 Lock/Unlock (••• und `/pa lock` / `unlock`): gesperrt nicht verschiebbar
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-014 Größe (Scale) in den Einstellungen wirkt
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-015 Einstellungen öffnen (`/pa settings` und •••) und speichern
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-016 Collapse/Expand über •••, Zustand bleibt nach `/reload`
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-017 Test Mode `/pa test` zeigt das eigene Klassenprofil mit Beispieldaten (inkl. Waffe: Waffenhand aktiv,
   Schildhand fehlt); erneut `/pa test` beendet ihn
   - Owner 2026-10-07 (Hexenmeister, ohne Klassenprofil): `/pa test` zeigt die Beispieldaten mit Gruppenbuff-Zeile
     und Tooltip. Noch offen: Waffe (Waffenhand aktiv, Schildhand fehlt) und Beenden mit erneutem `/pa test`.
-- [ ] PT-AURAS-018 Panel-Deckkraft 30–100 %: nur der Hintergrund ändert sich
-- [ ] PT-AURAS-019 Keine Einrast-Einstellung mehr, Fenster frei verschiebbar
-- [ ] PT-AURAS-020 `/pa reset` setzt die Position zurück
-- [ ] PT-AURAS-021 `/pa about` und `/pa changelog` zeigen Infos ohne Fehler
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-018 Panel-Deckkraft 30–100 %: nur der Hintergrund ändert sich
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-019 Keine Einrast-Einstellung mehr, Fenster frei verschiebbar
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-020 `/pa reset` setzt die Position zurück
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-021 `/pa about` und `/pa changelog` zeigen Infos ohne Fehler
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 
 ## SavedVariables
 
-- [ ] PT-AURAS-030 Einstellungen und Beobachten-Auswahl bleiben nach `/reload`
+- [x] PT-AURAS-030 Einstellungen und Beobachten-Auswahl bleiben nach `/reload`
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 - [x] PT-AURAS-031 Einstellungen bleiben nach Relog
   - ✅ VERIFIED 2026-11-10
   - Owner: 5 Spielsitzungen mit wiederholtem Einloggen, keine Auffälligkeiten
 - [ ] PT-AURAS-032 Update mit alten Einstellungen: eine vorher abgeschaltete Kategorie (z. B. Procs) bleibt nach dem
   Update abgewählt (Schema-2-Migration), Position/Sprache/Größe bleiben
-- [ ] PT-AURAS-033 „Standard wiederherstellen“: alles wieder beobachtet, Position bleibt
+- [x] PT-AURAS-033 „Standard wiederherstellen“: alles wieder beobachtet, Position bleibt
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 
 ## Sprachen
 
-- [ ] PT-AURAS-040 deDE: alle Texte deutsch, Zaubernamen aus dem Client
+- [x] PT-AURAS-040 deDE: alle Texte deutsch, Zaubernamen aus dem Client
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 - [ ] PT-AURAS-041 Sprache enUS in den Einstellungen: nach `/reload` englisch
-- [ ] PT-AURAS-042 zhCN/zhTW/koKR: Englisch als Rückfall, keine Schlüsselnamen oder Kästchen
-- [ ] PT-AURAS-043 Keine abgeschnittenen wichtigen Texte (deDE), Hinweise brechen um
+  - ❌ FAIL 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht nicht“ markiert (ohne Notiz).
+- [x] PT-AURAS-042 zhCN/zhTW/koKR: Englisch als Rückfall, keine Schlüsselnamen oder Kästchen
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-043 Keine abgeschnittenen wichtigen Texte (deDE), Hinweise brechen um
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 
 ## Weapon Imbues (Schamane)
 
@@ -141,7 +179,9 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - Owner: Felsbeißer fehlt → Warnung „Waffe des Felsbeißers · Fehlt“; gewirkt → Warnung weg.
 - ~~PT-AURAS-058 Schildhand: Schild oder leer → keine Zeile; Nebenhand-Waffe → eigene Zeile mit eigenem Zustand~~
   - RETIRED 2026-10-02 – keine generische Schildhand-Beobachtung mehr; noch kein bestätigter Nebenhand-Waffenbuff.
-- [ ] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
+- [x] PT-AURAS-059 Waffe wechseln: kein alter Zustand, kein Lua-Fehler; Imbue läuft im Kampf aus bzw. wird erneuert
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 
 ## Konkreter Waffenbuff: Waffe des Felsbeißers
 
