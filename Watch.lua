@@ -278,6 +278,7 @@ function Watch.Self(db)
     for _, entry in ipairs(Watch.entries.personal) do
         list[#list + 1] = { entry = entry, result = Auras.Evaluate(entry, helpful, now, db) }
     end
+    list = Auras.ResolveExclusive(list) -- e.g. Water Shield up: no "Lightning Shield missing"
     for _, entry in ipairs(Watch.entries.procs) do
         local result = Auras.Evaluate(entry, helpful, now, db)
         if result.state == "ACTIVE" or result.state == "EXPIRING" then list[#list + 1] = { entry = entry, result = result } end
@@ -355,7 +356,10 @@ function Watch.NoteCast(db, castID, now)
     if Watch.testMode or isSecret(castID) or type(castID) ~= "number" then return end
     local profile, kinds = Watch.ClassProfile(), {}
     local ids = Watch.OwnIDs(db, profile)
-    for _, item in ipairs(ns.OwnList.Classify(ids, db, profile)) do kinds[item.def.spellID] = item.category end
+    -- Only learnable entries get a kind: a profile buff (e.g. Lightning Shield) is never noted as an imbue cast.
+    for _, item in ipairs(ns.OwnList.Classify(ids, db, profile)) do
+        if item.learnable then kinds[item.def.spellID] = item.category end
+    end
     pendingLearn = ns.OwnList.NoteCast(castID, ids, kinds, sameSpell, Watch.weapons, now) or pendingLearn
 end
 
@@ -364,7 +368,8 @@ function Watch.IsLearning() return pendingLearn ~= nil end
 -- After a weapon read: saves what the noted cast put on a hand. Returns true when something new was learned.
 function Watch.ApplyLearnStep(db, now)
     if not pendingLearn then return false end
-    local slot, result = ns.OwnList.Learn(pendingLearn, Watch.weapons, now)
+    local taken = ns.OwnList.TakenEnchantIDs(pendingLearn.id, db, Watch.ClassProfile())
+    local slot, result = ns.OwnList.Learn(pendingLearn, Watch.weapons, now, taken)
     if slot then
         local id = pendingLearn.id
         pendingLearn = nil

@@ -73,6 +73,17 @@ UNKNOWN darf nie als MISSING erscheinen.
   - 🔧 FIX IMPLEMENTED 2026-11-07
   - ✅ VERIFIED 2026-11-07
   - Owner: „passt alles“ — Hinweis ohne Kästchen.
+- [ ] PT-AURAS-220 Schamane mit Blitzschlagschild aktiv (und Felsbeißer auf der Waffe): die Zeile „Blitzschlagschild“
+  zeigt Restzeit/Aufladungen statt „Fehlt“; nach erneutem Wirken des Schilds bei laufendem Felsbeißer bleibt das so
+  - ❌ FAIL 2026-11-17
+  - Owner (Screenshot): Blitzschlagschild aktiv (ID 324, Quelle player), PaTiAuras zeigt „Fehlt“. Ursache: der Schild
+    war in den SavedVariables als Waffenverzauberung gelernt (`imbues[324]` mit Felsbeißers Enchant-ID 6).
+  - 🔧 FIX IMPLEMENTED 2026-11-17 (Profil-Buffs werden nie als Verzauberung gelernt; fremde Enchant-IDs nie zugeordnet)
+  - MANUAL RETEST REQUIRED
+- [ ] PT-AURAS-221 Schamane mit Wasser- und Blitzschlagschild gelernt: ist einer aktiv, zeigt der andere kein „Fehlt“;
+  ist keiner aktiv, steht nur eine „Fehlt“-Zeile (die erste der beiden in „Meine Auras“)
+  - 🔧 FIX IMPLEMENTED 2026-11-17 (Owner-Wunsch: ein Schild reicht)
+  - MANUAL RETEST REQUIRED
 
 ## Weapon Imbues (Schamane)
 
