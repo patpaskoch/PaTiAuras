@@ -266,3 +266,29 @@ describe("Auras.MergeRows (line order stays the same in combat)", function()
             { merged[1].header, merged[2].key, merged[3].header, merged[4].key })
     end)
 end)
+
+describe("Auras.ResolveExclusive (only one shield at a time)", function()
+    local function item(key, state, exclusive)
+        return { entry = { key = key, exclusive = exclusive }, result = { state = state } }
+    end
+    local function keys(list)
+        local out = {}
+        for _, it in ipairs(list) do out[#out + 1] = it.entry.key .. ":" .. it.result.state end
+        return out
+    end
+
+    it("an active shield hides the other shield's Missing line", function()
+        local Auras = load()
+        local list = Auras.ResolveExclusive({ item("WATER", "ACTIVE", "SHIELD"), item("LIGHTNING", "MISSING", "SHIELD"),
+            item("OTHER", "MISSING") })
+        assert.same({ "WATER:ACTIVE", "OTHER:MISSING" }, keys(list))
+        list = Auras.ResolveExclusive({ item("WATER", "MISSING", "SHIELD"), item("LIGHTNING", "EXPIRING", "SHIELD") })
+        assert.same({ "LIGHTNING:EXPIRING" }, keys(list))
+    end)
+
+    it("no shield up: only the group's first line stays", function()
+        local Auras = load()
+        local list = Auras.ResolveExclusive({ item("WATER", "MISSING", "SHIELD"), item("LIGHTNING", "MISSING", "SHIELD") })
+        assert.same({ "WATER:MISSING" }, keys(list))
+    end)
+end)

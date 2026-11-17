@@ -38,6 +38,16 @@ describe("OwnList.Classify", function()
         assert.same({ 29, 503 }, list[2].def.enchantIDs)
         assert.same({ 29 }, PROFILE.weapon[1].enchantIDs) -- the profile itself is not changed
     end)
+
+    it("a profile buff stays a buff even with a wrongly learned imbue record (owner 2026-11-17)", function()
+        local OwnList = load()
+        -- The owner's saved data: Lightning Shield learned with Rockbiter's enchant ID while Rockbiter refreshed.
+        local db = { imbues = { [324] = { slot = "MAINHAND", enchantIDs = { 6 } },
+            [8017] = { slot = "MAINHAND", enchantIDs = { 29, 6, 5 } } } }
+        local list = OwnList.Classify({ 8017, 324, 8024 }, db, PROFILE)
+        assert.same({ "ROCKBITER_WEAPON=weapon", "LIGHTNING_SHIELD=personal", "OWN:8024=personal" }, kinds(list))
+        assert.same({ true, false, true }, { list[1].learnable, list[2].learnable, list[3].learnable })
+    end)
 end)
 
 describe("Learning a weapon imbue on cast", function()
@@ -76,6 +86,17 @@ describe("Learning a weapon imbue on cast", function()
         assert.is_nil(OwnList.Learn(note, { MAINHAND = { enchantID = nil, expiresAt = 400 } }, 11))
         assert.is_nil(OwnList.Learn(note, { MAINHAND = { enchantID = 6, expiresAt = 400 },
             OFFHAND = { enchantID = 7, expiresAt = 400 } }, 11))
+    end)
+
+    it("an enchant ID of another imbue is never learned for the cast spell (Rockbiter refreshed by chance)", function()
+        local OwnList = load()
+        local db = { imbues = { [8017] = { slot = "MAINHAND", enchantIDs = { 6 } } } }
+        local taken = OwnList.TakenEnchantIDs(8024, db, PROFILE)
+        assert.same({ [29] = true, [6] = true }, taken)
+        local note = { id = 8024, at = 10, before = { MAINHAND = { enchantID = 6, expiresAt = 100 }, OFFHAND = {} } }
+        assert.is_nil(OwnList.Learn(note, { MAINHAND = { enchantID = 6, expiresAt = 400 } }, 11, taken))
+        -- The imbue's own IDs are not taken: re-casting Rockbiter may still learn a new rank.
+        assert.same({}, OwnList.TakenEnchantIDs(8017, { imbues = { [8017] = { enchantIDs = { 6 } } } }, {}))
     end)
 
     it("ApplyLearned saves hand and enchant ID once; a new rank adds its ID", function()
