@@ -31,9 +31,11 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [ ] PT-AURAS-005 `/reload` ohne Lua-Fehler
 - [x] PT-AURAS-006 `/pa debug` zeigt die Aura-API: `C_UnitAuras` und `issecretvalue` vorhanden
   - ✅ VERIFIED 2026-09-28
-- [ ] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
+- [x] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
   Typ, geparstes hasImbue und Endzustand; `/pa auras` zusätzlich alle Antworten von `C_Item.GetWeaponEnchantInfo`,
   eigene Buffs und die Tooltip-Zeilen der Waffenhand — ohne Lua-Fehler
+  - ✅ VERIFIED 2026-11-17
+  - Owner (Screenshot `/pa debug`): Ausgabe je Hand mit Enchant-IDs, Restzeit und Zustand; „ja geht“ — kein Lua-Fehler.
 
 ## Fenster
 
