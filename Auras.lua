@@ -184,6 +184,19 @@ function Auras.LineActions(item, castName, isSecret)
     return actions
 end
 
+-- Pure: what a click on this item's PaTiAlerts row may cast. Like the line (Auras.LineActions) for a missing one;
+-- an EXPIRING castable buff or imbue is cast again too, since its alert is about to run out (owner 2026-11-17: the
+-- "expiring" row in PaTiAlerts could not be clicked). Tracking and procs never expire this way.
+function Auras.AlertCast(item, castName, isSecret)
+    local entry = item.entry
+    if item.result.state == "EXPIRING" and entry.castable
+        and (entry.category == "personal" or entry.category == "weapon") then
+        if type(castName) == "string" and castName ~= "" and not isSecret(castName) then return castName end
+        return nil
+    end
+    return Auras.LineActions(item, castName, isSecret).cast
+end
+
 -- Pure: the SecureActionButtonTemplate attributes for those actions (nil = cleared). Left button: cast on yourself.
 -- Right button: "cancelaura" by spell name, or for a weapon slot by "target-slot".
 function Auras.ClickAttributes(actions)
