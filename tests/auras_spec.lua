@@ -292,3 +292,29 @@ describe("Auras.ResolveExclusive (only one shield at a time)", function()
         assert.same({ "WATER:MISSING" }, keys(list))
     end)
 end)
+
+describe("Auras.AlertCast (click on a PaTiAlerts row)", function()
+    local function isSecret() return false end
+    local function item(category, state, castable)
+        return { entry = { key = "X", name = "Blitzschlagschild", category = category, castable = castable },
+            result = { state = state } }
+    end
+
+    it("an expiring castable buff or imbue is cast again (owner 2026-11-17)", function()
+        local Auras = load()
+        assert.equal("Blitzschlagschild", Auras.AlertCast(item("personal", "EXPIRING", true), "Blitzschlagschild",
+            isSecret))
+        assert.equal("Waffe des Felsbeißers", Auras.AlertCast(item("weapon", "EXPIRING", true),
+            "Waffe des Felsbeißers", isSecret))
+    end)
+
+    it("missing works as before; active, not castable, procs or no cast name give no click", function()
+        local Auras = load()
+        assert.equal("Blitzschlagschild", Auras.AlertCast(item("personal", "MISSING", true), "Blitzschlagschild",
+            isSecret))
+        assert.is_nil(Auras.AlertCast(item("personal", "ACTIVE", true), "Blitzschlagschild", isSecret))
+        assert.is_nil(Auras.AlertCast(item("personal", "EXPIRING", false), "Blitzschlagschild", isSecret))
+        assert.is_nil(Auras.AlertCast(item("procs", "EXPIRING", true), "Flutwellen", isSecret))
+        assert.is_nil(Auras.AlertCast(item("personal", "EXPIRING", true), nil, isSecret))
+    end)
+end)

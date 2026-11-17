@@ -129,6 +129,9 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- PaTiAlerts: an "expiring" row of a castable buff or weapon imbue (e.g. Lightning Shield, Rockbiter) can now be
+  clicked to cast it again, like a missing one (owner 2026-11-17; one click = one cast).
+- Restore Defaults is blocked in combat (it moved secure buttons and scaled the protected window; audit 2026-11-08).
 - Shaman: an active Lightning Shield read "Missing" (owner 2026-11-17). Casting it while Rockbiter refreshed made
   PaTiAuras learn the shield as a weapon imbue. A buff of the class profile is never treated as an imbue any more
   (an old wrong record is ignored), and an enchant number that belongs to another imbue is never learned for the cast.
