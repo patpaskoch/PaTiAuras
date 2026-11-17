@@ -127,6 +127,11 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Shaman: an active Lightning Shield read "Missing" (owner 2026-11-17). Casting it while Rockbiter refreshed made
+  PaTiAuras learn the shield as a weapon imbue. A buff of the class profile is never treated as an imbue any more
+  (an old wrong record is ignored), and an enchant number that belongs to another imbue is never learned for the cast.
+- Shaman: Water Shield and Lightning Shield count as one shield — while one is up the other no longer reads
+  "Missing"; with none up only one line reads "Missing" (owner 2026-11-17).
 - Restore Defaults is blocked in combat (it moved secure buttons and scaled the protected window; audit 2026-11-08).
 - Hardening: a broken SavedVariables save (not a table, a broken schema or scale) no longer breaks the login; only the broken value is replaced, every valid setting (also `false`) stays, and the migration is idempotent (tests/robustness_spec.lua).
 - Watch: re-clicking the chosen Rockbiter did not deselect it in the owner's test (2026-10-02). The toggle logic was
