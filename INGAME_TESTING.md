@@ -116,6 +116,15 @@ UNKNOWN darf nie als MISSING erscheinen.
   - ✅ VERIFIED 2026-11-15
   - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
 
+- [x] PT-AURAS-222 PaTiAlerts: Zeile „Blitzschlagschild · läuft ab“ (bzw. Felsbeißer) ist außerhalb des Kampfs
+  anklickbar und wirkt ihn neu auf dich; danach verschwindet die Meldung
+  - ❌ FAIL 2026-11-17
+  - Owner: Meldung „läuft ab“ erscheint in PaTiAlerts, Anklicken funktioniert nicht.
+  - 🔧 FIX IMPLEMENTED 2026-11-17 (ablaufende Buffs/Verzauberungen geben den Klick mit, Auras.AlertCast)
+  - MANUAL RETEST REQUIRED
+  - ✅ VERIFIED 2026-11-17
+  - Owner: „ja das funktioniert auch“ — Klick auf „läuft ab“ in PaTiAlerts wirkt den Schild neu.
+
 ## Weapon Imbues (Schamane)
 
 Seit 2026-10-02 wird ein konkreter Waffenbuff beobachtet (Felsbeißer, Abschnitt unten), keine „Waffenhand“ mehr.

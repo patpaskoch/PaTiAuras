@@ -24,11 +24,11 @@ local alertsError -- last error PaTiAlerts raised in Sync (diagnostics only)
 -- group buffs that a living, online member lacks (Auras.GroupAlerts, one line per buff); pcall so a problem
 -- in PaTiAlerts never breaks PaTiAuras. Test mode and "disabled" send an empty list (their alerts disappear).
 -- What a click on the alert's row in PaTiAlerts may cast — the same as a click on the line here (owner 2026-10-14).
--- Own list: Auras.LineActions (missing castable buff, imbue or tracking on you). Group buff: the spell, cast on the
+-- Own list: Auras.AlertCast (missing castable buff, imbue or tracking on you; an expiring buff or imbue again). Group buff: the spell, cast on the
 -- member chosen out of combat (Watch.Group target). Unknown spells: nothing.
 local function ownCast(item)
     if not item.entry.castable or not Spells.IsKnown(item.entry.spellID) then return nil end
-    return ns.Auras.LineActions(item, Spells.CastName(item.entry.spellID), isSecret).cast
+    return ns.Auras.AlertCast(item, Spells.CastName(item.entry.spellID), isSecret)
 end
 
 local function groupCast(group)
