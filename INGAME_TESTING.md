@@ -39,9 +39,11 @@ UNKNOWN darf nie als MISSING erscheinen.
   - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
 - [x] PT-AURAS-006 `/pa debug` zeigt die Aura-API: `C_UnitAuras` und `issecretvalue` vorhanden
   - ✅ VERIFIED 2026-09-28
-- [ ] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
+- [x] PT-AURAS-007 `/pa debug` zeigt je Hand API-Quelle, Waffe/Item, jedes Rohfeld von `GetWeaponEnchantInfo()` mit
   Typ, geparstes hasImbue und Endzustand; `/pa auras` zusätzlich alle Antworten von `C_Item.GetWeaponEnchantInfo`,
   eigene Buffs und die Tooltip-Zeilen der Waffenhand — ohne Lua-Fehler
+  - ✅ VERIFIED 2026-11-17
+  - Owner (Screenshot `/pa debug`): Ausgabe je Hand mit Enchant-IDs, Restzeit und Zustand; „ja geht“ — kein Lua-Fehler.
 
 ## Fenster
 
@@ -115,6 +117,19 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [x] PT-AURAS-043 Keine abgeschnittenen wichtigen Texte (deDE), Hinweise brechen um
   - ✅ VERIFIED 2026-11-15
   - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
+- [x] PT-AURAS-220 Schamane mit Blitzschlagschild aktiv (und Felsbeißer auf der Waffe): die Zeile „Blitzschlagschild“
+  zeigt Restzeit/Aufladungen statt „Fehlt“; nach erneutem Wirken des Schilds bei laufendem Felsbeißer bleibt das so
+  - ❌ FAIL 2026-11-17
+  - Owner (Screenshot): Blitzschlagschild aktiv (ID 324, Quelle player), PaTiAuras zeigt „Fehlt“. Ursache: der Schild
+    war in den SavedVariables als Waffenverzauberung gelernt (`imbues[324]` mit Felsbeißers Enchant-ID 6).
+  - 🔧 FIX IMPLEMENTED 2026-11-17 (Profil-Buffs werden nie als Verzauberung gelernt; fremde Enchant-IDs nie zugeordnet)
+  - MANUAL RETEST REQUIRED
+  - ✅ VERIFIED 2026-11-17
+  - Owner: „funktioniert nach dem Reload“ — Blitzschlagschild wird wieder richtig angezeigt.
+- [ ] PT-AURAS-221 Schamane mit Wasser- und Blitzschlagschild gelernt: ist einer aktiv, zeigt der andere kein „Fehlt“;
+  ist keiner aktiv, steht nur eine „Fehlt“-Zeile (die erste der beiden in „Meine Auras“)
+  - 🔧 FIX IMPLEMENTED 2026-11-17 (Owner-Wunsch: ein Schild reicht)
+  - MANUAL RETEST REQUIRED
 
 ## Weapon Imbues (Schamane)
 

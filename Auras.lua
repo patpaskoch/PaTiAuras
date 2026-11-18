@@ -242,6 +242,30 @@ function Auras.GridSize(count, columns, cellWidth, cellHeight, gap)
     return used * cellWidth + (used - 1) * gap, rows * cellHeight
 end
 
+-- Pure: buffs of which only one can be on you at a time (profile field `exclusive`, e.g. a Shaman's Water Shield and
+-- Lightning Shield; owner 2026-11-17: Lightning Shield read "Missing" while Water Shield was up). items: { { entry,
+-- result } } in list order. Per exclusive group: while one is ACTIVE or EXPIRING, only the active ones stay; otherwise
+-- only the group's first line stays (one "Missing", not one per shield). Entries without `exclusive` are untouched.
+function Auras.ResolveExclusive(items)
+    local covered, firstOf = {}, {}
+    for _, item in ipairs(items) do
+        local group, state = item.entry.exclusive, item.result.state
+        if group then
+            if state == "ACTIVE" or state == "EXPIRING" then covered[group] = true end
+            if firstOf[group] == nil then firstOf[group] = item end
+        end
+    end
+    local list = {}
+    for _, item in ipairs(items) do
+        local group, state = item.entry.exclusive, item.result.state
+        local keep = not group
+            or (covered[group] and (state == "ACTIVE" or state == "EXPIRING"))
+            or (not covered[group] and firstOf[group] == item)
+        if keep then list[#list + 1] = item end
+    end
+    return list
+end
+
 -- Pure: should an own-list line be shown? settings: showMissing (false = "only active"), onlyMissing ("only
 -- missing"). Expiring always shows (about to be missing); an active proc too (it only exists while you can use it).
 function Auras.ShowOwn(item, settings)

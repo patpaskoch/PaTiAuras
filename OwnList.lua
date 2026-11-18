@@ -39,7 +39,12 @@ function OwnList.Classify(ids, db, profile)
     local imbues = db.imbues or {}
     for _, id in ipairs(ids) do
         if id ~= 0 then
-            local known, learned = index[id], imbues[id]
+            local known = index[id]
+            -- Only an unknown spell or a profile imbue can be a learned imbue. A profile buff, proc or tracking never
+            -- is (owner 2026-11-17: Lightning Shield was learned as an imbue while Rockbiter refreshed and then
+            -- always read Missing); an old wrong record for it is ignored.
+            local learnable = not known or known.category == "weapon"
+            local learned = learnable and imbues[id]
             local def, category = known and known.def or generic(id), known and known.category or "personal"
             if category == "weapon" or learned then
                 local enchantIDs = {}
@@ -54,7 +59,7 @@ function OwnList.Classify(ids, db, profile)
                     { __index = def })
                 category = "weapon"
             end
-            list[#list + 1] = { def = def, category = category }
+            list[#list + 1] = { def = def, category = category, learnable = learnable }
         end
     end
     return list
@@ -86,13 +91,14 @@ end
 
 -- After the cast: which hand got the imbue? A readable enchant ID that is new on that hand, or the same one with a
 -- clearly later end time (refreshed). Exactly one such hand → slot, enchantID. Returns nil while nothing changed,
--- and nil, true once the note is too old (then it is dropped).
-function OwnList.Learn(pending, weapons, now)
+-- and nil, true once the note is too old (then it is dropped). taken (optional): { [enchantID] = true } of the other
+-- imbues — such an ID belongs to them (e.g. Rockbiter refreshed by chance), never to the cast spell.
+function OwnList.Learn(pending, weapons, now, taken)
     if now - pending.at > OwnList.LEARN_SECONDS then return nil, true end
     local found, foundID, count = nil, nil, 0
     for _, slot in ipairs(SLOTS) do
         local raw, before = weapons and weapons[slot], pending.before[slot] or {}
-        if raw and type(raw.enchantID) == "number" then
+        if raw and type(raw.enchantID) == "number" and not (taken and taken[raw.enchantID]) then
             local refreshed = type(raw.expiresAt) == "number"
                 and (type(before.expiresAt) ~= "number" or raw.expiresAt > before.expiresAt + REFRESH_MIN)
             if raw.enchantID ~= before.enchantID or refreshed then
@@ -102,6 +108,22 @@ function OwnList.Learn(pending, weapons, now)
     end
     if count == 1 then return found, foundID end
     return nil
+end
+
+-- Pure: enchant IDs that belong to imbues other than `id` (profile imbues and learned ones), for OwnList.Learn.
+function OwnList.TakenEnchantIDs(id, db, profile)
+    local taken = {}
+    for _, def in ipairs(profile and profile.weapon or {}) do
+        if def.spellID ~= id then
+            for _, enchantID in ipairs(def.enchantIDs or {}) do taken[enchantID] = true end
+        end
+    end
+    for otherID, record in pairs(type(db.imbues) == "table" and db.imbues or {}) do
+        if otherID ~= id then
+            for _, enchantID in ipairs(record.enchantIDs or {}) do taken[enchantID] = true end
+        end
+    end
+    return taken
 end
 
 -- Saves what was learned: db.imbues[id] = { slot, enchantIDs }. Returns true if anything new was saved.
