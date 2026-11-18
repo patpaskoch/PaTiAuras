@@ -127,6 +127,7 @@ Format: `## [Unreleased]` / `## [x.y.z] - YYYY-MM-DD` with Added, Changed, Fixed
 - The group section is shown first (its rows must not move in combat). Hide, test mode, scale and position
   reset are blocked in combat, because the window now holds secure buttons.
 ### Fixed
+- Restore Defaults is blocked in combat (it moved secure buttons and scaled the protected window; audit 2026-11-08).
 - Hardening: a broken SavedVariables save (not a table, a broken schema or scale) no longer breaks the login; only the broken value is replaced, every valid setting (also `false`) stays, and the migration is idempotent (tests/robustness_spec.lua).
 - Watch: re-clicking the chosen Rockbiter did not deselect it in the owner's test (2026-10-02). The toggle logic was
   correct (reproduced in CI with the real popup code: false is saved, the list repaints); fixed what could differ in
