@@ -104,9 +104,11 @@ UNKNOWN darf nie als MISSING erscheinen.
 - [x] PT-AURAS-040 deDE: alle Texte deutsch, Zaubernamen aus dem Client
   - ✅ VERIFIED 2026-11-15
   - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
-- [ ] PT-AURAS-041 Sprache enUS in den Einstellungen: nach `/reload` englisch
+- [x] PT-AURAS-041 Sprache enUS in den Einstellungen: nach `/reload` englisch
   - ❌ FAIL 2026-11-15
   - Owner: auf der Ingame-Testseite als „Geht nicht“ markiert (ohne Notiz).
+  - ✅ VERIFIED 2026-11-17
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-17), nachgetragen 2026-11-18.
 - [x] PT-AURAS-042 zhCN/zhTW/koKR: Englisch als Rückfall, keine Schlüsselnamen oder Kästchen
   - ✅ VERIFIED 2026-11-15
   - Owner: auf der Ingame-Testseite als „Geht“ abgehakt.
@@ -167,7 +169,9 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
   - MANUAL RETEST REQUIRED
   - ✅ VERIFIED 2026-10-02
   - Owner: Felsbeißer entfernt und erneut gewirkt → wieder Restzeit.
-- [ ] PT-AURAS-056 Timer wird aktualisiert; unter 30 s EXPIRING; Erneuern aktualisiert innerhalb von ~1–2 s
+- [x] PT-AURAS-056 Timer wird aktualisiert; unter 30 s EXPIRING; Erneuern aktualisiert innerhalb von ~1–2 s
+  - ✅ VERIFIED 2026-11-17
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-17), nachgetragen 2026-11-18.
 - [x] PT-AURAS-057 Mit PaTiAlerts: „Waffenbuff fehlt“ erscheint bei MISSING, verschwindet bei ACTIVE, nie bei UNKNOWN
   - ❌ FAIL 2026-09-30
   - Warnung bleibt bei aktivem Felsbeißer. Ursache upstream: PaTiAuras meldet den aktiven Imbue als MISSING
@@ -186,11 +190,15 @@ Die Tests 050–059 beschreiben die frühere Slot-Version; ihre Ergebnisse gelte
 ## Konkreter Waffenbuff: Waffe des Felsbeißers
 
 Einstellungen
-- [ ] PT-AURAS-140 Beobachten zeigt unter „Waffe“ „Waffe des Felsbeißers“ (Schamane, Zauber gelernt), kein
+- [x] PT-AURAS-140 Beobachten zeigt unter „Waffe“ „Waffe des Felsbeißers“ (Schamane, Zauber gelernt), kein
   „Waffenhand“/„Schildhand“ mehr
+  - ✅ VERIFIED 2026-11-17
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-17), nachgetragen 2026-11-18.
 - [ ] PT-AURAS-141 `/pa auras`: Zeile `weapon ROCKBITER_WEAPON id=8017` mit dem richtigen Namen und known=true;
   mit aktivem Felsbeißer nennt „Learned spells with icon 136086“ den Felsbeißer (bestätigt die Spell-ID)
-- [ ] PT-AURAS-142 Auswahl (an/aus) bleibt nach `/reload`
+- [x] PT-AURAS-142 Auswahl (an/aus) bleibt nach `/reload`
+  - ✅ VERIFIED 2026-11-17
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-17), nachgetragen 2026-11-18.
 - [ ] PT-AURAS-143 Update von der Version davor: war die Waffenhand abgewählt, bleibt Felsbeißer aus; sonst fragt
   der Dialog „Neue Auren“ nach Felsbeißer
 
@@ -486,9 +494,13 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
   Layout, nach dem Kampf wechselt es; kein `ADDON_ACTION_BLOCKED`
 - [ ] PT-AURAS-197 Horizontal im Kampf: neuer Proc erscheint, ohne dass andere Zeilen/Buttons verrutschen; nach dem
   Kampf ordnet sich alles neu
-- [ ] PT-AURAS-198 Horizontal mit nur einer Kategorie (z. B. nur Selbst) und ohne Kategorien („nichts beobachtet“):
+- [x] PT-AURAS-198 Horizontal mit nur einer Kategorie (z. B. nur Selbst) und ohne Kategorien („nichts beobachtet“):
   sinnvolle Breite, kein Fehler
-- [ ] PT-AURAS-199 Einklappen/Ausklappen und Test Mode im horizontalen Layout ohne Fehler
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-15), nachgetragen 2026-11-18.
+- [x] PT-AURAS-199 Einklappen/Ausklappen und Test Mode im horizontalen Layout ohne Fehler
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-15), nachgetragen 2026-11-18.
 
 ## Combat / Sicherheit
 
@@ -502,7 +514,9 @@ zeigt nur noch PaTiHeal (dort getestet). Neue Tests: PT-AURAS-180–182.
 
 ## Combined
 
-- [ ] PT-AURAS-130 Zusammen mit allen PaTi-Addons geladen: kein Lua-Fehler
+- [x] PT-AURAS-130 Zusammen mit allen PaTi-Addons geladen: kein Lua-Fehler
+  - ✅ VERIFIED 2026-11-15
+  - Owner: auf der Ingame-Test-Seite „Geht“ (2026-11-15), nachgetragen 2026-11-18.
 - [x] PT-AURAS-131 Keine Slash-Command-Kollision: `/pa` und `/patiauras` antworten nur PaTiAuras
   - ✅ VERIFIED 2026-11-08
   - Owner: /patitest 2× grün in-game (vor und nach /reload, 42 ok, 0 Fehler; 7 PaTi-Addons installiert)
