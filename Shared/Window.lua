@@ -129,14 +129,30 @@ function Window:SetTestMode(on)
     if self.testBadge then self.testBadge:SetShown(on) end
 end
 
--- The ••• button stays quiet until hovered (UI.WindowHeader.MenuAlpha; locked windows even quieter).
-function Window:PaintMenuButton(hovered)
-    local more = self.menuButton
-    local r, g, b = UI.Color(hovered and "Text" or "TextMuted")
-    for _, dot in ipairs(more.dots) do dot:SetColorTexture(r, g, b, 1) end
-    more.hover:SetShown(hovered)
-    local rest = self:IsLocked() and 0.4 or UI.WindowHeader.MenuAlpha
-    more:SetAlpha(hovered and 1 or rest)
+-- The window's own menu entry with one of these texts ("COLLAPSE"/"EXPAND", "HIDE"), or nil. The circles run exactly
+-- that entry, so each addon's rules (e.g. not in combat) stay the same.
+function Window:MenuEntry(...)
+    local wanted = {}
+    for _, text in ipairs({ ... }) do wanted[text] = true end
+    for _, item in ipairs(self.getMenuItems and self.getMenuItems() or {}) do
+        if wanted[item.text] then return item end
+    end
+    return nil
+end
+
+-- Three circles at the right of the header, like the window buttons on a Mac (owner 2026-11-20): red = hide,
+-- yellow = collapse/expand, green = menu. Shown only while the mouse is over the window; a circle whose entry the
+-- window does not offer stays grey and does nothing. (The name stays PaintMenuButton: SetLocked and Attach call it.)
+function Window:PaintMenuButton()
+    local controls = self.headerControls
+    if not controls then return end
+    controls:SetShown(self.hovered == true)
+    for _, circle in ipairs(controls.circles) do
+        local usable = circle.kind == "MENU" or circle.entry(self) ~= nil
+        local r, g, b = UI.Color(usable and circle.color or "TextMuted")
+        circle.dot:SetVertexColor(r, g, b, 1)
+        circle:SetAlpha(circle:IsMouseOver() and 1 or 0.85)
+    end
 end
 
 -- name: global frame name (e.g. "PaTiHealFrame"); title: see UI.Text.
@@ -188,31 +204,67 @@ function UI.CreateWindow(name, title, width, height)
     UI.BindText(titleText, title)
     window.title = titleText
 
-    local more = CreateFrame("Button", nil, header)
-    more:SetSize(UI.Sizes.HeaderHeight, UI.Sizes.HeaderHeight)
-    more:SetPoint("RIGHT", -UI.Spacing.XS, 0)
-    more.hover = more:CreateTexture(nil, "BACKGROUND")
-    more.hover:SetAllPoints()
-    UI.Paint(more.hover, "SetColorTexture", "PanelHover")
-    more.dots = {}
-    for offset = -1, 1 do
-        local dot = more:CreateTexture(nil, "ARTWORK")
-        dot:SetSize(3, 3)
-        dot:SetPoint("CENTER", offset * 5, 0)
-        more.dots[#more.dots + 1] = dot
+    -- Mac-style circles (see PaintMenuButton), right to left: menu, collapse, hide.
+    local CIRCLE, CIRCLE_GAP, HOVER_CHECK = 11, 6, 0.1
+    local controls = CreateFrame("Frame", nil, header)
+    controls:SetPoint("RIGHT", -UI.Spacing.SM, 0)
+    controls:SetSize(3 * CIRCLE + 2 * CIRCLE_GAP, UI.Sizes.HeaderHeight)
+    controls.circles = {}
+    local specs = {
+        { kind = "HIDE", color = "Danger", tip = "HIDE", entry = function(w) return w:MenuEntry("HIDE") end },
+        { kind = "COLLAPSE", color = "Warning", tip = "COLLAPSE",
+            entry = function(w) return w:MenuEntry("COLLAPSE", "EXPAND") end },
+        { kind = "MENU", color = "Success", tip = "MORE" },
+    }
+    for index, spec in ipairs(specs) do
+        local circle = CreateFrame("Button", nil, controls)
+        circle:SetSize(CIRCLE + 4, CIRCLE + 4) -- a little larger than the dot: easier to hit
+        circle:SetPoint("LEFT", (index - 1) * (CIRCLE + CIRCLE_GAP) - 2, 0)
+        circle.dot = circle:CreateTexture(nil, "ARTWORK")
+        circle.dot:SetSize(CIRCLE, CIRCLE)
+        circle.dot:SetPoint("CENTER")
+        circle.dot:SetTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMask") -- a white disc
+        circle.kind, circle.color, circle.entry = spec.kind, spec.color, spec.entry
+        circle:SetScript("OnClick", function(self)
+            GameTooltip:Hide()
+            if self.kind == "MENU" then
+                UI.ShowPopup(self, window.getMenuItems and window.getMenuItems() or {}, 140, "RIGHT")
+                return
+            end
+            local item = self.entry(window)
+            if item and item.onClick then item.onClick(item) end
+            window:PaintMenuButton()
+        end)
+        circle:HookScript("OnEnter", function() window:PaintMenuButton() end)
+        circle:HookScript("OnLeave", function() window:PaintMenuButton() end)
+        UI.SetTooltip(circle, function()
+            if circle.kind == "COLLAPSE" then
+                local item = circle.entry(window)
+                return UI.Text(item and item.text or "COLLAPSE")
+            end
+            return UI.Text(spec.tip)
+        end)
+        controls.circles[index] = circle
+        if spec.kind == "MENU" then window.menuButton = circle end
     end
-    more:SetScript("OnEnter", function() window:PaintMenuButton(true) end)
-    more:SetScript("OnLeave", function() window:PaintMenuButton(false) end)
-    more:SetScript("OnClick", function(self)
-        GameTooltip:Hide()
-        UI.ShowPopup(self, window.getMenuItems and window.getMenuItems() or {}, 140, "RIGHT")
+    window.headerControls = controls
+    -- Hover: a small check a few times a second while the window is shown (OnEnter/OnLeave of the window do not
+    -- fire for its children, so they cannot tell "mouse over the window" alone).
+    local since = 0
+    controls:GetParent():HookScript("OnUpdate", function(_, elapsed)
+        since = since + elapsed
+        if since < HOVER_CHECK then return end
+        since = 0
+        local over = window:IsMouseOver() or false
+        if over ~= window.hovered then
+            window.hovered = over
+            window:PaintMenuButton()
+        end
     end)
-    UI.SetTooltip(more, "MORE")
-    window.menuButton = more
-    -- Theme change: the body colour carries the panel opacity, the ••• dots their hover state.
+    -- Theme change: the body colour carries the panel opacity, the circles their colours.
     UI.OnThemeChanged(function()
         window:ApplyOpacity()
-        window:PaintMenuButton(window.menuButton:IsMouseOver())
+        window:PaintMenuButton()
     end)
     window:PaintMenuButton()
     UI.RegisterWindow(window) -- the addon's main window (one per addon)
