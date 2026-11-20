@@ -140,19 +140,70 @@ function Window:MenuEntry(...)
     return nil
 end
 
--- Three circles at the right of the header, like the window buttons on a Mac (owner 2026-11-20): red = hide,
--- yellow = collapse/expand, green = menu. Shown only while the mouse is over the window; a circle whose entry the
--- window does not offer stays grey and does nothing. (The name stays PaintMenuButton: SetLocked and Attach call it.)
+-- Three small icons at the right of the header (owner 2026-11-20): gear = menu, chevron = collapse/expand, X = hide.
+-- Not coloured: muted, brighter under the mouse. Shown only while the mouse is over the window; an icon whose entry
+-- the window does not offer stays faint and does nothing. (The name stays PaintMenuButton: SetLocked and Attach
+-- call it.)
 function Window:PaintMenuButton()
     local controls = self.headerControls
     if not controls then return end
     controls:SetShown(self.hovered == true)
-    for _, circle in ipairs(controls.circles) do
-        local usable = circle.kind == "MENU" or circle.entry(self) ~= nil
-        local r, g, b = UI.Color(usable and circle.color or "TextMuted")
-        circle.dot:SetVertexColor(r, g, b, 1)
-        circle:SetAlpha(circle:IsMouseOver() and 1 or 0.85)
+    for _, icon in ipairs(controls.circles) do
+        local item = icon.entry and icon.entry(self)
+        local usable = icon.kind == "MENU" or item ~= nil
+        local r, g, b = UI.Color(icon:IsMouseOver() and usable and "Text" or "TextMuted")
+        for _, part in ipairs(icon.parts) do part:SetVertexColor(r, g, b, 1) end
+        if icon.hole then icon.hole:SetVertexColor(UI.Color("Background")) end
+        icon:SetAlpha(usable and 1 or 0.35)
+        if icon.kind == "COLLAPSE" then icon:PointChevron(item and item.text == "EXPAND") end
     end
+end
+
+-- Icon drawing from plain bars (WHITE8X8, rotated) and a disc: no texture files needed, any theme colour.
+local DISC = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
+local function bar(icon, width, height, angle, x, y)
+    local part = icon:CreateTexture(nil, "ARTWORK")
+    part:SetTexture(UI.WHITE)
+    part:SetSize(width, height)
+    part:SetPoint("CENTER", x or 0, y or 0)
+    if angle ~= 0 and part.SetRotation then part:SetRotation(math.rad(angle)) end
+    icon.parts[#icon.parts + 1] = part
+    return part
+end
+
+local function drawGear(icon)
+    for _, angle in ipairs({ 0, 45, 90, 135 }) do bar(icon, 3, 13, angle) end -- eight teeth
+    local disc = icon:CreateTexture(nil, "ARTWORK", nil, 1)
+    disc:SetTexture(DISC)
+    disc:SetSize(9, 9)
+    disc:SetPoint("CENTER")
+    icon.parts[#icon.parts + 1] = disc
+    icon.hole = icon:CreateTexture(nil, "ARTWORK", nil, 2)
+    icon.hole:SetTexture(DISC)
+    icon.hole:SetSize(4, 4)
+    icon.hole:SetPoint("CENTER")
+end
+
+local function drawCross(icon)
+    bar(icon, 2, 12, 45)
+    bar(icon, 2, 12, -45)
+end
+
+-- Chevron: "v" (collapse) or "^" (expand) from two bars.
+local function drawChevron(icon)
+    icon.left = bar(icon, 2, 8, 0)
+    icon.right = bar(icon, 2, 8, 0)
+    function icon:PointChevron(up)
+        if self.chevronUp == up then return end
+        self.chevronUp = up
+        local tilt = up and -45 or 45
+        for side, part in pairs({ [-1] = self.left, [1] = self.right }) do
+            part:ClearAllPoints()
+            part:SetPoint("CENTER", side * 2.5, 0)
+            if part.SetRotation then part:SetRotation(math.rad(side * -tilt)) end
+        end
+    end
+    icon:PointChevron(false)
 end
 
 -- name: global frame name (e.g. "PaTiHealFrame"); title: see UI.Text.
@@ -204,27 +255,27 @@ function UI.CreateWindow(name, title, width, height)
     UI.BindText(titleText, title)
     window.title = titleText
 
-    -- Mac-style circles (see PaintMenuButton), right to left: menu, collapse, hide.
-    local CIRCLE, CIRCLE_GAP, HOVER_CHECK = 11, 6, 0.1
+    -- Header icons (see PaintMenuButton), left to right: menu (gear), collapse (chevron), hide (X). The menu icon is
+    -- the leftmost, so header buttons an addon places left of window.menuButton (PaTiHeal's Mana) never sit under the
+    -- others.
+    local ICON, ICON_GAP, HOVER_CHECK = 14, 4, 0.1
     local controls = CreateFrame("Frame", nil, header)
     controls:SetPoint("RIGHT", -UI.Spacing.SM, 0)
-    controls:SetSize(3 * CIRCLE + 2 * CIRCLE_GAP, UI.Sizes.HeaderHeight)
+    controls:SetSize(3 * ICON + 2 * ICON_GAP, UI.Sizes.HeaderHeight)
     controls.circles = {}
     local specs = {
-        { kind = "HIDE", color = "Danger", tip = "HIDE", entry = function(w) return w:MenuEntry("HIDE") end },
-        { kind = "COLLAPSE", color = "Warning", tip = "COLLAPSE",
+        { kind = "MENU", tip = "MORE", draw = drawGear },
+        { kind = "COLLAPSE", tip = "COLLAPSE", draw = drawChevron,
             entry = function(w) return w:MenuEntry("COLLAPSE", "EXPAND") end },
-        { kind = "MENU", color = "Success", tip = "MORE" },
+        { kind = "HIDE", tip = "HIDE", draw = drawCross, entry = function(w) return w:MenuEntry("HIDE") end },
     }
     for index, spec in ipairs(specs) do
         local circle = CreateFrame("Button", nil, controls)
-        circle:SetSize(CIRCLE + 4, CIRCLE + 4) -- a little larger than the dot: easier to hit
-        circle:SetPoint("LEFT", (index - 1) * (CIRCLE + CIRCLE_GAP) - 2, 0)
-        circle.dot = circle:CreateTexture(nil, "ARTWORK")
-        circle.dot:SetSize(CIRCLE, CIRCLE)
-        circle.dot:SetPoint("CENTER")
-        circle.dot:SetTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMask") -- a white disc
-        circle.kind, circle.color, circle.entry = spec.kind, spec.color, spec.entry
+        circle:SetSize(ICON, ICON)
+        circle:SetPoint("LEFT", (index - 1) * (ICON + ICON_GAP), 0)
+        circle.parts = {}
+        spec.draw(circle)
+        circle.kind, circle.entry = spec.kind, spec.entry
         circle:SetScript("OnClick", function(self)
             GameTooltip:Hide()
             if self.kind == "MENU" then
