@@ -14,6 +14,7 @@ function Window:Attach(db, defaultX, defaultY)
     self:ClearAllPoints()
     local point, relativePoint, x, y = UI.WindowPosition(db, defaultX, defaultY) -- a broken save cannot break SetPoint
     self:SetPoint(point, UIParent, relativePoint, x, y)
+    self:KeepTopSoon()
     self:ApplyTheme() -- this addon's saved theme (db.theme), before the opacity that depends on its colours
     self:ApplyOpacity()
     self:PaintMenuButton()
@@ -53,6 +54,36 @@ end
 function Window:IsSuiteShown()
     if self.suiteIsShown then return self.suiteIsShown() == true end
     return self:IsShown()
+end
+
+-- The top edge stays where it is when the window grows or shrinks (owner 2026-11-20: PaTiAlerts jumped in combat as
+-- rows came and went). A window anchored at its centre grows up and down; anchored at its top-left corner only the
+-- bottom edge moves. Re-anchors to TOPLEFT of UIParent without moving the window. Returns false when it cannot now
+-- (not laid out yet, or a protected window in combat).
+function Window:AnchorTopLeft()
+    if InCombatLockdown() and self.IsProtected and self:IsProtected() then return false end
+    local point = self:GetPoint()
+    local left, top = self:GetLeft(), self:GetTop()
+    if not left or not top then return false end
+    if point ~= "TOPLEFT" then
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+    end
+    return true
+end
+
+-- After Attach: one frame later (the addon has applied its scale by then), or when the window is first shown.
+function Window:KeepTopSoon()
+    local function done() return self:AnchorTopLeft() and (self:SavePosition() or true) end
+    if not self.keepTopWaiter then
+        self.keepTopWaiter = CreateFrame("Frame")
+        self:HookScript("OnShow", function() if self.keepTopPending and done() then self.keepTopPending = nil end end)
+    end
+    self.keepTopPending = true
+    self.keepTopWaiter:SetScript("OnUpdate", function(waiter)
+        waiter:SetScript("OnUpdate", nil)
+        if done() then self.keepTopPending = nil end
+    end)
 end
 
 function Window:SavePosition()
@@ -142,6 +173,7 @@ function UI.CreateWindow(name, title, width, height)
     header:SetScript("OnDragStop", function()
         window:StopMovingOrSizing()
         window:SetUserPlaced(false) -- position lives in the addon's DB, not in WoW's layout cache
+        window:AnchorTopLeft() -- the top edge stays put when the window grows (see AnchorTopLeft)
         window:SavePosition()
     end)
     window.header = header
