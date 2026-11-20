@@ -17,6 +17,17 @@ function UI.ClampOpacity(value)
     return math.max(UI.OPACITY.min, math.min(UI.OPACITY.max, value))
 end
 
+-- Header bar opacity (owner 2026-11-20: the header bars can be a little see-through, adjustable). Saved as
+-- db.headerOpacity; default fully opaque, as before. The header lies on the window body, so it never gets lighter
+-- than the panel opacity.
+UI.HEADER_OPACITY = { min = 0.3, max = 1, default = 1 }
+
+-- Pure: a usable header opacity (missing, odd or out-of-range values → default / clamped).
+function UI.ClampHeaderOpacity(value)
+    if type(value) ~= "number" or value ~= value then return UI.HEADER_OPACITY.default end
+    return math.max(UI.HEADER_OPACITY.min, math.min(UI.HEADER_OPACITY.max, value))
+end
+
 -- The shared registry (created on first use by whichever PaTi addon loads first).
 function UI.WindowRegistry()
     local registry = _G.PaTiSuiteWindows

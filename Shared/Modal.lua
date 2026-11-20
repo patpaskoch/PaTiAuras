@@ -353,7 +353,8 @@ function UI.CreateModal(name, title, width)
     return modal
 end
 
--- The window settings every PaTi addon offers: theme (db.theme) and panel opacity (db.opacity).
+-- The window settings every PaTi addon offers: theme (db.theme), panel opacity (db.opacity) and header opacity
+-- (db.headerOpacity).
 -- window: a UI.CreateWindow window after Attach (uses window.db). Call inside the settings modal build.
 -- onThemeChosen(id) (optional): called after the player picked a theme here (PaTiSuite passes it on to all windows).
 -- The window's "Test Mode" menu entry (if it has one): { checked, onClick } as the addon builds it, or nil.
@@ -404,5 +405,10 @@ function UI.AddWindowSettings(modal, window, width, onThemeChosen)
         items = function() return items end,
         get = function() return UI.ClampOpacity(window.db.opacity) end,
         set = function(value) window.db.opacity = value; window:ApplyOpacity() end,
+    }))
+    modal:AddRow("HEADER_OPACITY", UI.CreateDropdown(modal, width or 170, {
+        items = function() return items end,
+        get = function() return UI.ClampHeaderOpacity(window.db.headerOpacity) end,
+        set = function(value) window.db.headerOpacity = value; window:ApplyOpacity() end,
     }))
 end

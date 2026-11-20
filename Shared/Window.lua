@@ -20,11 +20,13 @@ function Window:Attach(db, defaultX, defaultY)
     self:PaintMenuButton()
 end
 
--- Panel body opacity from db.opacity. Only the window background: header, texts, icons and bars stay as they are.
--- A backdrop colour is no protected property, so this is fine in combat.
+-- Panel body opacity from db.opacity and header opacity from db.headerOpacity. Only backgrounds: texts, icons and
+-- bars stay as they are. Neither a backdrop colour nor a texture alpha is protected, so this is fine in combat.
 function Window:ApplyOpacity()
     local r, g, b, a = UI.Color("Background")
     self:SetBackdropColor(r, g, b, a * UI.ClampOpacity(self.db and self.db.opacity))
+    local header = UI.ClampHeaderOpacity(self.db and self.db.headerOpacity)
+    for _, texture in ipairs(self.headerTextures or {}) do texture:SetAlpha(header) end
 end
 
 -- This addon's theme from db.theme (invalid → default; written back so the save stays clean).
@@ -163,6 +165,7 @@ function UI.CreateWindow(name, title, width, height)
     headerBackground:SetPoint("TOPLEFT", UI.Sizes.Border, -2)
     headerBackground:SetPoint("BOTTOMRIGHT", -UI.Sizes.Border, 0)
     UI.Paint(headerBackground, "SetColorTexture", "Background")
+    window.headerTextures = { headerBand, headerBackground } -- see ApplyOpacity (db.headerOpacity)
     header:RegisterForDrag("LeftButton")
     -- Windows with secure children cannot be moved in combat; display-only ones may opt in (SetCombatMovable).
     header:SetScript("OnDragStart", function()
