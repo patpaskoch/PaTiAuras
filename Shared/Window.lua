@@ -258,7 +258,7 @@ function UI.CreateWindow(name, title, width, height)
     -- Header icons (see PaintMenuButton), left to right: menu (gear), collapse (chevron), hide (X). The menu icon is
     -- the leftmost, so header buttons an addon places left of window.menuButton (PaTiHeal's Mana) never sit under the
     -- others.
-    local ICON, ICON_GAP, HOVER_CHECK = 14, 4, 0.1
+    local ICON, ICON_GAP, HOVER_CHECK = 14, 10, 0.1 -- more room between the icons (owner 2026-11-20)
     local controls = CreateFrame("Frame", nil, header)
     controls:SetPoint("RIGHT", -UI.Spacing.SM, 0)
     controls:SetSize(3 * ICON + 2 * ICON_GAP, UI.Sizes.HeaderHeight)
